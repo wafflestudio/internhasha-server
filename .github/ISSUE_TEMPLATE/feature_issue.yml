@@ -1,0 +1,30 @@
+name: "기능 추가"
+description: "새로운 기능을 생성합니다."
+labels: [feature]
+title: "[FEAT] 이슈 제목"
+
+body:
+  - type: textarea
+    id: abstract
+    attributes:
+      label: "✨ 어떤 기능인가요?"
+      description: "추가하려는 기능에 대해 간결하게 설명해주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: task
+    attributes:
+      label: "✅ 작업 상세 내용"
+      description: "해당 기능 개발 시 수행해야하는 작업을 TODO 형식으로 작성해주세요."
+      placeholder: "- [ ] Task1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: "📝 참고 자료"
+      description: "참고했던 자료를 작성해주세요. (선택)"
+    validations:
+      required: false

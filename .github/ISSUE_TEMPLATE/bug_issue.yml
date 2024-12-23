@@ -1,0 +1,36 @@
+name: "버그 관련 이슈"
+description: "오류 발생 확인 및 수정 시 사용합니다."
+labels: [fix]
+title: "[FIX] 이슈 제목"
+
+body:
+  - type: textarea
+    id: abstract
+    attributes:
+      label: "🐛 어떤 버그인가요?"
+      description: "어떠한 버그인지 간결하게 설명해주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: when
+    attributes:
+      label: "🩹 어떤 상황에서 발생하는 버그인가요?"
+      description: "언제, 어떤 환경에서 어떠한 방식으로 나타나는 버그인지 작성해주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: result
+    attributes:
+      label: "🩹 예상했던 정상적인 결과는 무엇인가요?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: "📝 참고 자료"
+      description: "참고했던 자료를 작성해주세요. (선택)"
+    validations:
+      required: false
