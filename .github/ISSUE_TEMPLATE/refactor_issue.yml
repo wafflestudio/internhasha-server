@@ -1,0 +1,30 @@
+name: "리팩토링 이슈"
+description: "기존 기능을 바꾸지 않으면서 성능 또는 가독성을 향상합니다."
+labels: [refactor]
+title: "[REFACTOR] 이슈 제목"
+
+body:
+  - type: textarea
+    id: abstract
+    attributes:
+      label: "♻️ 리팩토링의 목포가 무엇인가요?"
+      description: "리팩토링을 선택한 이유유에 대해 간결하게 설명해주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: task
+    attributes:
+      label: "✅ 작업 상세 내용"
+      description: "리팩토링 시 수행해야하는 작업을 TODO 형식으로 작성해주세요."
+      placeholder: "- [ ] Task1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: "📝 참고 자료"
+      description: "참고했던 자료를 작성해주세요. (선택)"
+    validations:
+      required: false
