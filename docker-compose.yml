@@ -1,0 +1,43 @@
+
+services:
+  # MySQL 서비스 설정
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-db
+    ports:
+      - "3306:3306"  # DB를 호스트에 연결
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password  # 필요에 맞게 변경
+      MYSQL_DATABASE: survey
+      MYSQL_USER: user
+      MYSQL_PASSWORD: somepassword
+    networks:
+      - app-network  # app-network라는 네트워크 사용
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Spring Boot 애플리케이션 설정
+  spring-app:
+    build:
+      context: .  # 현재 디렉토리에서 Dockerfile을 사용하여 이미지 빌드
+    container_name: spring-app-container
+    depends_on:
+      mysql:
+        condition: service_healthy  # MySQL이 healthcheck를 통과해야 시작
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/survey
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: somepassword
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"  # 컨테이너를 호스트에 연결
+    networks:
+      - app-network  # 네트워크 설정
+
+# 둘을 연결하는 네트워크
+networks:
+  app-network:
+    driver: bridge
