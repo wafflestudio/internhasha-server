@@ -23,6 +23,7 @@ services:
   spring-app:
     build:
       context: .  # 현재 디렉토리에서 Dockerfile을 사용하여 이미지 빌드
+    image: endermaru/22-5-team1-server:latest
     container_name: spring-app-container
     depends_on:
       mysql:
