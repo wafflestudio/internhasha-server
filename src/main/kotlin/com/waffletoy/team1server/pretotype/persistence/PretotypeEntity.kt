@@ -14,7 +14,7 @@ class PretotypeEntity(
     @Column(name = "is_subscribed")
     var isSubscribed: Boolean = false,
     @Column(name = "created_at")
-    var createdAt: Instant = Instant.now()
+    var createdAt: Instant = Instant.now(),
 ) {
     // No-args constructor for Hibernate
     constructor() : this(null, "", false, Instant.now())

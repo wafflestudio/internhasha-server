@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class TestResponseController (
+class TestResponseController(
     private val pretotypeService: PretotypeService,
-){
+) {
     @PostMapping("/api/pretotype")
     fun createPretotype(
-        @RequestBody request: PretotypeRequest
+        @RequestBody request: PretotypeRequest,
     ): ResponseEntity<Pretotype> {
         val pretotype = pretotypeService.createPretotype(request.email, request.isSubscribed)
         return ResponseEntity.ok(pretotype)
@@ -28,5 +28,5 @@ class TestResponseController (
 
 data class PretotypeRequest(
     val email: String,
-    val isSubscribed: Boolean
+    val isSubscribed: Boolean,
 )
