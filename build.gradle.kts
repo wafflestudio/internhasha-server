@@ -1,3 +1,4 @@
+
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
@@ -6,7 +7,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
-group = "com.ToyProject"
+group = "com.waffletoy"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -17,6 +18,7 @@ java {
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -24,7 +26,6 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -35,7 +36,8 @@ dependencies {
     testImplementation("org.glassfish:jakarta.el:5.0.0-M1")
 
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+    implementation("com.mysql:mysql-connector-j:8.2.0")
 }
 
 kotlin {

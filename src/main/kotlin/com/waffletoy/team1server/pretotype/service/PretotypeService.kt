@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
-class PretotypeService (
-    private val pretotypeRepository: PretotypeRepository
-){
+class PretotypeService(
+    private val pretotypeRepository: PretotypeRepository,
+) {
     @Transactional
     fun createPretotype(
         email: String,
@@ -20,11 +20,12 @@ class PretotypeService (
         pretotypeRepository.findByEmail(email) ?.let {
             throw PretotypeEmailConflictException()
         } ?: run {
-            val pretotypeEntity = PretotypeEntity(
-                email = email,
-                isSubscribed = isSubscribed,
-                createdAt = Instant.now()
-            )
+            val pretotypeEntity =
+                PretotypeEntity(
+                    email = email,
+                    isSubscribed = isSubscribed,
+                    createdAt = Instant.now(),
+                )
             pretotypeRepository.save(pretotypeEntity)
             return Pretotype.fromEntity(pretotypeEntity)
         }
