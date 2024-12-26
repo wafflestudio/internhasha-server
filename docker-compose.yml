@@ -13,6 +13,8 @@ services:
       MYSQL_PASSWORD: somepassword
     networks:
       - app-network  # app-network라는 네트워크 사용
+    volumes:
+      - mysql-data:/var/lib/mysql  # MySQL 데이터 디렉토리 매핑
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -48,3 +50,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+# MySQL 데이터 영속성 볼륨
+volumes:
+  mysql-data:
