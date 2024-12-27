@@ -47,5 +47,5 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            docker-compose --env-file .env.prod -f docker-compose.prod.yml pull
+            docker-compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
