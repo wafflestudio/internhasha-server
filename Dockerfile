@@ -6,7 +6,9 @@ FROM openjdk:17
 WORKDIR /app
 
 # copy image to directory
-COPY build/libs/*.jar app.jar
+#COPY build/libs/*.jar app.jar
+ARG JAR_FILE=build/libs/*.jar
+COPY ${JAR_FILE} app.jar
 
 # set port
 EXPOSE 8080
