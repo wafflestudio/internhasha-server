@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            docker-compose down
+            docker-compose --env-file .env.prod -f docker-compose.prod.yml down
             docker-compose --env-file .env.prod -f docker-compose.prod.yml pull
             docker-compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
           debug: true
