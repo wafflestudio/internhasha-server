@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity(name = "tags")
 @Table(name = "tags")
-data class TagEntity(
+class TagEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int? = null,

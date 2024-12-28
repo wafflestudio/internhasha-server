@@ -7,7 +7,7 @@ import java.time.Instant
 
 @Entity(name = "posts")
 @Table(name = "posts")
-data class PostEntity(
+class PostEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int? = null,
