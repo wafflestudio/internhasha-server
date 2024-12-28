@@ -13,6 +13,7 @@ class WebConfig : WebMvcConfigurer {
                 "https://www.survey-josha.site",
                 "https://d3lb937auepw3n.cloudfront.net",
                 "https://d1vq7k80ej9gk7.cloudfront.net",
+                "http://localhost:5173",
             ) // 허용할 도메인
             .allowedMethods("GET", "POST", "PUT", "DELETE") // 허용할 HTTP 메서드
             .allowedHeaders("*") // 허용할 헤더
