@@ -11,7 +11,5 @@ open class DomainException(
     val msg: String,
     cause: Throwable? = null,
 ) : RuntimeException(msg, cause) {
-    override fun toString(): String {
-        return "com.waffletoy.team1server.DomainException(msg='$msg', errorCode=$errorCode, httpErrorCode=$httpErrorCode)"
-    }
+    override fun toString(): String = "com.waffletoy.team1server.DomainException(msg='$msg', errorCode=$errorCode, httpErrorCode=$httpErrorCode)"
 }
