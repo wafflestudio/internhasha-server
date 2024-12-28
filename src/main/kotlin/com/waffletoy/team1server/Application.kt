@@ -8,7 +8,7 @@ import org.springframework.boot.runApplication
 @OpenAPIDefinition(
     servers = [
         Server(
-            url = "/",
+            url = "https://www.survey-josha.site",
             description = "Default Server URL",
         ),
     ],
