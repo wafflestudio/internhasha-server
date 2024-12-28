@@ -1,6 +1,6 @@
 
-# Java version
-FROM openjdk:17
+# Java version - lightweight
+FROM amazoncorretto:17-alpine
 
 # set working directory
 WORKDIR /app
