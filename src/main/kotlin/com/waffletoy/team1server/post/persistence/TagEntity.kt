@@ -8,7 +8,7 @@ class TagEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int? = null,
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 100, unique = true)
     val name: String,
     @ManyToMany(mappedBy = "tags")
     val posts: Set<PostEntity> = emptySet(),
