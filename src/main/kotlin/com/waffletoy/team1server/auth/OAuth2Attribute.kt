@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.auth
 
+// Oauth의 정보를 담기 위한 data class
 data class OAuth2Attribute(
     val provider: String,
     val attributes: Map<String, Any>,

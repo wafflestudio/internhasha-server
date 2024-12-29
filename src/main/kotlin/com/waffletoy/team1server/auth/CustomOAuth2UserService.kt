@@ -20,8 +20,11 @@ class CustomOAuth2UserService : DefaultOAuth2UserService() {
         val attributes = oAuth2User.attributes
         val oAuth2Attribute = OAuth2Attribute.of(clientRegistrationId, userNameAttributeName, attributes)
 
+        // 사용자 권한을 구분 가능
+
         return DefaultOAuth2User(
-            setOf(SimpleGrantedAuthority("ROLE_USER")), // 권한 목록
+            // 권한 목록
+            setOf(SimpleGrantedAuthority("ROLE_USER")),
             oAuth2Attribute.mapAttribute(),
             "email",
         )

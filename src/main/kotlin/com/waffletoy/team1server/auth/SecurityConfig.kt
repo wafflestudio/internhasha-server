@@ -16,15 +16,15 @@ class SecurityConfig(
             .csrf { csrf -> csrf.disable() } // CSRF 비활성화
             .authorizeHttpRequests { requests ->
                 requests
-                    .requestMatchers("/api/social-google").permitAll() // 공개 엔드포인트
-                    .anyRequest().authenticated() // 나머지 요청은 인증 필요
+                    .requestMatchers("/api/social-google").authenticated() // 공개 엔드포인트
+                    .anyRequest().permitAll() // 나머지 요청은 인증 필요
             }
             .oauth2Login { oauth2 ->
                 oauth2.authorizationEndpoint { auth ->
                     auth.baseUri("/oauth2/authorization") // 인증 요청 엔드포인트
                 }
                     .redirectionEndpoint { redir ->
-                        redir.baseUri("/login/oauth2/code/**") // 리디렉션 엔드포인트
+                        redir.baseUri("/login/oauth2/code/**") // 리다이렉션 엔드포인트
                     }
                     .userInfoEndpoint { userInfo ->
                         userInfo.userService(customOAuth2UserService) // 사용자 정보 처리
