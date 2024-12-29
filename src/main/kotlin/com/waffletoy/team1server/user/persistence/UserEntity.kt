@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.user.persistence
 
-import com.waffletoy.team1server.participation.persistence.ParticipationEntity
 import com.waffletoy.team1server.post.persistence.PostEntity
 import jakarta.persistence.*
 
@@ -18,6 +17,6 @@ class UserEntity(
     val phoneNumber: String,
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     val authoredPosts: Set<PostEntity> = emptySet(),
-    @OneToMany(mappedBy = "participant", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
-    val participations: Set<ParticipationEntity> = emptySet(), // 이거 어떻게 쓸지는 고민을 해봐야겠어요
+//    @OneToMany(mappedBy = "participant", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+//    val participations: Set<ParticipationEntity> = emptySet(), // 이거 어떻게 쓸지는 고민을 해봐야겠어요
 )
