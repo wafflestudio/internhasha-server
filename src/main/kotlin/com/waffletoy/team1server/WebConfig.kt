@@ -15,7 +15,7 @@ class WebConfig : WebMvcConfigurer {
                 "https://d1vq7k80ej9gk7.cloudfront.net",
                 "http://localhost:5173",
             ) // 허용할 도메인
-            .allowedMethods("GET", "POST", "PUT", "DELETE") // 허용할 HTTP 메서드
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용할 HTTP 메서드
             .allowedHeaders("*") // 허용할 헤더
             .allowCredentials(true) // 인증 정보(쿠키 등) 허용
     }
