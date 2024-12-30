@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.controller
 
 import com.waffletoy.team1server.post.controller.Post
+import com.waffletoy.team1server.user.UserStatus
 import com.waffletoy.team1server.user.persistence.UserEntity
 
 data class User(
@@ -9,6 +10,7 @@ data class User(
     val email: String,
     val phoneNumber: String,
     val authoredPosts: Set<Post>,
+    val status: UserStatus,
 ) {
     companion object {
         fun fromEntity(entity: UserEntity): User =
@@ -18,6 +20,7 @@ data class User(
                 email = entity.email,
                 phoneNumber = entity.phoneNumber,
                 authoredPosts = entity.authoredPosts.map { Post.fromEntity(it) }.toSet(),
+                status = entity.status,
             )
     }
 }
