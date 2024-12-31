@@ -68,7 +68,7 @@ jobs:
           ls -l
           
       - name: Check docker-compose files
-        run: ls -l ./docker-compose*.yml
+        run: ls -l ${GITHUB_WORKSPACE}/docker-compose*.yml
         
       # 1. Send docker-compose.yml to EC2 server
       - name: Copy docker-compose files to EC2
@@ -78,8 +78,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: |
-            ./docker-compose.yml
-            ./docker-compose.prod.yml
+            ${GITHUB_WORKSPACE}/docker-compose.yml
+            ${GITHUB_WORKSPACE}/docker-compose.prod.yml
           target: ~/
 
       # 2. Deploy to EC2 via SSH
