@@ -14,6 +14,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
             description = "Default Server URL",
         ),
         Server(
+            url = "https://survey-josha.site",
+            description = "Alias Server URL",
+        ),
+        Server(
             url = "http://localhost:8080",
             description = "Local Test URL",
         ),
@@ -24,14 +28,17 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 class Application
 
 fun main(args: Array<String>) {
-    // .env 변수 가져오기
-    val dotenv = Dotenv.load()
-    System.setProperty("GOOGLE_CLIENT_ID", dotenv["GOOGLE_CLIENT_ID"] ?: throw IllegalArgumentException("GOOGLE_CLIENT_ID not set"))
-    System.setProperty("GOOGLE_CLIENT_SECRET", dotenv["GOOGLE_CLIENT_SECRET"] ?: throw IllegalArgumentException("GOOGLE_CLIENT_SECRET not set"))
-    System.setProperty("GOOGLE_AUTH_URI", dotenv["GOOGLE_AUTH_URI"] ?: throw IllegalArgumentException("GOOGLE_AUTH_URI not set"))
-    System.setProperty("GOOGLE_TOKEN_URI", dotenv["GOOGLE_TOKEN_URI"] ?: throw IllegalArgumentException("GOOGLE_TOKEN_URI not set"))
+    // Load .env file
+    val dotenv =
+        Dotenv.configure()
+            .directory(".") // .env 파일이 루트 디렉토리에 있을 경우
+            .ignoreIfMissing() // .env 파일이 없으면 무시
+            .load()
 
-    System.setProperty("TOKEN_PRIVATE_KEY", dotenv["TOKEN_PRIVATE_KEY"] ?: throw IllegalArgumentException("TOKEN_PRIVATE_KEY not set"))
+    // Set environment variables
+    dotenv.entries().forEach { entry ->
+        System.setProperty(entry.key, entry.value)
+    }
 
     runApplication<Application>(*args)
 }
