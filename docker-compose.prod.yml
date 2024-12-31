@@ -4,21 +4,23 @@ services:
     image: endermaru/22-5-team1-server:latest  # Docker Hub에 푸시한 이미지를 사용
     container_name: spring-app-container
     environment:
+      # RDS 연결 정보
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
+      # Swagger
       SPRING_DOC_SWAGGER_UI_ENABLED: "true"
       SPRING_DOC_SWAGGER_UI_PATH: "/swagger-ui"
       SPRING_DOC_API_DOCS_ENABLED: "true"
       SPRING_DOC_API_DOCS_PATH: "/v3/api-docs"
     ports:
-      - "8080:8080"  # 필요에 따라 포트 변경 가능
+      - "8080:8080"
     networks:
       - app-network
     env_file:
-      - .env.prod
+      - .env
 
 networks:
   app-network:
