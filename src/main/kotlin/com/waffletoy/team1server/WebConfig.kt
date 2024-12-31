@@ -1,8 +1,8 @@
 package com.waffletoy.team1server
 
-import org.springframework.context.annotation.Configuration
-import org.springframework.web.servlet.config.annotation.CorsRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+// import org.springframework.context.annotation.Configuration
+// import org.springframework.web.servlet.config.annotation.CorsRegistry
+// import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 // @Configuration
 // class WebConfig : WebMvcConfigurer {
@@ -20,14 +20,3 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 //             .allowCredentials(true) // 인증 정보(쿠키 등) 허용
 //     }
 // }
-
-@Configuration
-class WebConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**") // 모든 경로에 대해 CORS 허용
-            .allowedOrigins("*") // 모든 도메인 허용
-            .allowedMethods("*") // 모든 HTTP 메서드 허용
-            .allowedHeaders("*") // 모든 헤더 허용
-            .allowCredentials(false) // 인증 정보는 허용하지 않음 (모든 도메인 허용 시 필요)
-    }
-}
