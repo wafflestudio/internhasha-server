@@ -70,6 +70,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         
+      - name: Check workspace files
+        run: ls -al ${GITHUB_WORKSPACE}
+        
       # 1. Send docker-compose.yml to EC2 server
       - name: Copy docker-compose files to EC2
         uses: appleboy/scp-action@master
