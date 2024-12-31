@@ -85,8 +85,14 @@ object UserTokenUtil {
     private const val ACCESS_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 2 // 2 hours
     private const val REFRESH_TOKEN_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 30 // 30 days
     private val dotenv = Dotenv.load()
+
+    private val TOKEN_PRIVATE_KEY =
+        dotenv["TOKEN_PRIVATE_KEY"]
+            ?: System.getenv("TOKEN_PRIVATE_KEY")
+            ?: throw RuntimeException("TOKEN_PRIVATE_KEY not found")
+
     private val SECRET_KEY =
         Keys.hmacShaKeyFor(
-            dotenv["TOKEN_PRIVATE_KEY"]!!.toByteArray(StandardCharsets.UTF_8),
+            TOKEN_PRIVATE_KEY.toByteArray(StandardCharsets.UTF_8),
         )
 }
