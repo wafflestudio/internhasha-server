@@ -62,13 +62,10 @@ jobs:
     needs: build-and-push
 
     steps:
-      - name: Debug workspace
-        run: |
-          pwd
-          ls -l
-          
-      - name: Check docker-compose files
-        run: ls -l ${GITHUB_WORKSPACE}/docker-compose*.yml
+    
+      # 1. Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
         
       # 1. Send docker-compose.yml to EC2 server
       - name: Copy docker-compose files to EC2
@@ -78,8 +75,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: |
-            ${GITHUB_WORKSPACE}/docker-compose.yml
-            ${GITHUB_WORKSPACE}/docker-compose.prod.yml
+            ./docker-compose.yml
+            ./docker-compose.prod.yml
           target: ~/
 
       # 2. Deploy to EC2 via SSH
