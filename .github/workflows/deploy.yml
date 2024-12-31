@@ -73,6 +73,10 @@ jobs:
       - name: Debug workspace
         run: ls ./
         
+      - name: Verify files to copy
+        run: |
+          ls -l docker-compose.yml docker-compose.prod.yml
+        
       # 1. Send docker-compose.yml to EC2 server
       - name: Copy docker-compose files to EC2
         uses: appleboy/scp-action@master
@@ -84,7 +88,7 @@ jobs:
             docker-compose.yml
             docker-compose.prod.yml
           target: ~/
-
+          
       # 2. Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
