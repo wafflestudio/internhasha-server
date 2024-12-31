@@ -88,6 +88,7 @@ jobs:
             docker-compose.yml
             docker-compose.prod.yml
           target: ~/
+          tar_exec: ""
           
       # 2. Deploy to EC2 via SSH
       - name: Deploy to EC2
