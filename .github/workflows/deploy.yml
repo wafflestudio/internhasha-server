@@ -62,6 +62,11 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: Debug workspace
+        run: |
+          pwd
+          ls -l
+          
       - name: Check docker-compose files
         run: ls -l ./docker-compose*.yml
         
