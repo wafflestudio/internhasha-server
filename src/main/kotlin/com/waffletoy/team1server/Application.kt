@@ -10,11 +10,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 @OpenAPIDefinition(
     servers = [
         Server(
-            url = "https://www.survey-josha.site",
+            url = "https://www.api.survey-josha.site",
             description = "Default Server URL",
         ),
         Server(
-            url = "https://survey-josha.site",
+            url = "https://api.survey-josha.site",
             description = "Alias Server URL",
         ),
         Server(
