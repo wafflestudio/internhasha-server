@@ -17,6 +17,17 @@ spring:
                         authorization-uri: ${GOOGLE_AUTH_URI}
                         token-uri: ${GOOGLE_TOKEN_URI}
                         user-name-attribute: email
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${EMAIL_SRC}
+        password: ${EMAIL_PASSWORD}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
 
 springdoc:
     swagger-ui:

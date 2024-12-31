@@ -14,37 +14,37 @@ sealed class UserException(
 class SignUpConflictException(
     customMessage: String? = null,
 ) : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.CONFLICT,
-    msg = customMessage ?: "Argument Conflict",
-)
+        errorCode = 0,
+        httpStatusCode = HttpStatus.CONFLICT,
+        msg = customMessage ?: "Argument Conflict",
+    )
 
 // Null이 아니어야할 필드가 Null일 때
 class SignUpIllegalArgumentException(
-    customMessage: String? = null
+    customMessage: String? = null,
 ) : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.BAD_REQUEST,
-    msg = customMessage ?: "Invalid Argument"
-)
+        errorCode = 0,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
+        msg = customMessage ?: "Invalid Argument",
+    )
 
 // 조건에 맞지 않는 아이디, 비밀번호일 때
 class SignUpBadArgumentException(
-    customMessage: String? = null
+    customMessage: String? = null,
 ) : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.BAD_REQUEST,
-    msg = customMessage ?: "Invalid Argument"
-)
+        errorCode = 0,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
+        msg = customMessage ?: "Invalid Argument",
+    )
 
 // Null이 아니어야할 필드가 Null일 때
 class SignInIllegalArgumentException(
-    customMessage: String? = null
+    customMessage: String? = null,
 ) : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.BAD_REQUEST,
-    msg = customMessage ?: "Invalid Argument"
-)
+        errorCode = 0,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
+        msg = customMessage ?: "Invalid Argument",
+    )
 
 class SignInUserNotFoundException : UserException(
     errorCode = 0,

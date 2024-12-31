@@ -9,7 +9,7 @@ import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.security.SignatureException
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.Date
+import java.util.*
 
 object UserTokenUtil {
     data class Tokens(
