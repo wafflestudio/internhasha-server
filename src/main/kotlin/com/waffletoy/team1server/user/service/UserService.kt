@@ -1,7 +1,8 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.controller.User
+import com.waffletoy.team1server.user.UserTokenUtil.isRefreshTokenExpired
+import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -13,63 +14,139 @@ import java.time.Instant
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val googleOAuth2Client: GoogleOAuth2Client
 ) {
     // 회원가입
     @Transactional
     fun signUp(
-        name: String,
-        email: String,
-        phoneNumber: String,
-        password: String?,
         authProvider: AuthProvider,
-    ): User {
-        // 이미 이메일이 존재한다면 throw
-        if (userRepository.existsByEmail(email)) {
-            throw SignUpUserEmailConflictException()
-        }
+        email: String,
+        nickname: String?,
+        loginID: String?,
+        password: String?,
+        socialAccessToken: String?,
+    ): Pair<User, UserTokenUtil.Tokens> {
 
-        // 비밀번호 암호화 (null이면 그대로) - 소셜 로그인은 비밀번호 없음
-        val encryptedPassword =
-            password?.let {
-                BCrypt.hashpw(it, BCrypt.gensalt())
+        val finalEmail: String
+        val finalNickname: String
+
+        if (authProvider == AuthProvider.GOOGLE) {
+            // 구글 소셜 로그인
+            // 필수값 확인
+            if (socialAccessToken.isNullOrBlank()) {
+                throw SignUpIllegalArgumentException("Social access token is required for Google signup")
+            }
+            
+            // Google OAuth2를 통해 이메일과 이름 가져오기
+            val googleUserInfo = googleOAuth2Client.getUserInfo(socialAccessToken)
+            finalEmail = googleUserInfo.email
+            finalNickname = nickname ?: googleUserInfo.name
+
+        } else {
+            // 로컬 로그인
+            // 필수값 확인
+            if (nickname.isNullOrBlank())
+                throw SignUpIllegalArgumentException("Nickname is required for Local signup")
+            if (loginID.isNullOrBlank())
+                throw SignUpIllegalArgumentException("loginID is required for Local signup")
+            if (password.isNullOrBlank())
+                throw SignUpIllegalArgumentException("password is required for Local signup")
+
+            // loginID 조건 확인
+            val loginIdRegex = Regex("^[a-zA-Z][a-zA-Z0-9_-]{4,19}$")
+            if (!loginIdRegex.matches(loginID)) {
+                throw SignUpBadArgumentException("loginID must be 5-20 characters long and only contain letters, numbers, '_', or '-'")
             }
 
-        // 유저 정보 저장
-        val user =
-            userRepository.save(
-                UserEntity(
-                    name = name,
-                    email = email,
-                    phoneNumber = phoneNumber,
-                    password = encryptedPassword,
-                    status = UserStatus.INACTIVE,
-                    authProvider = authProvider,
-                    authoredPosts = emptySet(),
-                ),
-            )
+            // password 조건 확인
+            val passwordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$!^*])[A-Za-z\\d@#$!^*]{8,20}$")
+            if (!passwordRegex.matches(password)) {
+                throw SignUpBadArgumentException("password must be 8-20 characters long, include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@#$!^*)")
+            }
 
-        return User.fromEntity(user)
+            // 이미 같은 로그인이 존재한다면 throw(CONFLICT)
+            if (userRepository.existsByLoginID(loginID)) {
+                throw SignUpConflictException("User LoginID Conflict")
+            }
+
+            finalEmail = email
+            finalNickname = nickname
+        }
+
+        // 이미 이메일이 존재한다면 throw(CONFLICT)
+        if (userRepository.existsByEmail(finalEmail)) {
+            throw SignUpConflictException("User Email Conflict")
+        }
+
+        // 비밀번호 암호화 - 소셜 로그인은 비밀번호 없음
+        val encryptedPassword = password?.let {
+            BCrypt.hashpw(it, BCrypt.gensalt())
+        }
+
+        // 유저 정보 저장
+        val user = userRepository.save(
+            UserEntity(
+                email = finalEmail,
+                nickname = finalNickname,
+                status = UserStatus.INACTIVE,
+                authProvider = authProvider,
+                loginID = loginID,
+                password = encryptedPassword,
+            )
+        )
+
+        // 토큰 발급
+        val tokens = UserTokenUtil.generateTokens(user, userRepository)
+
+        return Pair(User.fromEntity(user), tokens)
     }
 
     // 로그인
     @Transactional
     fun signIn(
-        email: String,
-        password: String,
         authProvider: AuthProvider,
+        socialAccessToken: String?,
+        loginID: String?,
+        password: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
-        // 입력한 이메일을 기준으로 해당 유저를 찾음
-        val targetUser = userRepository.findByEmail(email) ?: throw SignInUserNotFoundException()
 
-        // 비밀번호 확인(소셜 로그인이면 null)
-        if (!BCrypt.checkpw(password, targetUser.password)) {
-            throw SignInInvalidPasswordException()
+        val finalUser: UserEntity
+
+        if (authProvider == AuthProvider.GOOGLE) {
+            // 구글 소셜 로그인
+            // 필수값 확인
+            if (socialAccessToken.isNullOrBlank()) {
+                throw SignInIllegalArgumentException("Social access token is required for Google signIn")
+            }
+
+            // Google OAuth2를 통해 이메일과 이름 가져오기
+            val googleUserInfo = googleOAuth2Client.getUserInfo(socialAccessToken)
+            val email = googleUserInfo.email
+
+            val user = userRepository.findByEmail(email)
+                ?: throw SignInUserNotFoundException()
+            finalUser = user
+        } else {
+            // 로컬 로그인
+            if (loginID.isNullOrBlank())
+                throw SignInIllegalArgumentException("loginID is required for Local signin")
+            if (password.isNullOrBlank())
+                throw SignInIllegalArgumentException("password is required for Local signin")
+            val user = userRepository.findByLoginID(loginID)
+                ?: throw SignInUserNotFoundException()
+
+            // 비밀번호 확인(소셜 로그인이면 null)
+            if (!BCrypt.checkpw(password, user.password)) {
+                throw SignInInvalidPasswordException()
+            }
+
+            finalUser = user;
         }
 
         // 토큰 발급
-        val tokens = UserTokenUtil.generateTokens(targetUser, userRepository)
+        val tokens = UserTokenUtil.generateTokens(finalUser, userRepository)
 
-        return Pair(User.fromEntity(targetUser), tokens)
+        return Pair(User.fromEntity(finalUser), tokens)
     }
 
     // Access Token 만료 시 Refresh Token으로 재발급
@@ -82,7 +159,7 @@ class UserService(
             userRepository.findByRefreshToken(refreshToken)
                 ?: throw RefreshTokenInvalidException()
 
-        if (userEntity.refreshTokenExpiresAt?.isBefore(now) == true) {
+        if (isRefreshTokenExpired(refreshToken)) {
             throw RefreshTokenExpiredException()
         }
 

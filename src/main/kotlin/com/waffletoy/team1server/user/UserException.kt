@@ -11,23 +11,39 @@ sealed class UserException(
     cause: Throwable? = null,
 ) : DomainException(errorCode, httpStatusCode, msg, cause)
 
-class SignUpUserEmailConflictException : UserException(
+class SignUpConflictException(
+    customMessage: String? = null,
+) : UserException(
     errorCode = 0,
     httpStatusCode = HttpStatus.CONFLICT,
-    msg = "Username conflict",
+    msg = customMessage ?: "Argument Conflict",
 )
 
-class SignUpBadUsernameException : UserException(
+// Null이 아니어야할 필드가 Null일 때
+class SignUpIllegalArgumentException(
+    customMessage: String? = null
+) : UserException(
     errorCode = 0,
     httpStatusCode = HttpStatus.BAD_REQUEST,
-    msg = "Bad username",
+    msg = customMessage ?: "Invalid Argument"
 )
 
-// 401
-class SignUpBadPasswordException : UserException(
+// 조건에 맞지 않는 아이디, 비밀번호일 때
+class SignUpBadArgumentException(
+    customMessage: String? = null
+) : UserException(
     errorCode = 0,
     httpStatusCode = HttpStatus.BAD_REQUEST,
-    msg = "Bad password",
+    msg = customMessage ?: "Invalid Argument"
+)
+
+// Null이 아니어야할 필드가 Null일 때
+class SignInIllegalArgumentException(
+    customMessage: String? = null
+) : UserException(
+    errorCode = 0,
+    httpStatusCode = HttpStatus.BAD_REQUEST,
+    msg = customMessage ?: "Invalid Argument"
 )
 
 class SignInUserNotFoundException : UserException(

@@ -6,9 +6,14 @@ import org.springframework.data.jpa.repository.Query
 import java.time.Instant
 
 interface UserRepository : JpaRepository<UserEntity, Int> {
+
     fun findByEmail(email: String): UserEntity?
 
+    fun findByLoginID(loginID: String): UserEntity?
+
     fun existsByEmail(email: String): Boolean
+
+    fun existsByLoginID(userId: String): Boolean
 
     // Refresh Token으로 사용자 검색
     fun findByRefreshToken(refreshToken: String): UserEntity?
@@ -18,12 +23,4 @@ interface UserRepository : JpaRepository<UserEntity, Int> {
         refreshToken: String,
         now: Instant,
     ): UserEntity?
-
-    @Modifying
-    @Query("UPDATE users u SET u.refreshToken = :refreshToken, u.refreshTokenExpiresAt = :expiresAt WHERE u.id = :userId")
-    fun updateRefreshToken(
-        userId: Int,
-        refreshToken: String,
-        expiresAt: Instant,
-    ): Int
 }

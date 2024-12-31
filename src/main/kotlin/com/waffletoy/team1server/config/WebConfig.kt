@@ -1,4 +1,4 @@
-package com.waffletoy.team1server
+package com.waffletoy.team1server.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.CorsRegistry
