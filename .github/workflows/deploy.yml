@@ -80,7 +80,7 @@ jobs:
           source: |
             ${GITHUB_WORKSPACE}/docker-compose.yml
             ${GITHUB_WORKSPACE}/docker-compose.prod.yml
-          target: ~/
+          target: /home/ubuntu
           debug: true
           
       # 2. Deploy to EC2 via SSH
