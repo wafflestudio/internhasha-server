@@ -46,11 +46,11 @@ class UserController(
         return ResponseEntity.ok(
             TokensResponse(
                 userResponse =
-                    UserResponse(
-                        name = user.name,
-                        email = user.email,
-                        phoneNumber = user.phoneNumber,
-                    ),
+                UserResponse(
+                    name = user.name,
+                    email = user.email,
+                    phoneNumber = user.phoneNumber,
+                ),
                 accessToken = tokens.accessToken,
                 refreshToken = tokens.refreshToken,
             ),
@@ -95,18 +95,33 @@ class UserController(
 //    }
 }
 
-data class SignUpRequest(
-    val name: String,
+data class UserData(
+    val id: Int
+    val nickname: String,
     val email: String,
-    val phoneNumber: String,
-    val password: String?,
+
+)
+
+data class SignUpRequest(
     val authProvider: AuthProvider,
+    val email: String,
+    val nickname: String?,
+    val loginID: String?,
+    val password: String?,
+    val accessToken: String?,
+)
+
+data class SignUpResponse(
+    val UserData
 )
 
 data class SignInRequest(
-    val email: String,
-    val password: String,
     val authProvider: AuthProvider,
+    // 소셜 로그인
+    val accessToken: String?,
+    // 로컬 로그인
+    val loginId: String?,
+    val password: String?,
 )
 
 data class RefreshTokenRequest(
@@ -117,11 +132,7 @@ data class AccessTokenRequest(
     val accessToken: String,
 )
 
-data class UserResponse(
-    val name: String,
-    val email: String,
-    val phoneNumber: String,
-)
+
 
 data class TokensResponse(
     val userResponse: UserResponse?,
