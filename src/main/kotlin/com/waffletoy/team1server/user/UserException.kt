@@ -64,14 +64,24 @@ class AuthenticateException : UserException(
     msg = "Authenticate failed",
 )
 
-class RefreshTokenExpiredException : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.UNAUTHORIZED,
-    msg = "Token expired",
-)
+class RefreshTokenInvalidException(
+    customMessage: String? = null,
+) : UserException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.UNAUTHORIZED,
+        msg = customMessage ?: "Invalid Refresh token",
+    )
 
-class RefreshTokenInvalidException : UserException(
+class AccessTokenInvalidException(
+    customMessage: String? = null,
+) : UserException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.UNAUTHORIZED,
+        msg = customMessage ?: "Invalid Access token",
+    )
+
+class EmailSendException : UserException(
     errorCode = 0,
-    httpStatusCode = HttpStatus.UNAUTHORIZED,
-    msg = "Invalid token",
+    httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+    msg = "Email send failed",
 )

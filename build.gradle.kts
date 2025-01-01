@@ -45,6 +45,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    // redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     // dotenv
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 

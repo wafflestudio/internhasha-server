@@ -5,6 +5,7 @@ import com.waffletoy.team1server.user.UserStatus
 import com.waffletoy.team1server.user.service.EmailService
 import com.waffletoy.team1server.user.service.UserService
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -14,7 +15,13 @@ import org.springframework.web.bind.annotation.*
 class UserController(
     private val userService: UserService,
     private val emailService: EmailService,
+    @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
+    @GetMapping("/debug")
+    fun debug(): String {
+        return "IS_SECURE: $isSecure"
+    }
+
     // 회원가입
     @PostMapping("/signup")
     fun signUp(
@@ -38,7 +45,7 @@ class UserController(
                 tokens.refreshToken,
             )
                 .httpOnly(true)
-                .secure(true) // HTTPS 사용 시 활성화
+                .secure(isSecure) // HTTPS 사용 시 활성화
                 .path("/")
                 .maxAge(7 * 24 * 60 * 60) // 7일
                 .build()
@@ -81,7 +88,7 @@ class UserController(
                 tokens.refreshToken,
             )
                 .httpOnly(true)
-                .secure(true) // HTTPS 사용 시 활성화
+                .secure(isSecure) // HTTPS 사용 시 활성화
                 .path("/")
                 .maxAge(7 * 24 * 60 * 60) // 7일
                 .build()

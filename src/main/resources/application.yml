@@ -28,6 +28,9 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+custom:
+    domain-url: api.survey-josha.site
+    is-secure: ${IS_SECURE:false}
 
 springdoc:
     swagger-ui:

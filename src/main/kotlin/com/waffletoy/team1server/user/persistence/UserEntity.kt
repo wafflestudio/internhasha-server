@@ -32,12 +32,6 @@ open class UserEntity(
     // 해시된 비밀번호 저장
     @Column(name = "password", nullable = true)
     val password: String? = null,
-    // Refresh Token 저장
-    @Column(name = "refresh_token", nullable = true)
-    var refreshToken: String? = null,
-    // Email Token 저장
-    @Column(name = "email_token", nullable = true)
-    var emailToken: String? = null,
     // 작성한 포스트
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     val authoredPosts: Set<PostEntity> = emptySet(),

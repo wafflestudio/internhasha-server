@@ -1,11 +1,10 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.UserTokenUtil.isRefreshTokenExpired
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
-import io.github.cdimascio.dotenv.Dotenv
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.stereotype.Service
@@ -17,6 +16,7 @@ class UserService(
     private val userRepository: UserRepository,
     private val googleOAuth2Client: GoogleOAuth2Client,
     private val emailService: EmailService,
+    private val redisTokenService: RedisTokenService,
 ) {
     // 회원가입
     @Transactional
@@ -100,22 +100,11 @@ class UserService(
                 ),
             )
 
-        // 토큰 발급
-        val tokens = UserTokenUtil.generateTokens(user, userRepository)
+        // 토큰 발급 및 저장
+        val tokens = issueTokens(user)
 
-        // 이메일 전송
-        // 이메일 인증 토큰 생성
-        val emailToken = UUID.randomUUID().toString()
-        user.emailToken = emailToken
-
-        // 이메일 인증 링크 생성
-        val verifyLink = "https://$domainURL/verify-email?token=$emailToken"
-        // 이메일 발송
-        emailService.sendEmail(
-            to = finalEmail,
-            subject = "이메일 인증 요청",
-            body = "이메일 인증 링크: $verifyLink",
-        )
+        // 인증 이메일 발송
+        sendEmailVerification(user, email)
 
         return Pair(User.fromEntity(user), tokens)
     }
@@ -165,39 +154,94 @@ class UserService(
             finalUser = user
         }
 
-        // 토큰 발급
-        val tokens = UserTokenUtil.generateTokens(finalUser, userRepository)
+        // RTR 방식
+        // 기존 Refresh Token 확인
+        val existingRefreshToken = redisTokenService.getRefreshToken(finalUser.id)
+        if (existingRefreshToken != null) {
+            // 기존 Refresh Token 무효화
+            redisTokenService.deleteRefreshToken(finalUser.id)
+        }
 
-        return Pair(User.fromEntity(finalUser), tokens)
+        // 새로운 Access Token 및 Refresh Token 발급
+        val newTokens = UserTokenUtil.generateTokens(finalUser)
+
+        // 새 Refresh Token 저장
+        redisTokenService.saveRefreshToken(finalUser.id, newTokens.refreshToken)
+
+        return Pair(User.fromEntity(finalUser), newTokens)
     }
 
     // Access Token 만료 시 Refresh Token으로 재발급
     @Transactional
     fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
-        // Refresh Token 유효성 검증
+        // Refresh Token 유효성 검증 (Redis에서 확인)
+        val userId =
+            redisTokenService.getUserIdByRefreshToken(refreshToken)
+                ?: throw RefreshTokenInvalidException("Invalid Refresh Token")
+
+        // 기존 Refresh Token 삭제 (RTR 방식 적용)
+        redisTokenService.deleteRefreshToken(userId)
+
+        // 사용자 정보 조회
         val userEntity =
-            userRepository.findByRefreshToken(refreshToken)
-                ?: throw RefreshTokenInvalidException()
+            userRepository.findByIdOrNull(userId)
+                ?: throw RefreshTokenInvalidException("User not found for Refresh Token")
 
-        if (isRefreshTokenExpired(refreshToken)) {
-            throw RefreshTokenExpiredException()
-        }
+        // 새로운 Access Token 및 Refresh Token 발급
+        val newTokens = UserTokenUtil.generateTokens(userEntity)
 
-        // 새 토큰 발급
-        return UserTokenUtil.generateTokens(userEntity, userRepository)
+        // 새 Refresh Token 저장
+        redisTokenService.saveRefreshToken(userId, newTokens.refreshToken)
+
+        return newTokens
     }
 
     // Access token으로 인증
     @Transactional
     fun authenticate(accessToken: String): User {
-        val userId = UserTokenUtil.validateAccessTokenGetUserId(accessToken) ?: throw AuthenticateException()
-        val user = userRepository.findByIdOrNull(userId.toInt()) ?: throw AuthenticateException()
-        return User.fromEntity(user)
+        // Access Token 검증 및 사용자 ID 추출
+        val userId =
+            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+                ?: throw AuthenticateException()
+
+        // 사용자 정보 조회
+        val userEntity =
+            userRepository.findByIdOrNull(userId)
+                ?: throw AuthenticateException()
+
+        return User.fromEntity(userEntity)
     }
 
-    private val dotenv = Dotenv.load()
-    private val domainURL =
-        dotenv["DOMAIN_URL"]
-            ?: System.getenv("DOMAIN_URL")
-            ?: throw RuntimeException("DOMAIN_URL not found")
+    private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {
+        val tokens = UserTokenUtil.generateTokens(user)
+        redisTokenService.saveRefreshToken(user.id, tokens.refreshToken)
+        return tokens
+    }
+
+    private fun sendEmailVerification(
+        user: UserEntity,
+        email: String,
+    ) {
+        // 이메일 인증 토큰 생성
+        val emailToken = UUID.randomUUID().toString()
+
+        // Redis 에 Email Token 저장
+        redisTokenService.saveEmailToken(user.id, emailToken)
+
+        // 이메일 인증 링크 생성
+        val verifyLink = "https://$domainUrl/verify-email?token=$emailToken"
+        // 이메일 발송
+        try {
+            emailService.sendEmail(
+                to = email,
+                subject = "이메일 인증 요청",
+                body = "이메일 인증 링크: $verifyLink",
+            )
+        } catch (ex: Exception) {
+            throw EmailSendException()
+        }
+    }
+
+    @Value("\${custom.domain-url}")
+    private lateinit var domainUrl: String
 }
