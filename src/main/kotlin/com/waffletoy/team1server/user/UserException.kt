@@ -48,7 +48,7 @@ class SignInIllegalArgumentException(
 
 class SignInUserNotFoundException : UserException(
     errorCode = 0,
-    httpStatusCode = HttpStatus.UNAUTHORIZED,
+    httpStatusCode = HttpStatus.NOT_FOUND,
     msg = "User not found",
 )
 
@@ -68,7 +68,7 @@ class RefreshTokenInvalidException(
     customMessage: String? = null,
 ) : UserException(
         errorCode = 0,
-        httpStatusCode = HttpStatus.UNAUTHORIZED,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
         msg = customMessage ?: "Invalid Refresh token",
     )
 
@@ -76,8 +76,16 @@ class AccessTokenInvalidException(
     customMessage: String? = null,
 ) : UserException(
         errorCode = 0,
-        httpStatusCode = HttpStatus.UNAUTHORIZED,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
         msg = customMessage ?: "Invalid Access token",
+    )
+
+class EmailTokenInvalidException(
+    customMessage: String? = null,
+) : UserException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.BAD_REQUEST,
+        msg = customMessage ?: "Invalid Email token",
     )
 
 class EmailSendException : UserException(
@@ -85,3 +93,11 @@ class EmailSendException : UserException(
     httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR,
     msg = "Email send failed",
 )
+
+class UserNotFound(
+    customMessage: String? = null,
+) : UserException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.NOT_FOUND,
+        msg = customMessage ?: "UserNotFound",
+    )

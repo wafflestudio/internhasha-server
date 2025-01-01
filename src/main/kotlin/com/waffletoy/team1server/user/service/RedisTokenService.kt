@@ -64,10 +64,15 @@ class RedisTokenService(
         )
     }
 
-    // 이메일 인증 토큰 조회
+    // 이메일 인증 토큰 조회(userID)
     fun getEmailToken(userId: String): String? {
         val key = "emailToken:$userId"
         return redisTemplate.opsForValue().get(key)
+    }
+
+    // 이메일 인증 토큰 조회(token값)
+    fun getUserIdByEmailToken(token: String): String? {
+        return redisTemplate.opsForValue().get("emailToken:$token")
     }
 
     // 이메일 인증 토큰 삭제

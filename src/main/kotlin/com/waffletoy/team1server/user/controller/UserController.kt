@@ -6,6 +6,7 @@ import com.waffletoy.team1server.user.service.EmailService
 import com.waffletoy.team1server.user.service.UserService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -17,11 +18,6 @@ class UserController(
     private val emailService: EmailService,
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
-    @GetMapping("/debug")
-    fun debug(): String {
-        return "IS_SECURE: $isSecure"
-    }
-
     // 회원가입
     @PostMapping("/signup")
     fun signUp(
@@ -110,16 +106,6 @@ class UserController(
         )
     }
 
-    @GetMapping("/test-email")
-    fun sendTestEmail(): ResponseEntity<String> {
-        emailService.sendEmail(
-            to = "endermaru007@gmail.com",
-            subject = "테스트 이메일",
-            body = "이것은 테스트 이메일입니다.",
-        )
-        return ResponseEntity.ok("Email sent successfully")
-    }
-
     // Access Token 재발급
     @PostMapping("/token/refresh")
     fun refreshAccessToken(
@@ -134,20 +120,32 @@ class UserController(
         )
     }
 
-//    // 유저 이메일 인증 링크 클릭
-//    @PostMapping("/verify-email")
-//    fun verifyEmail(
-//        @RequestParam("token") token: String
-//    ): ResponseEntity<Void> {
-//        val userId = emailTokenService.verifyToken(token)
-//
-//        if (userId != null) {
-//            userService.markEmailAsVerified(userId)
-//            return ResponseEntity.ok().build()
-//        }
-//
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-//    }
+    // 유저 이메일 인증 링크 클릭
+    @PostMapping("/verify-email")
+    fun verifyEmail(
+        @RequestParam("token") token: String,
+    ): ResponseEntity<Void> {
+        // 토큰 검증 및 이메일 인증 처리
+        val userId = emailService.verifyToken(token)
+        userService.markEmailAsVerified(userId)
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .header("Location", "https://$domainUrl/echo/echo") // 리다이렉트 URL 설정
+            .build()
+    }
+
+    // 로그아웃 - webconfig에서 api 관리
+    @PostMapping("/logout")
+    fun logout(
+        // Authorization 헤더에서 Access Token 추출
+        @RequestHeader("Authorization") accessToken: String,
+        // HTTP-only 쿠키에서 Refresh Token 추출
+        @CookieValue("refresh_token") refreshToken: String,
+    ): ResponseEntity<Void> {
+        userService.logout(accessToken, refreshToken)
+        return ResponseEntity.ok().build()
+    }
+
 //
 //    // 비밀번호 변경
 //    @PostMapping("/password/change")
@@ -177,14 +175,9 @@ class UserController(
 //        return ResponseEntity.ok(updatedUser)
 //    }
 //
-//    // 로그아웃
-//    @PostMapping("/logout")
-//    fun logout(
-//        @CookieValue("refresh_token") refreshToken: String
-//    ): ResponseEntity<Void> {
-//        userService.logout(refreshToken)
-//        return ResponseEntity.ok().build()
-//    }
+
+    @Value("\${custom.domain-url}")
+    private lateinit var domainUrl: String
 }
 
 data class UserData(

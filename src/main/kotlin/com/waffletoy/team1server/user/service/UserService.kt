@@ -207,9 +207,42 @@ class UserService(
         // 사용자 정보 조회
         val userEntity =
             userRepository.findByIdOrNull(userId)
-                ?: throw AuthenticateException()
+                ?: throw UserNotFound("User not found in Authenticate")
 
         return User.fromEntity(userEntity)
+    }
+
+    @Transactional
+    fun markEmailAsVerified(userID: String) {
+        val user =
+            userRepository.findByIdOrNull(userID)
+                ?: throw UserNotFound("User not found in email verification")
+
+        user.status = UserStatus.ACTIVE
+        userRepository.save(user)
+    }
+
+    @Transactional
+    fun logout(
+        refreshToken: String,
+        accessToken: String,
+    ) {
+        // Access Token 검증 및 사용자 ID 추출
+        val userId =
+            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+                ?: throw AccessTokenInvalidException("Invalid Access Token")
+
+        // Redis에서 Refresh Token 조회
+        val storedUserId =
+            redisTokenService.getUserIdByRefreshToken(refreshToken)
+                ?: throw RefreshTokenInvalidException("Invalid Refresh Token")
+
+        if (userId != storedUserId) {
+            throw AccessTokenInvalidException("Access Token and Refresh Token do not match")
+        }
+
+        // Refresh Token 삭제
+        redisTokenService.deleteRefreshToken(userId)
     }
 
     private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {
