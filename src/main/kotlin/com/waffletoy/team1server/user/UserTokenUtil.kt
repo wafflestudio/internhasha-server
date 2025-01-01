@@ -82,7 +82,7 @@ object UserTokenUtil {
         return userEntity.refreshTokenExpiresAt?.isAfter(now) == true
     }
 
-    private const val ACCESS_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 2 // 2 hours
+    private const val ACCESS_TOKEN_EXPIRATION_TIME = 1000L * 60 * 60 * 2 // 2 hours
     private const val REFRESH_TOKEN_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 30 // 30 days
     private val dotenv = Dotenv.load()
 

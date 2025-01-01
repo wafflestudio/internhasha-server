@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
     // Load .env file
     val dotenv =
         Dotenv.configure()
-            .directory(".") // .env 파일이 루트 디렉토리에 있을 경우
+            .directory("/app") // .env 파일이 루트 디렉토리에 있을 경우
             .ignoreIfMissing() // .env 파일이 없으면 무시
             .load()
 
