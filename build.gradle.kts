@@ -38,6 +38,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+
     implementation("com.mysql:mysql-connector-j:8.2.0")
 
     // google auth

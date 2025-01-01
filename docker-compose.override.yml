@@ -8,7 +8,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/survey
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: somepassword
-      IS_SECURE: true
+      IS_SECURE: false
     depends_on:
       mysql:
         condition: service_healthy # MySQL이 healthcheck를 통과해야 시작

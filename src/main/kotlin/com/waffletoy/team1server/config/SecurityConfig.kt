@@ -15,10 +15,9 @@ class SecurityConfig {
             }
             .authorizeHttpRequests { authz ->
                 authz
-                    .requestMatchers("/logout").authenticated() // 로그아웃은 인증된 사용자만 접근 가능
+//                    .requestMatchers("/logout").authenticated() // 로그아웃은 인증된 사용자만 접근 가능
                     .anyRequest().permitAll() // 그 외 모든 요청은 자유롭게 접근 가능
             }
-            .logout { it.disable() } // 커스텀 로그아웃 API 사용 시 Spring Security 기본 로그아웃 비활성화
 
         return http.build()
     }
