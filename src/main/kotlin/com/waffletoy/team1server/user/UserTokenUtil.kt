@@ -26,7 +26,7 @@ object UserTokenUtil {
 
     private fun generateAccessToken(userEntity: UserEntity): String {
         val now = Instant.now()
-        val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME.toLong()))
+        val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME))
 
         return Jwts.builder()
             .signWith(SECRET_KEY)

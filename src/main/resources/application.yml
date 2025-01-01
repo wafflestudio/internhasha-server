@@ -28,9 +28,15 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+    data:
+        redis:
+            host: ${SPRING_REDIS_HOST:localhost}
+            port: ${SPRING_REDIS_PORT:6379}
 custom:
     domain-url: api.survey-josha.site
     is-secure: ${IS_SECURE:false}
+
+
 
 springdoc:
     swagger-ui:

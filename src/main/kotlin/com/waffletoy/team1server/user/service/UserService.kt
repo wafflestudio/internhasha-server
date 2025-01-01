@@ -4,7 +4,6 @@ import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.stereotype.Service
@@ -24,7 +23,7 @@ class UserService(
         authProvider: AuthProvider,
         email: String,
         nickname: String?,
-        loginID: String?,
+        loginId: String?,
         password: String?,
         socialAccessToken: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
@@ -48,17 +47,17 @@ class UserService(
             if (nickname.isNullOrBlank()) {
                 throw SignUpIllegalArgumentException("Nickname is required for Local signup")
             }
-            if (loginID.isNullOrBlank()) {
-                throw SignUpIllegalArgumentException("loginID is required for Local signup")
+            if (loginId.isNullOrBlank()) {
+                throw SignUpIllegalArgumentException("loginId is required for Local signup")
             }
             if (password.isNullOrBlank()) {
                 throw SignUpIllegalArgumentException("password is required for Local signup")
             }
 
-            // loginID 조건 확인
+            // loginId 조건 확인
             val loginIdRegex = Regex("^[a-zA-Z][a-zA-Z0-9_-]{4,19}$")
-            if (!loginIdRegex.matches(loginID)) {
-                throw SignUpBadArgumentException("loginID must be 5-20 characters long and only contain letters, numbers, '_', or '-'")
+            if (!loginIdRegex.matches(loginId)) {
+                throw SignUpBadArgumentException("loginId must be 5-20 characters long and only contain letters, numbers, '_', or '-'")
             }
 
             // password 조건 확인
@@ -67,8 +66,8 @@ class UserService(
                 throw SignUpBadArgumentException("password must be 8-20 characters long, include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@#$!^*)")
             }
 
-            // 이미 같은 로그인이 존재한다면 throw(CONFLICT)
-            if (userRepository.existsByLoginID(loginID)) {
+            // 이미 같은 로그인Id가 존재한다면 throw(CONFLICT)
+            if (userRepository.existsByLoginId(loginId)) {
                 throw SignUpConflictException("User LoginID Conflict")
             }
 
@@ -95,7 +94,7 @@ class UserService(
                     nickname = finalNickname,
                     status = UserStatus.INACTIVE,
                     authProvider = authProvider,
-                    loginID = loginID,
+                    loginId = loginId,
                     password = encryptedPassword,
                 ),
             )
@@ -104,7 +103,7 @@ class UserService(
         val tokens = issueTokens(user)
 
         // 인증 이메일 발송
-        sendEmailVerification(user, email)
+        emailService.sendEmailVerification(user, email)
 
         return Pair(User.fromEntity(user), tokens)
     }
@@ -114,7 +113,7 @@ class UserService(
     fun signIn(
         authProvider: AuthProvider,
         socialAccessToken: String?,
-        loginID: String?,
+        loginId: String?,
         password: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
         val finalUser: UserEntity
@@ -136,14 +135,14 @@ class UserService(
             finalUser = user
         } else {
             // 로컬 로그인
-            if (loginID.isNullOrBlank()) {
-                throw SignInIllegalArgumentException("loginID is required for Local signin")
+            if (loginId.isNullOrBlank()) {
+                throw SignInIllegalArgumentException("loginId is required for Local signin")
             }
             if (password.isNullOrBlank()) {
                 throw SignInIllegalArgumentException("password is required for Local signin")
             }
             val user =
-                userRepository.findByLoginID(loginID)
+                userRepository.findByLoginId(loginId)
                     ?: throw SignInUserNotFoundException()
 
             // 비밀번호 확인(소셜 로그인이면 null)
@@ -155,17 +154,10 @@ class UserService(
         }
 
         // RTR 방식
-        // 기존 Refresh Token 확인
-        val existingRefreshToken = redisTokenService.getRefreshToken(finalUser.id)
-        if (existingRefreshToken != null) {
-            // 기존 Refresh Token 무효화
-            redisTokenService.deleteRefreshToken(finalUser.id)
-        }
-
         // 새로운 Access Token 및 Refresh Token 발급
         val newTokens = UserTokenUtil.generateTokens(finalUser)
 
-        // 새 Refresh Token 저장
+        // 새 Refresh Token 저장 - 기존 토큰이 있으면 삭제됨(RTR)
         redisTokenService.saveRefreshToken(finalUser.id, newTokens.refreshToken)
 
         return Pair(User.fromEntity(finalUser), newTokens)
@@ -179,9 +171,6 @@ class UserService(
             redisTokenService.getUserIdByRefreshToken(refreshToken)
                 ?: throw RefreshTokenInvalidException("Invalid Refresh Token")
 
-        // 기존 Refresh Token 삭제 (RTR 방식 적용)
-        redisTokenService.deleteRefreshToken(userId)
-
         // 사용자 정보 조회
         val userEntity =
             userRepository.findByIdOrNull(userId)
@@ -190,7 +179,7 @@ class UserService(
         // 새로운 Access Token 및 Refresh Token 발급
         val newTokens = UserTokenUtil.generateTokens(userEntity)
 
-        // 새 Refresh Token 저장
+        // 새 Refresh Token 저장 - 기존 토큰이 있으면 삭제됨(RTR)
         redisTokenService.saveRefreshToken(userId, newTokens.refreshToken)
 
         return newTokens
@@ -213,9 +202,9 @@ class UserService(
     }
 
     @Transactional
-    fun markEmailAsVerified(userID: String) {
+    fun markEmailAsVerified(userId: String) {
         val user =
-            userRepository.findByIdOrNull(userID)
+            userRepository.findByIdOrNull(userId)
                 ?: throw UserNotFound("User not found in email verification")
 
         user.status = UserStatus.ACTIVE
@@ -242,7 +231,7 @@ class UserService(
         }
 
         // Refresh Token 삭제
-        redisTokenService.deleteRefreshToken(userId)
+        redisTokenService.deleteRefreshTokenByUserId(userId)
     }
 
     private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {
@@ -250,31 +239,4 @@ class UserService(
         redisTokenService.saveRefreshToken(user.id, tokens.refreshToken)
         return tokens
     }
-
-    private fun sendEmailVerification(
-        user: UserEntity,
-        email: String,
-    ) {
-        // 이메일 인증 토큰 생성
-        val emailToken = UUID.randomUUID().toString()
-
-        // Redis 에 Email Token 저장
-        redisTokenService.saveEmailToken(user.id, emailToken)
-
-        // 이메일 인증 링크 생성
-        val verifyLink = "https://$domainUrl/verify-email?token=$emailToken"
-        // 이메일 발송
-        try {
-            emailService.sendEmail(
-                to = email,
-                subject = "이메일 인증 요청",
-                body = "이메일 인증 링크: $verifyLink",
-            )
-        } catch (ex: Exception) {
-            throw EmailSendException()
-        }
-    }
-
-    @Value("\${custom.domain-url}")
-    private lateinit var domainUrl: String
 }

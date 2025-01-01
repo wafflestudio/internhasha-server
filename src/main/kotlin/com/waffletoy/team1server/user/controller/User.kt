@@ -11,7 +11,7 @@ data class User(
     val nickname: String,
     val status: UserStatus,
     val authProvider: AuthProvider,
-    val loginID: String?,
+    val loginId: String?,
     val authoredPosts: Set<Post>,
 ) {
     companion object {
@@ -22,7 +22,7 @@ data class User(
                 nickname = entity.nickname,
                 status = entity.status,
                 authProvider = entity.authProvider,
-                loginID = entity.loginID,
+                loginId = entity.loginId,
                 authoredPosts = entity.authoredPosts.map { Post.fromEntity(it) }.toSet(),
             )
     }

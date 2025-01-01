@@ -28,7 +28,7 @@ open class UserEntity(
     var authProvider: AuthProvider,
     // 로그인 아이디
     @Column(name = "login_id", nullable = true)
-    val loginID: String? = null,
+    val loginId: String? = null,
     // 해시된 비밀번호 저장
     @Column(name = "password", nullable = true)
     var password: String? = null,

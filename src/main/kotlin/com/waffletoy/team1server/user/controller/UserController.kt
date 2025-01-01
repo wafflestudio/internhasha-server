@@ -29,7 +29,7 @@ class UserController(
                 authProvider = request.authProvider,
                 email = request.email,
                 nickname = request.nickname,
-                loginID = request.loginID,
+                loginId = request.loginId,
                 password = request.password,
                 socialAccessToken = request.socialAccessToken,
             )
@@ -73,7 +73,7 @@ class UserController(
             userService.signIn(
                 authProvider = request.authProvider,
                 socialAccessToken = request.socialAccessToken,
-                loginID = request.loginId,
+                loginId = request.loginId,
                 password = request.password,
             )
 
@@ -110,12 +110,27 @@ class UserController(
     @PostMapping("/token/refresh")
     fun refreshAccessToken(
         @CookieValue("refresh_token") refreshToken: String,
+        response: HttpServletResponse,
     ): ResponseEntity<TokenRefreshResponse> {
         val tokens = userService.refreshAccessToken(refreshToken)
+
+        // Refresh Token을 HTTP-only 쿠키에 저장
+        val refreshTokenCookie =
+            ResponseCookie.from(
+                "refresh_token",
+                tokens.refreshToken,
+            )
+                .httpOnly(true)
+                .secure(isSecure) // HTTPS 사용 시 활성화
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7일
+                .build()
+
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString())
+
         return ResponseEntity.ok(
             TokenRefreshResponse(
                 accessToken = tokens.accessToken,
-                refreshToken = tokens.refreshToken,
             ),
         )
     }
@@ -137,12 +152,22 @@ class UserController(
     // 로그아웃 - webconfig에서 api 관리
     @PostMapping("/logout")
     fun logout(
-        // Authorization 헤더에서 Access Token 추출
         @RequestHeader("Authorization") accessToken: String,
-        // HTTP-only 쿠키에서 Refresh Token 추출
         @CookieValue("refresh_token") refreshToken: String,
+        response: HttpServletResponse,
     ): ResponseEntity<Void> {
         userService.logout(accessToken, refreshToken)
+
+        // Refresh Token 쿠키 삭제
+        val deleteCookie =
+            ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(isSecure)
+                .path("/")
+                .maxAge(0)
+                .build()
+        response.addHeader("Set-Cookie", deleteCookie.toString())
+
         return ResponseEntity.ok().build()
     }
 
@@ -193,7 +218,7 @@ data class SignUpRequest(
     val email: String,
     // 로컬 로그인
     val nickname: String?,
-    val loginID: String?,
+    val loginId: String?,
     val password: String?,
     // 소셜 로그인
     val socialAccessToken: String?,
@@ -218,13 +243,8 @@ data class SignInResponse(
     val accessToken: String,
 )
 
-data class TokenRefreshRequest(
-    val refreshToken: String,
-)
-
 data class TokenRefreshResponse(
     val accessToken: String,
-    val refreshToken: String,
 )
 
 data class ChangePasswordRequest(
