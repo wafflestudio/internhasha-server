@@ -25,22 +25,25 @@ class UserService(
         nickname: String?,
         loginId: String?,
         password: String?,
-        socialAccessToken: String?,
+        googleAccessToken: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
         val finalEmail: String
         val finalNickname: String
+        var googleId: String? = null
 
         if (authProvider == AuthProvider.GOOGLE) {
             // 구글 소셜 로그인
             // 필수값 확인
-            if (socialAccessToken.isNullOrBlank()) {
+            if (googleAccessToken.isNullOrBlank()) {
                 throw SignUpIllegalArgumentException("Social access token is required for Google signup")
             }
 
-            // Google OAuth2를 통해 이메일과 이름 가져오기
-            val googleUserInfo = googleOAuth2Client.getUserInfo(socialAccessToken)
+            // Google OAuth2를 통해 이메일과 이름, 구글 id 가져오기
+            val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
             finalEmail = googleUserInfo.email
             finalNickname = nickname ?: googleUserInfo.name
+            googleId = googleUserInfo.sub
+
         } else {
             // 로컬 로그인
             // 필수값 확인
@@ -96,6 +99,7 @@ class UserService(
                     authProvider = authProvider,
                     loginId = loginId,
                     password = encryptedPassword,
+                    googleId = googleId,
                 ),
             )
 
@@ -112,7 +116,7 @@ class UserService(
     @Transactional
     fun signIn(
         authProvider: AuthProvider,
-        socialAccessToken: String?,
+        googleAccessToken: String?,
         loginId: String?,
         password: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
@@ -121,17 +125,24 @@ class UserService(
         if (authProvider == AuthProvider.GOOGLE) {
             // 구글 소셜 로그인
             // 필수값 확인
-            if (socialAccessToken.isNullOrBlank()) {
+            if (googleAccessToken.isNullOrBlank()) {
                 throw SignInIllegalArgumentException("Social access token is required for Google signIn")
             }
 
             // Google OAuth2를 통해 이메일과 이름 가져오기
-            val googleUserInfo = googleOAuth2Client.getUserInfo(socialAccessToken)
+            val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
             val email = googleUserInfo.email
+            val googleId = googleUserInfo.sub
 
             val user =
                 userRepository.findByEmail(email)
                     ?: throw SignInUserNotFoundException()
+
+            // Google ID 검증
+            if (user.googleId != googleId) {
+                throw GoogleOAuthException("The provided Google ID does not match the user's record.")
+            }
+
             finalUser = user
         } else {
             // 로컬 로그인
@@ -185,21 +196,7 @@ class UserService(
         return newTokens
     }
 
-    // Access token으로 인증
-    @Transactional
-    fun authenticate(accessToken: String): User {
-        // Access Token 검증 및 사용자 ID 추출
-        val userId =
-            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
-                ?: throw AuthenticateException()
 
-        // 사용자 정보 조회
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
-                ?: throw UserNotFound("User not found in Authenticate")
-
-        return User.fromEntity(userEntity)
-    }
 
     @Transactional
     fun markEmailAsVerified(userId: String) {
@@ -232,6 +229,22 @@ class UserService(
 
         // Refresh Token 삭제
         redisTokenService.deleteRefreshTokenByUserId(userId)
+    }
+
+    // Access token으로 인증
+    @Transactional
+    public fun authAccessToken(accessToken: String): User {
+        // Access Token 검증 및 사용자 ID 추출
+        val userId =
+            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+                ?: throw AuthenticateException()
+
+        // 사용자 정보 조회
+        val userEntity =
+            userRepository.findByIdOrNull(userId)
+                ?: throw UserNotFound("User not found in Authenticate")
+
+        return User.fromEntity(userEntity)
     }
 
     private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {

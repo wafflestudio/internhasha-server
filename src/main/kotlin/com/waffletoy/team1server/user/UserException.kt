@@ -101,3 +101,11 @@ class UserNotFound(
         httpStatusCode = HttpStatus.NOT_FOUND,
         msg = customMessage ?: "UserNotFound",
     )
+
+class GoogleOAuthException(
+    customMessage: String? = null,
+) : UserException(
+        errorCode = 0,
+        httpStatusCode = HttpStatus.NOT_FOUND,
+        msg = customMessage ?: "Google Authentication Failed",
+    )

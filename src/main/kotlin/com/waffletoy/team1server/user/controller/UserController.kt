@@ -31,7 +31,7 @@ class UserController(
                 nickname = request.nickname,
                 loginId = request.loginId,
                 password = request.password,
-                socialAccessToken = request.socialAccessToken,
+                googleAccessToken = request.googleAccessToken,
             )
 
         // Refresh Token을 HTTP-only 쿠키에 저장
@@ -72,7 +72,7 @@ class UserController(
         val (user, tokens) =
             userService.signIn(
                 authProvider = request.authProvider,
-                socialAccessToken = request.socialAccessToken,
+                googleAccessToken = request.googleAccessToken,
                 loginId = request.loginId,
                 password = request.password,
             )
@@ -152,10 +152,11 @@ class UserController(
     // 로그아웃 - webconfig에서 api 관리
     @PostMapping("/logout")
     fun logout(
-        @RequestHeader("Authorization") accessToken: String,
+        @RequestHeader("Authorization") authorization: String,
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
+        val accessToken = authorization.removePrefix("Bearer ")
         userService.logout(accessToken, refreshToken)
 
         // Refresh Token 쿠키 삭제
@@ -171,6 +172,24 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    // 사용자 정보 확인
+    @GetMapping("/user/info")
+    fun getUserInfo(
+        @RequestHeader("Authorization") authorization: String
+    ): ResponseEntity<UserData> {
+        val accessToken = authorization.removePrefix("Bearer ")
+        val user = userService.authAccessToken(accessToken)
+        return ResponseEntity.ok(
+            UserData(
+                id = user.id,
+                email = user.email,
+                nickname = user.nickname,
+                status = user.status,
+                authProvider = user.authProvider,
+            )
+        )
+    }
+
 //
 //    // 비밀번호 변경
 //    @PostMapping("/password/change")
@@ -181,15 +200,7 @@ class UserController(
 //        return ResponseEntity.ok().build()
 //    }
 //
-//    // 사용자 정보 확인
-//    @GetMapping("/users/me")
-//    fun getUserInfo(
-//        @RequestHeader("Authorization") authorization: String
-//    ): ResponseEntity<UserData> {
-//        val accessToken = authorization.removePrefix("Bearer ")
-// //        val user = userService.getUserInfo(accessToken)
-// //        return ResponseEntity.ok(user)
-//    }
+
 //
 //    // 사용자 정보 업데이트
 //    @PutMapping("/users/me")
@@ -221,7 +232,7 @@ data class SignUpRequest(
     val loginId: String?,
     val password: String?,
     // 소셜 로그인
-    val socialAccessToken: String?,
+    val googleAccessToken: String?,
 )
 
 data class SignUpResponse(
@@ -232,7 +243,7 @@ data class SignUpResponse(
 data class SignInRequest(
     val authProvider: AuthProvider,
     // 소셜 로그인
-    val socialAccessToken: String?,
+    val googleAccessToken: String?,
     // 로컬 로그인
     val loginId: String?,
     val password: String?,

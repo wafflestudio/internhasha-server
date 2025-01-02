@@ -12,6 +12,7 @@ data class User(
     val status: UserStatus,
     val authProvider: AuthProvider,
     val loginId: String?,
+    val googleId: String?,
     val authoredPosts: Set<Post>,
 ) {
     companion object {
@@ -23,6 +24,7 @@ data class User(
                 status = entity.status,
                 authProvider = entity.authProvider,
                 loginId = entity.loginId,
+                googleId = entity.googleId,
                 authoredPosts = entity.authoredPosts.map { Post.fromEntity(it) }.toSet(),
             )
     }
