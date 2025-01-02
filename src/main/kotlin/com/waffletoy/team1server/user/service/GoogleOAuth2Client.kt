@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.user.service
 
-import com.waffletoy.team1server.user.GoogleOAuthException
+import com.waffletoy.team1server.user.GoogleOAuthServiceException
 import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
@@ -16,17 +16,18 @@ class GoogleOAuth2Client(
         val request = HttpEntity<Void>(headers)
 
         return try {
-            val response = restTemplate.exchange(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
-                HttpMethod.GET,
-                request,
-                GoogleUserInfo::class.java
-            )
-            response.body ?: throw GoogleOAuthException("Failed to fetch user info from Google: Empty body")
+            val response =
+                restTemplate.exchange(
+                    "https://www.googleapis.com/oauth2/v3/userinfo",
+                    HttpMethod.GET,
+                    request,
+                    GoogleUserInfo::class.java,
+                )
+            response.body ?: throw GoogleOAuthServiceException("Failed to fetch user info from Google: Empty body")
         } catch (ex: HttpClientErrorException) {
-            throw GoogleOAuthException("Failed to fetch user info from Google: ${ex.statusCode} - ${ex.responseBodyAsString}")
+            throw GoogleOAuthServiceException("Failed to fetch user info from Google: ${ex.statusCode} - ${ex.responseBodyAsString}")
         } catch (ex: Exception) {
-            throw GoogleOAuthException("Unexpected error while fetching user info from Google, $ex")
+            throw GoogleOAuthServiceException("Unexpected error while fetching user info from Google, $ex")
         }
     }
 }

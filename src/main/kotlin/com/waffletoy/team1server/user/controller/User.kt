@@ -7,24 +7,26 @@ import com.waffletoy.team1server.user.persistence.UserEntity
 
 data class User(
     val id: String,
-    val email: String,
+    val snuMail: String,
     val nickname: String,
     val status: UserStatus,
     val authProvider: AuthProvider,
     val loginId: String?,
     val googleId: String?,
+    val googleEmail: String?,
     val authoredPosts: Set<Post>,
 ) {
     companion object {
         fun fromEntity(entity: UserEntity): User =
             User(
                 id = entity.id,
-                email = entity.email,
+                snuMail = entity.snuMail,
                 nickname = entity.nickname,
                 status = entity.status,
                 authProvider = entity.authProvider,
                 loginId = entity.loginId,
                 googleId = entity.googleId,
+                googleEmail = entity.googleEmail,
                 authoredPosts = entity.authoredPosts.map { Post.fromEntity(it) }.toSet(),
             )
     }

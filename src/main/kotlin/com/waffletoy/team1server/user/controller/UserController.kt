@@ -27,7 +27,7 @@ class UserController(
         val (user, tokens) =
             userService.signUp(
                 authProvider = request.authProvider,
-                email = request.email,
+                snuMail = request.snuMail,
                 nickname = request.nickname,
                 loginId = request.loginId,
                 password = request.password,
@@ -53,7 +53,7 @@ class UserController(
                 userData =
                     UserData(
                         id = user.id,
-                        email = user.email,
+                        snuMail = user.snuMail,
                         nickname = user.nickname,
                         status = user.status,
                         authProvider = request.authProvider,
@@ -96,7 +96,7 @@ class UserController(
                 userData =
                     UserData(
                         id = user.id,
-                        email = user.email,
+                        snuMail = user.snuMail,
                         nickname = user.nickname,
                         status = user.status,
                         authProvider = request.authProvider,
@@ -175,42 +175,31 @@ class UserController(
     // 사용자 정보 확인
     @GetMapping("/user/info")
     fun getUserInfo(
-        @RequestHeader("Authorization") authorization: String
+        @RequestHeader("Authorization") authorization: String,
     ): ResponseEntity<UserData> {
         val accessToken = authorization.removePrefix("Bearer ")
         val user = userService.authAccessToken(accessToken)
         return ResponseEntity.ok(
             UserData(
                 id = user.id,
-                email = user.email,
+                snuMail = user.snuMail,
                 nickname = user.nickname,
                 status = user.status,
                 authProvider = user.authProvider,
-            )
+            ),
         )
     }
 
-//
-//    // 비밀번호 변경
-//    @PostMapping("/password/change")
-//    fun changePassword(
-//        @RequestBody request: ChangePasswordRequest
-//    ): ResponseEntity<Void> {
-// //        userService.changePassword(request.oldPassword, request.newPassword)
-//        return ResponseEntity.ok().build()
-//    }
-//
-
-//
-//    // 사용자 정보 업데이트
-//    @PutMapping("/users/me")
-//    fun updateUserInfo(
-//        @RequestBody request: UpdateUserInfoRequest
-//    ): ResponseEntity<UserData> {
-//        val updatedUser = userService.updateUserInfo(request)
-//        return ResponseEntity.ok(updatedUser)
-//    }
-//
+    // 비밀번호 변경
+    @PostMapping("/password/change")
+    fun changePassword(
+        @RequestHeader("Authorization") authorization: String,
+        @RequestBody request: ChangePasswordRequest,
+    ): ResponseEntity<Void> {
+        val accessToken = authorization.removePrefix("Bearer ")
+        userService.changePassword(accessToken, request.oldPassword, request.newPassword)
+        return ResponseEntity.ok().build()
+    }
 
     @Value("\${custom.domain-url}")
     private lateinit var domainUrl: String
@@ -218,7 +207,7 @@ class UserController(
 
 data class UserData(
     val id: String,
-    val email: String,
+    val snuMail: String,
     val nickname: String,
     val status: UserStatus,
     val authProvider: AuthProvider,
@@ -226,13 +215,14 @@ data class UserData(
 
 data class SignUpRequest(
     val authProvider: AuthProvider,
-    val email: String,
+    val snuMail: String,
     // 로컬 로그인
     val nickname: String?,
     val loginId: String?,
     val password: String?,
     // 소셜 로그인
     val googleAccessToken: String?,
+    val googleId: String?,
 )
 
 data class SignUpResponse(
