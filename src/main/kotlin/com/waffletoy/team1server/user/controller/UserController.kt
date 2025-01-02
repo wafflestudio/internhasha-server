@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.controller
 
 import com.waffletoy.team1server.user.AuthProvider
+import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.UserStatus
 import com.waffletoy.team1server.user.service.EmailService
 import com.waffletoy.team1server.user.service.UserService
@@ -152,12 +153,16 @@ class UserController(
     // 로그아웃 - webconfig에서 api 관리
     @PostMapping("/logout")
     fun logout(
-        @RequestHeader("Authorization") authorization: String,
+        // 인증된 사용자 객체를 주입받음
+        @AuthUser authenticatedUser: AuthenticatedUser,
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        val accessToken = authorization.removePrefix("Bearer ")
-        userService.logout(accessToken, refreshToken)
+        userService.logout(
+            authenticatedUser.user,
+            authenticatedUser.accessToken,
+            refreshToken,
+        )
 
         // Refresh Token 쿠키 삭제
         val deleteCookie =
@@ -175,10 +180,9 @@ class UserController(
     // 사용자 정보 확인
     @GetMapping("/user/info")
     fun getUserInfo(
-        @RequestHeader("Authorization") authorization: String,
+        @AuthUser authenticatedUser: AuthenticatedUser,
     ): ResponseEntity<UserData> {
-        val accessToken = authorization.removePrefix("Bearer ")
-        val user = userService.authAccessToken(accessToken)
+        val user = authenticatedUser.user
         return ResponseEntity.ok(
             UserData(
                 id = user.id,
@@ -193,11 +197,15 @@ class UserController(
     // 비밀번호 변경
     @PostMapping("/password/change")
     fun changePassword(
-        @RequestHeader("Authorization") authorization: String,
+        @AuthUser authenticatedUser: AuthenticatedUser,
         @RequestBody request: ChangePasswordRequest,
     ): ResponseEntity<Void> {
-        val accessToken = authorization.removePrefix("Bearer ")
-        userService.changePassword(accessToken, request.oldPassword, request.newPassword)
+        userService.changePassword(
+            authenticatedUser.user,
+            authenticatedUser.accessToken,
+            request.oldPassword,
+            request.newPassword,
+        )
         return ResponseEntity.ok().build()
     }
 
@@ -253,9 +261,7 @@ data class ChangePasswordRequest(
     val newPassword: String,
 )
 
-data class UpdateUserInfoRequest(
-    val nickname: String?,
-    val email: String?,
+data class AuthenticatedUser(
+    val user: User,
+    val accessToken: String,
 )
-
-data class LogoutRequest(val refreshToken: String)

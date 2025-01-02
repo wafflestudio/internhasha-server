@@ -24,7 +24,7 @@ object UserTokenUtil {
         )
     }
 
-    private fun generateAccessToken(userEntity: UserEntity): String {
+    fun generateAccessToken(userEntity: UserEntity): String {
         val now = Instant.now()
         val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME))
 
@@ -36,7 +36,7 @@ object UserTokenUtil {
             .compact()
     }
 
-    private fun generateRefreshToken(userEntity: UserEntity): String {
+    fun generateRefreshToken(userEntity: UserEntity): String {
         val now = Instant.now()
         val refreshExpiryDate = now.plusSeconds(REFRESH_TOKEN_EXPIRATION_TIME)
 
@@ -84,7 +84,11 @@ object UserTokenUtil {
             ?: System.getenv("TOKEN_PRIVATE_KEY")
             ?: throw RuntimeException("TOKEN_PRIVATE_KEY not found")
     private val SECRET_KEY =
-        Keys.hmacShaKeyFor(
-            TOKEN_PRIVATE_KEY.toByteArray(StandardCharsets.UTF_8),
-        )
+        runCatching {
+            Keys.hmacShaKeyFor(
+                TOKEN_PRIVATE_KEY.toByteArray(StandardCharsets.UTF_8),
+            )
+        }.getOrElse {
+            throw IllegalStateException("Invalid TOKEN_PRIVATE_KEY: ${it.message}")
+        }
 }
