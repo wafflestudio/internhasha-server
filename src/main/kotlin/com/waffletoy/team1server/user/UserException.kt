@@ -134,8 +134,12 @@ class EmailServiceException(
         msg = customMessage ?: "Email Service Failed",
     )
 
-class AuthenticateException : UserException(
-    errorCode = 0,
-    httpStatusCode = HttpStatus.UNAUTHORIZED,
-    msg = "Authenticate failed",
-)
+class AuthenticateException(
+    customMessage: String? = null,
+    httpStatusCode: HttpStatus = HttpStatus.UNAUTHORIZED,
+    errorCode: Int = 0,
+) : UserException(
+        errorCode = errorCode,
+        httpStatusCode = httpStatusCode,
+        msg = customMessage ?: "Authenticate failed",
+    )

@@ -2,7 +2,7 @@ package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.user.EmailServiceException
 import com.waffletoy.team1server.user.persistence.UserEntity
-import org.springframework.beans.factory.annotation.Value
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.http.HttpStatus
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -15,19 +15,33 @@ class EmailService(
     private val mailSender: JavaMailSender,
     private val redisTokenService: RedisTokenService,
 ) {
-    fun verifyToken(token: String): String {
-        // Redis에서 이메일 토큰 확인
-        val userId =
-            redisTokenService.getUserIdByEmailToken(token)
+    fun verifyToken(
+        userId: String,
+        token: String,
+    ): String {
+        // Redis에서 암호화된 이메일 인증 코드 가져오기
+        val encryptedToken =
+            redisTokenService.getEmailTokenByUserId(userId)
                 ?: throw EmailServiceException(
                     "Invalid or expired email token",
                     HttpStatus.BAD_REQUEST,
                 )
 
-        // 토큰 삭제 (한 번 사용 후 무효화)
-        redisTokenService.deleteEmailTokenByUserId(userId)
+        // 입력된 인증 코드와 Redis에 저장된 암호화된 코드 비교
+        return try {
+            if (!BCrypt.checkpw(token, encryptedToken)) {
+                throw EmailServiceException(
+                    "Invalid email token",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
 
-        return userId
+            // 인증 성공 시 사용자 ID 반환
+            userId
+        } finally {
+            // 토큰 삭제 (성공/실패 관계없이 무조건 삭제)
+//            redisTokenService.deleteEmailTokenByUserId(userId)
+        }
     }
 
     @Async
@@ -36,19 +50,19 @@ class EmailService(
         email: String,
     ) {
         // 이메일 인증 토큰 생성
-        val emailToken = UUID.randomUUID().toString()
+        val emailCode = (100000..999999).random().toString()
+
+        val encryptedEmailCode = BCrypt.hashpw(emailCode, BCrypt.gensalt())
 
         // Redis 에 Email Token 저장
-        redisTokenService.saveEmailToken(user.id, emailToken)
+        redisTokenService.saveEmailToken(user.id, encryptedEmailCode)
 
-        // 이메일 인증 링크 생성
-        val verifyLink = "https://$domainUrl/api/verify-email?token=$emailToken"
         // 이메일 발송
         try {
             val message = SimpleMailMessage()
             message.setTo(email)
             message.subject = "이메일 인증 요청"
-            message.text = "이메일 인증 링크: $verifyLink"
+            message.text = "이메일 인증 번호: $emailCode"
             mailSender.send(message)
         } catch (ex: Exception) {
             throw EmailServiceException(
@@ -57,7 +71,4 @@ class EmailService(
             )
         }
     }
-
-    @Value("\${custom.domain-url}")
-    private lateinit var domainUrl: String
 }

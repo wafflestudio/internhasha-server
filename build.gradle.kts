@@ -42,9 +42,8 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.2.0")
 
     // google auth
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-    implementation("org.springframework.boot:spring-boot-starter-security")
+//    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+//    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")

@@ -126,4 +126,22 @@ class RedisTokenService(
 
         return userKeyDeleted && tokenKeyDeleted
     }
+
+    // db 리셋
+    fun deleteAllKeys() {
+        val patterns =
+            listOf(
+                "userRefreshToken:*",
+                "refreshToken:*",
+                "emailToken:*",
+                "emailUserToken:*",
+            )
+
+        patterns.forEach { pattern ->
+            val keys = redisTemplate.keys(pattern) // 해당 패턴에 맞는 키 검색
+            if (keys.isNotEmpty()) {
+                redisTemplate.delete(keys) // 검색된 모든 키 삭제
+            }
+        }
+    }
 }

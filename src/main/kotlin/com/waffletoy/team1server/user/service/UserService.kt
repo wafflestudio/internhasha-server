@@ -4,9 +4,9 @@ import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
-import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -233,31 +233,24 @@ class UserService(
     }
 
     // Access Token 만료 시 Refresh Token으로 재발급
-    fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
-        val userId = findUserIdByRefreshToken(refreshToken)
-        val userEntity = findUserById(userId)
-        return issueNewTokens(userEntity)
-    }
-
-    // Refresh Token 유효성 검증 (Redis에서 확인)
-    @Transactional(readOnly = true)
-    fun findUserIdByRefreshToken(refreshToken: String): String {
-        return redisTokenService.getUserIdByRefreshToken(refreshToken)
-            ?: throw UserServiceException("Invalid Refresh Token", HttpStatus.BAD_REQUEST)
-    }
-
-    // 사용자 정보 조회
-    @Transactional(readOnly = true)
-    fun findUserById(userId: String): UserEntity {
-        return userRepository.findByIdOrNull(userId)
-            ?: throw UserServiceException("User not found.", HttpStatus.NOT_FOUND)
-    }
-
-    // Access Token 만료 시 Refresh Token으로 재발급
     @Transactional
-    fun issueNewTokens(userEntity: UserEntity): UserTokenUtil.Tokens {
+    fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
+        // Refresh Token으로 사용자 ID 조회
+        val userId =
+            redisTokenService.getUserIdByRefreshToken(refreshToken)
+                ?: throw UserServiceException("Invalid Refresh Token", HttpStatus.BAD_REQUEST)
+
+        // 사용자 정보 조회
+        val userEntity =
+            userRepository.findByIdOrNull(userId)
+                ?: throw UserServiceException("User not found.", HttpStatus.NOT_FOUND)
+
+        // 새로운 토큰 발급
         val newTokens = UserTokenUtil.generateTokens(userEntity)
-        redisTokenService.saveRefreshToken(userEntity.id, newTokens.refreshToken)
+
+        // Redis에 새 Refresh Token 저장
+        redisTokenService.saveRefreshToken(userId, newTokens.refreshToken)
+
         return newTokens
     }
 
@@ -278,7 +271,6 @@ class UserService(
     fun logout(
         user: User,
         refreshToken: String,
-        accessToken: String,
     ) {
         // Redis에서 Refresh Token 조회
         val storedUserId =
@@ -305,72 +297,21 @@ class UserService(
 
     // Access token으로 인증
     @Transactional(readOnly = true)
-    fun authenticate(
-        accessToken: String?,
-        refreshToken: String?,
-    ): AuthenticatedUser {
-        // 둘 다 없을 경우
-        if (accessToken.isNullOrBlank() && refreshToken.isNullOrBlank()) {
-            throw UserServiceException(
-                "Either Access Token or Refresh Token must be provided.",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
+    fun authenticate(accessToken: String): User {
+        val userId =
+            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+                ?: throw AuthenticateException("Invalid or expired access token")
 
-        // Access Token 검증
-        val userId = UserTokenUtil.validateAccessTokenGetUserId(accessToken ?: "")
-        if (userId != null) {
-            // Access Token이 유효하면 사용자 정보 조회
-            val userEntity =
-                userRepository.findByIdOrNull(userId)
-                    ?: throw UserServiceException(
-                        "User not found. Access Token is invalid.",
-                        HttpStatus.NOT_FOUND,
-                    )
-            // Access Token이 null이 아님이 보장됨
-            return AuthenticatedUser(
-                user = User.fromEntity(userEntity),
-                accessToken = accessToken!!,
-            )
-        }
+        val userEntity =
+            userRepository.findByIdOrNull(userId)
+                ?: throw AuthenticateException("User not found for the given token")
 
-        // Access Token이 만료되었거나 유효하지 않은 경우 Refresh Token 사용
-        if (!refreshToken.isNullOrBlank()) {
-            val refreshUserId =
-                redisTokenService.getUserIdByRefreshToken(refreshToken)
-                    ?: throw UserServiceException(
-                        "Invalid Refresh Token.",
-                        HttpStatus.UNAUTHORIZED,
-                    )
-
-            // 사용자 정보 조회
-            val userEntity =
-                userRepository.findByIdOrNull(refreshUserId)
-                    ?: throw UserServiceException(
-                        "User not found for Refresh Token.",
-                        HttpStatus.NOT_FOUND,
-                    )
-
-            // 새로운 Access Token 발급
-            val newAccessToken = UserTokenUtil.generateAccessToken(userEntity)
-
-            return AuthenticatedUser(
-                user = User.fromEntity(userEntity),
-                accessToken = newAccessToken,
-            )
-        }
-
-        // Refresh Token도 없으면 예외
-        throw UserServiceException(
-            "Access Token is invalid or expired. Refresh Token is required for reauthentication.",
-            HttpStatus.UNAUTHORIZED,
-        )
+        return User.fromEntity(userEntity)
     }
 
     @Transactional
     fun changePassword(
         user: User,
-        accessToken: String,
         oldPassword: String,
         newPassword: String,
     ) {
@@ -407,6 +348,11 @@ class UserService(
 
         userFromDB.password = BCrypt.hashpw(newPassword, BCrypt.gensalt())
         userRepository.save(userFromDB)
+    }
+
+    fun deleteAllUsers() {
+        userRepository.deleteAll()
+        redisTokenService.deleteAllKeys()
     }
 
     private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {

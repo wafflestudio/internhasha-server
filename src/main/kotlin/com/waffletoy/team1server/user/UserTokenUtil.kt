@@ -69,7 +69,7 @@ object UserTokenUtil {
 
     private const val ACCESS_TOKEN_EXPIRATION_TIME = 3600L // 1시간 (초 단위)
     private const val REFRESH_TOKEN_EXPIRATION_TIME = 7 * 24 * 3600L // 7일 (초 단위)
-    private const val EMAIL_TOKEN_EXPIRATION_TIME = 3600L // 1시간 (초 단위)
+    private const val EMAIL_TOKEN_EXPIRATION_TIME = 180L // 3분 (초 단위)
 
     var emailTokenExpirationTime: Long = EMAIL_TOKEN_EXPIRATION_TIME
         private set

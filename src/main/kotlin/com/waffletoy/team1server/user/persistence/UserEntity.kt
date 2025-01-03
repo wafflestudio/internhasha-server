@@ -5,11 +5,13 @@ import com.waffletoy.team1server.user.*
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 import java.util.*
 
 @Entity(name = "users")
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener::class)
 open class UserEntity(
     // 자동 생성되는 User의 ID(36자의 고정 길이 문자열)
     @Id
@@ -22,7 +24,7 @@ open class UserEntity(
     @Column(name = "nickname", nullable = false)
     var nickname: String,
     // 계정 상태(활성화, 비활성화)
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: UserStatus,
     // 로그인 방법 - local or google
@@ -40,7 +42,7 @@ open class UserEntity(
     @Column(name = "google_id", nullable = true, unique = true)
     val googleId: String? = null,
     // 구글 이메일
-    @Column(name = "google_email", nullable = false, unique = true)
+    @Column(name = "google_email", nullable = true, unique = true)
     val googleEmail: String? = null,
     // 추가적인 개인 정보
     // 생성, 수정 시간

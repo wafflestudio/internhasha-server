@@ -1,13 +1,12 @@
 package com.waffletoy.team1server.user.controller
 
-import com.waffletoy.team1server.user.AuthProvider
-import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.UserStatus
+import com.waffletoy.team1server.user.*
+import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.service.EmailService
 import com.waffletoy.team1server.user.service.UserService
+import io.swagger.v3.oas.annotations.Parameter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,6 +17,7 @@ class UserController(
     private val userService: UserService,
     private val emailService: EmailService,
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
+    private val userRepository: UserRepository,
 ) {
     // 회원가입
     @PostMapping("/signup")
@@ -139,28 +139,33 @@ class UserController(
     // 유저 이메일 인증 링크 클릭
     @PostMapping("/verify-email")
     fun verifyEmail(
+        @Parameter(hidden = true) @AuthUser user: User?,
         @RequestParam("token") token: String,
     ): ResponseEntity<Void> {
+        if (user == null) {
+            throw AuthenticateException("Invalid user")
+        }
         // 토큰 검증 및 이메일 인증 처리
-        val userId = emailService.verifyToken(token)
+        val userId = emailService.verifyToken(user.id, token)
         userService.markEmailAsVerified(userId)
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .header("Location", "https://$domainUrl/echo/echo") // 리다이렉트 URL 설정
-            .build()
+        return ResponseEntity.ok().build()
     }
 
     // 로그아웃 - webconfig에서 api 관리
     @PostMapping("/logout")
     fun logout(
         // 인증된 사용자 객체를 주입받음
-        @AuthUser authenticatedUser: AuthenticatedUser,
+        @Parameter(hidden = true) @AuthUser user: User?,
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
+        if (user == null) {
+            throw AuthenticateException("Invalid user")
+        }
+
         userService.logout(
-            authenticatedUser.user,
-            authenticatedUser.accessToken,
+            user,
             refreshToken,
         )
 
@@ -180,9 +185,13 @@ class UserController(
     // 사용자 정보 확인
     @GetMapping("/user/info")
     fun getUserInfo(
-        @AuthUser authenticatedUser: AuthenticatedUser,
+        @Parameter(hidden = true) @AuthUser user: User?,
+//        @RequestParam("token") accessToken: String,
     ): ResponseEntity<UserData> {
-        val user = authenticatedUser.user
+//        val user = userService.authenticate(accessToken).user ?: throw AuthenticateException("Unauthorized user")
+        if (user == null) {
+            throw AuthenticateException("Invalid user")
+        }
         return ResponseEntity.ok(
             UserData(
                 id = user.id,
@@ -197,15 +206,24 @@ class UserController(
     // 비밀번호 변경
     @PostMapping("/password/change")
     fun changePassword(
-        @AuthUser authenticatedUser: AuthenticatedUser,
+        @Parameter(hidden = true) @AuthUser user: User?,
         @RequestBody request: ChangePasswordRequest,
     ): ResponseEntity<Void> {
+        if (user == null) {
+            throw AuthenticateException("Invalid user")
+        }
+
         userService.changePassword(
-            authenticatedUser.user,
-            authenticatedUser.accessToken,
+            user,
             request.oldPassword,
             request.newPassword,
         )
+        return ResponseEntity.ok().build()
+    }
+
+    @GetMapping("/resetDB")
+    fun resetDB(): ResponseEntity<Void> {
+        userService.deleteAllUsers()
         return ResponseEntity.ok().build()
     }
 
@@ -230,7 +248,6 @@ data class SignUpRequest(
     val password: String?,
     // 소셜 로그인
     val googleAccessToken: String?,
-    val googleId: String?,
 )
 
 data class SignUpResponse(
@@ -262,6 +279,6 @@ data class ChangePasswordRequest(
 )
 
 data class AuthenticatedUser(
-    val user: User,
+    val user: User?,
     val accessToken: String,
 )
