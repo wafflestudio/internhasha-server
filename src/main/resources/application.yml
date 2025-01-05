@@ -17,6 +17,26 @@ spring:
                         authorization-uri: ${GOOGLE_AUTH_URI}
                         token-uri: ${GOOGLE_TOKEN_URI}
                         user-name-attribute: email
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${EMAIL_SRC}
+        password: ${EMAIL_PASSWORD}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+    data:
+        redis:
+            host: ${SPRING_REDIS_HOST:localhost}
+            port: ${SPRING_REDIS_PORT:6379}
+custom:
+    domain-url: api.survey-josha.site
+    is-secure: ${IS_SECURE:false}
+
+
 
 springdoc:
     swagger-ui:

@@ -6,7 +6,8 @@ import java.time.Instant
 
 data class Post(
     val id: Int?,
-    val authorId: Int,
+    // userID를 UUID 기반 문자열로 변경함
+    val authorId: String,
     val title: String,
     val content: String?,
     val duration: Int,
@@ -20,7 +21,7 @@ data class Post(
         fun fromEntity(entity: PostEntity): Post =
             Post(
                 id = entity.id,
-                authorId = entity.author.id!!,
+                authorId = entity.author.id,
                 title = entity.title,
                 content = entity.content,
                 duration = entity.duration,

@@ -1,8 +1,8 @@
 package com.waffletoy.team1server.user
 
-enum class UserStatus(val code: Int) {
-    INACTIVE(0),
-    ACTIVE(1),
+enum class UserStatus {
+    ACTIVE,
+    INACTIVE,
 }
 
 enum class AuthProvider {
