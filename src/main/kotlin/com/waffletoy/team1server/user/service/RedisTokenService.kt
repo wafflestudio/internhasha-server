@@ -73,58 +73,33 @@ class RedisTokenService(
         return savedToken == token
     }
 
-    // 이메일 인증 토큰 저장 (email token을 key로, userId를 value로 저장)
-    fun saveEmailToken(
-        userId: String,
-        emailToken: String,
+    // 이메일 인증 코드(해시) 저장
+    fun saveEmailCode(
+        snuMail: String,
+        emailCode: String,
     ) {
-        deleteEmailTokenByUserId(userId) // 기존 동일 userId의 email token 삭제
+        // 기존 동일 스누메일의 email token 삭제
+        deleteEmailCode(snuMail)
 
-        val key = "emailToken:$emailToken"
+        val key = "emailToken:$snuMail"
         redisTemplate.opsForValue().set(
             key,
-            userId,
-            UserTokenUtil.emailTokenExpirationTime * 1000,
-            TimeUnit.MILLISECONDS,
-        )
-
-        val userKey = "emailUserToken:$userId"
-        redisTemplate.opsForValue().set(
-            userKey,
-            emailToken,
+            emailCode,
             UserTokenUtil.emailTokenExpirationTime * 1000,
             TimeUnit.MILLISECONDS,
         )
     }
 
-    // 이메일 인증 토큰 조회(token값)
-    fun getUserIdByEmailToken(token: String): String? {
-        val key = "emailToken:$token"
-        return redisTemplate.opsForValue().get(key)
-    }
-
-    // 이메일 인증 토큰 조회(userId)
-    fun getEmailTokenByUserId(userId: String): String? {
-        val key = "emailUserToken:$userId"
+    // 이메일 인증 토큰 조회
+    fun getEmailCode(snuMail: String): String? {
+        val key = "emailToken:$snuMail"
         return redisTemplate.opsForValue().get(key)
     }
 
     // 이메일 인증 토큰 삭제
-    fun deleteEmailTokenByToken(token: String): Boolean {
-        val key = "emailToken:$token"
+    fun deleteEmailCode(snuMail: String): Boolean {
+        val key = "emailToken:$String"
         return redisTemplate.delete(key)
-    }
-
-    // 이메일 인증 토큰 삭제(userId)
-    fun deleteEmailTokenByUserId(userId: String): Boolean {
-        val userKey = "emailUserToken:$userId"
-        val emailToken = redisTemplate.opsForValue().get(userKey) // 기존 emailToken 조회
-        val tokenKey = "emailToken:$emailToken"
-
-        val userKeyDeleted = redisTemplate.delete(userKey)
-        val tokenKeyDeleted = if (emailToken != null) redisTemplate.delete(tokenKey) else false
-
-        return userKeyDeleted && tokenKeyDeleted
     }
 
     // db 리셋
@@ -134,7 +109,6 @@ class RedisTokenService(
                 "userRefreshToken:*",
                 "refreshToken:*",
                 "emailToken:*",
-                "emailUserToken:*",
             )
 
         patterns.forEach { pattern ->
