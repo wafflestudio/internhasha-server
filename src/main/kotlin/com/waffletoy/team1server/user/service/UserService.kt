@@ -21,53 +21,70 @@ class UserService(
     // 회원가입
     @Transactional
     fun signUp(
-        authProvider: AuthProvider,
         snuMail: String,
-        nickname: String?,
-        loginId: String?,
+        username: String?,
+        localId: String?,
         password: String?,
         googleAccessToken: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
-        val finalNickname: String
+        val finalUsername: String
         var googleId: String? = null
         var googleEmail: String? = null
 
-        if (authProvider == AuthProvider.GOOGLE) {
+        // 이미 등록된 스누 메일인지 확인
+        if (userRepository.existsBySnuMail(snuMail)) {
+            throw EmailServiceException(
+                "동일한 스누메일로 등록된 계정이 존재합니다.",
+                HttpStatus.CONFLICT,
+            )
+        }
+
+        // 스누메일이 아니면 throw
+        if (!snuMail.endsWith("@snu.ac.kr")) {
+            throw UserServiceException(
+                "스누메일 형식에 맞지 않습니다.",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        if (googleAccessToken!=null) {
             // 구글 소셜 로그인
             // 필수값 확인
-            if (googleAccessToken.isNullOrBlank()) {
+            if (googleAccessToken.isBlank()) {
                 throw UserServiceException(
-                    "Social access token is required for Google signup",
+                    "구글 엑세스 토큰 필드가 비어있습니다.",
                     HttpStatus.BAD_REQUEST,
                 )
             }
 
-            // Google OAuth2를 통해 구글 이메일과 이름, 구글 id 가져오기 (실패하면 NOT_FOUND)
+            // Google OAuth2를 통해 구글 이메일과 이름, 구글 id 가져오기
+            // 가져오는 데 실패하면(토큰이 유효하지 않거나 통신 실패)
+            // 400 Bad Request
             val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
 
             googleEmail = googleUserInfo.email
-            finalNickname = nickname ?: googleUserInfo.name
+            finalUsername = googleUserInfo.name
             googleId = googleUserInfo.sub
 
             // 이미 같은 구글 아이디가 존재한다면 throw(CONFLICT)
             if (userRepository.existsByGoogleId(googleId)) {
                 throw UserServiceException(
-                    "GoogleId Conflict",
+                    "동일한 구글 계정으로 등록된 계정이 존재합니다.",
                     HttpStatus.CONFLICT,
                 )
             }
         } else {
             // 로컬 로그인
             // 필수값 확인
-            if (nickname.isNullOrBlank()) {
+            if (username.isNullOrBlank()) {
                 throw UserServiceException(
-                    "Nickname is required for Local signup",
+                    "Username is required for Local signup",
                     HttpStatus.BAD_REQUEST,
                 )
             }
-            if (loginId.isNullOrBlank()) {
+            if (localId.isNullOrBlank()) {
                 throw UserServiceException(
-                    "loginId is required for Local signup",
+                    "localId is required for Local signup",
                     HttpStatus.BAD_REQUEST,
                 )
             }
@@ -79,9 +96,9 @@ class UserService(
             }
 
             // loginId 조건 확인
-            if (!isValidLoginId(loginId)) {
+            if (!isValidLoginId(localId)) {
                 throw UserServiceException(
-                    "loginId must be 5-20 characters long and only contain letters, numbers, '_', or '-'",
+                    "localId must be 5-20 characters long and only contain letters, numbers, '_', or '-'",
                     HttpStatus.BAD_REQUEST,
                 )
             }
@@ -95,30 +112,16 @@ class UserService(
             }
 
             // 이미 같은 로그인Id가 존재한다면 throw(CONFLICT)
-            if (userRepository.existsByLoginId(loginId)) {
+            if (userRepository.existsByLocalId(localId)) {
                 throw UserServiceException(
-                    "User LoginID Conflict",
+                    "동일한 아이디로 등록된 계정이 존재합니다",
                     HttpStatus.CONFLICT,
                 )
             }
-            finalNickname = nickname
+            finalUsername = username
         }
 
-        // 이미 스누메일이 존재한다면 throw(CONFLICT)
-        if (userRepository.existsBySnuMail(snuMail)) {
-            throw UserServiceException(
-                "User SnuMail Conflict",
-                HttpStatus.CONFLICT,
-            )
-        }
 
-        // 스누메일이 아니면 throw
-        if (!snuMail.endsWith("@snu.ac.kr")) {
-            throw UserServiceException(
-                "Requested mail is not SNU Mail",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
 
         // 비밀번호 암호화 - 소셜 로그인은 비밀번호 없음
         val encryptedPassword =
@@ -131,21 +134,15 @@ class UserService(
             userRepository.save(
                 UserEntity(
                     snuMail = snuMail,
-                    nickname = finalNickname,
-                    status = UserStatus.INACTIVE,
-                    authProvider = authProvider,
-                    loginId = loginId,
+                    username = finalUsername,
+                    localId = localId,
                     password = encryptedPassword,
                     googleId = googleId,
-                    googleEmail = googleEmail,
                 ),
             )
 
         // 토큰 발급 및 저장
         val tokens = issueTokens(user)
-
-        // 인증 이메일 발송
-        emailService.sendEmailVerification(user, snuMail)
 
         return Pair(User.fromEntity(user), tokens)
     }

@@ -23,7 +23,7 @@ class EmailService(
         snuMail: String,
     ) {
         // 이미 등록된 메일인지 확인
-        if (userRepository.findBySnuMail(snuMail) != null) {
+        if (userRepository.existsBySnuMail(snuMail)) {
             throw EmailServiceException(
                 "동일한 스누메일로 등록된 계정이 존재합니다.",
                 HttpStatus.CONFLICT,
