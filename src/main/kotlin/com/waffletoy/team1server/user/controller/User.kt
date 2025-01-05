@@ -1,7 +1,5 @@
 package com.waffletoy.team1server.user.controller
 
-import com.waffletoy.team1server.user.AuthProvider
-import com.waffletoy.team1server.user.UserStatus
 import com.waffletoy.team1server.user.persistence.UserEntity
 
 // admin 클래스는 User를 상속하는 방식 고려할 것(isAdmin = true)

@@ -9,8 +9,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
-import javax.net.ssl.HttpsURLConnection
 
 @Service
 class UserService(
@@ -30,7 +28,6 @@ class UserService(
     ): Pair<User, UserTokenUtil.Tokens> {
         val finalUsername: String
         var googleId: String? = null
-        var googleEmail: String? = null
 
         // 이미 등록된 스누 메일인지 확인
         if (userRepository.existsBySnuMail(snuMail)) {
@@ -48,7 +45,7 @@ class UserService(
             )
         }
 
-        if (googleAccessToken!=null) {
+        if (googleAccessToken != null) {
             // 구글 소셜 로그인
             // 필수값 확인
             if (googleAccessToken.isBlank()) {
@@ -63,7 +60,6 @@ class UserService(
             // 400 Bad Request
             val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
 
-            googleEmail = googleUserInfo.email
             finalUsername = googleUserInfo.name
             googleId = googleUserInfo.sub
 
@@ -153,7 +149,6 @@ class UserService(
                         HttpStatus.NOT_FOUND,
                     )
             userEntity = user
-            
         } else {
             // 로컬 로그인
             if (localId.isNullOrBlank()) {
@@ -198,14 +193,16 @@ class UserService(
             redisTokenService.getUserIdByRefreshToken(refreshToken)
                 ?: throw UserServiceException(
                     "유효하지 않은 refresh token(token 조회 실패)",
-                    HttpStatus.BAD_REQUEST)
+                    HttpStatus.BAD_REQUEST,
+                )
 
         // 사용자 정보 조회
         val userEntity =
             userRepository.findByIdOrNull(userId)
                 ?: throw UserServiceException(
                     "유효하지 않은 refresh token(userId 조회 실패)",
-                    HttpStatus.BAD_REQUEST)
+                    HttpStatus.BAD_REQUEST,
+                )
 
         // 토큰 발급 및 저장
         val tokens = issueTokens(userEntity)
@@ -226,7 +223,7 @@ class UserService(
                 )
 
         // 소셜 로그인이면 비밀번호를 바꾸지 못 함
-        if (userFromDB.password==null) {
+        if (userFromDB.password == null) {
             throw UserServiceException(
                 "소셜 로그인 회원은 비밀번호 변경이 불가능합니다.",
                 HttpStatus.BAD_REQUEST,
@@ -252,7 +249,6 @@ class UserService(
         userFromDB.password = BCrypt.hashpw(newPassword, BCrypt.gensalt())
         userRepository.save(userFromDB)
     }
-
 
     @Transactional
     fun logout(
@@ -301,26 +297,27 @@ class UserService(
         localId: String? = null,
         password: String? = null,
         googleAccessToken: String? = null,
-    ): Pair<User, UserTokenUtil.Tokens>
-    {
+    ): Pair<User, UserTokenUtil.Tokens> {
         // 기존 계정 불러오기
-        val userEntity = userRepository.findBySnuMail(snuMail)
-            ?: throw UserServiceException(
-                "해당 스누메일로 등록된 계정이 존재하지 않습니다.",
-                HttpStatus.BAD_REQUEST,
-            )
+        val userEntity =
+            userRepository.findBySnuMail(snuMail)
+                ?: throw UserServiceException(
+                    "해당 스누메일로 등록된 계정이 존재하지 않습니다.",
+                    HttpStatus.BAD_REQUEST,
+                )
 
         // 로컬 -> 구글
-        if (googleAccessToken!=null){
-            if (userEntity.googleId != null) throw UserServiceException(
-                "동일한 구글 계정으로 등록된 사용자가 존재합니다.",
-                HttpStatus.CONFLICT
-            )
+        if (googleAccessToken != null) {
+            if (userEntity.googleId != null) {
+                throw UserServiceException(
+                    "동일한 구글 계정으로 등록된 사용자가 존재합니다.",
+                    HttpStatus.CONFLICT,
+                )
+            }
             // 구글 계정 정보 불러오기
             val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
             userEntity.googleId = googleUserInfo.sub
-        }
-        else {
+        } else {
             // 로컬 로그인
             // 필수값 확인
             if (localId.isNullOrBlank()) {
@@ -336,21 +333,22 @@ class UserService(
                 )
             }
 
-            if (userEntity.localId != null) throw UserServiceException(
-                "동일한 로컬 계정이 존재합니다.",
-                HttpStatus.BAD_REQUEST,
-            )
-            
+            if (userEntity.localId != null) {
+                throw UserServiceException(
+                    "동일한 로컬 계정이 존재합니다.",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
             // 아이디와 비밀번호 조건 체크
             checkLocalIdAndPassword(localId, password)
 
             userEntity.localId = localId
             userEntity.password = BCrypt.hashpw(password, BCrypt.gensalt())
-            
         }
         // 유저 정보 업데이트
         userRepository.save(userEntity)
-        
+
         // 토큰 발급 및 저장
         val tokens = issueTokens(userEntity)
         return Pair(User.fromEntity(userEntity), tokens)
@@ -372,10 +370,10 @@ class UserService(
 
     fun checkLocalIdAndPassword(
         localId: String,
-        password: String
+        password: String,
     ) {
         // localId 조건 확인
-        if (!isValidlocalId(localId)) {
+        if (!isValidLocalId(localId)) {
             throw UserServiceException(
                 "localId must be 5-20 characters long and only contain letters, numbers, '_', or '-'",
                 HttpStatus.BAD_REQUEST,
@@ -399,7 +397,7 @@ class UserService(
         }
     }
 
-    fun isValidlocalId(localId: String): Boolean = localIdRegex.matches(localId)
+    fun isValidLocalId(localId: String): Boolean = localIdRegex.matches(localId)
 
     fun isValidPassword(password: String): Boolean = passwordRegex.matches(password)
 }

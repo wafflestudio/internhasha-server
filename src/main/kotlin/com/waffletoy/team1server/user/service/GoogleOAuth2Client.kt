@@ -25,14 +25,16 @@ class GoogleOAuth2Client(
                 )
             response.body ?: throw GoogleOAuthServiceException(
                 "구글에서 받아온 사용자 정보가 비어있습니다(Empty body)",
-                HttpStatus.BAD_REQUEST)
+                HttpStatus.BAD_REQUEST,
+            )
         } catch (ex: HttpClientErrorException) {
             throw GoogleOAuthServiceException(
                 "구글에서 사용자 정보를 받아오는데 실패했습니다.(HttpClientError) - ${ex.statusCode} - ${ex.responseBodyAsString}",
-                HttpStatus.BAD_REQUEST)
+                HttpStatus.BAD_REQUEST,
+            )
         } catch (ex: Exception) {
             throw GoogleOAuthServiceException(
-                "구글에서 사용자 정보를 받아오는데 실패했습니다. $ex"
+                "구글에서 사용자 정보를 받아오는데 실패했습니다. $ex",
             )
         }
     }

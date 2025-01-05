@@ -20,8 +20,7 @@ class UserController(
     @PostMapping("/signup/send-code")
     fun sendCode(
         @RequestBody request: SendCodeRequest,
-    ) : ResponseEntity<Void>
-    {
+    ): ResponseEntity<Void> {
         // 이메일 코드 전송
         emailService.sendCode(request.snuMail)
         return ResponseEntity.ok().build()
@@ -87,11 +86,11 @@ class UserController(
         return ResponseEntity.ok(
             UserWithTokenDTO(
                 user =
-                UserBriefDTO(
-                    id = user.id,
-                    username = user.username,
-                    isAdmin = user.isAdmin,
-                ),
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
                 accessToken = tokens.accessToken,
             ),
         )
@@ -134,13 +133,14 @@ class UserController(
 
         return ResponseEntity.ok(
             UserWithTokenDTO(
-                user = UserBriefDTO(
-                    id = user.id,
-                    username = user.username,
-                    isAdmin = user.isAdmin,
-                ),
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
                 accessToken = tokens.accessToken,
-            )
+            ),
         )
     }
 
@@ -161,13 +161,14 @@ class UserController(
 
         return ResponseEntity.ok(
             UserWithTokenDTO(
-                user = UserBriefDTO(
-                    id = user.id,
-                    username = user.username,
-                    isAdmin = user.isAdmin,
-                ),
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
                 accessToken = tokens.accessToken,
-            )
+            ),
         )
     }
 
@@ -222,7 +223,7 @@ class UserController(
     ): ResponseEntity<User> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
-            user
+            user,
         )
     }
 
@@ -245,13 +246,14 @@ class UserController(
 
         return ResponseEntity.ok(
             UserWithTokenDTO(
-                user = UserBriefDTO(
-                    id = user.id,
-                    username = user.username,
-                    isAdmin = user.isAdmin,
-                ),
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
                 accessToken = tokens.accessToken,
-            )
+            ),
         )
     }
 
@@ -274,17 +276,15 @@ class UserController(
         return ResponseEntity.ok(
             UserWithTokenDTO(
                 user =
-                UserBriefDTO(
-                    id = user.id,
-                    username = user.username,
-                    isAdmin = user.isAdmin,
-                ),
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
                 accessToken = tokens.accessToken,
             ),
         )
     }
-
-
 
     @GetMapping("/resetDB")
     fun resetDB(): ResponseEntity<Void> {
@@ -307,7 +307,6 @@ class UserController(
     private lateinit var domainUrl: String
 }
 
-
 data class UserBriefDTO(
     val id: String,
     val username: String,
@@ -324,7 +323,7 @@ data class TokenDTO(
 )
 
 data class SendCodeRequest(
-    val snuMail: String
+    val snuMail: String,
 )
 
 data class VerifyCodeRequest(

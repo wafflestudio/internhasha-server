@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.user.EmailServiceException
-import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.http.HttpStatus
@@ -17,7 +16,6 @@ class EmailService(
     private val userRepository: UserRepository,
     private val redisTokenService: RedisTokenService,
 ) {
-
     @Async
     fun sendCode(
         snuMail: String,
@@ -71,8 +69,7 @@ class EmailService(
                 "인증 코드와 입력 코드가 일치하지 않습니다.",
                 HttpStatus.BAD_REQUEST,
             )
-        }
-        else {
+        } else {
             redisTokenService.deleteEmailCode(snuMail)
         }
     }
