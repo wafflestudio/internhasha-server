@@ -229,12 +229,11 @@ class UserController(
     // 로컬 로그인 추가(구글 계정)
     @PostMapping("/local")
     fun signIn(
-        @RequestBody request: LocalSignUpRequest,
+        @RequestBody request: LocalSignUpAddRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
         val (user, tokens) =
             userService.mergeAccount(
-                username = request.username,
                 snuMail = request.snuMail,
                 localId = request.localId,
                 password = request.password,
@@ -335,6 +334,12 @@ data class VerifyCodeRequest(
 
 data class LocalSignUpRequest(
     val username: String,
+    val localId: String,
+    val password: String,
+    val snuMail: String,
+)
+
+data class LocalSignUpAddRequest(
     val localId: String,
     val password: String,
     val snuMail: String,

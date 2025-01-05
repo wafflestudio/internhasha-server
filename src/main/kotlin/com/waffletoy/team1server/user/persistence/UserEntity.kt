@@ -24,16 +24,16 @@ open class UserEntity(
     var username: String,
     // 로컬 아이디
     @Column(name = "local_id", nullable = true, unique = true)
-    val localId: String? = null,
+    var localId: String? = null,
     // 해시된 비밀번호 저장
     @Column(name = "password", nullable = true)
     var password: String? = null,
     // 구글 ID
     @Column(name = "google_id", nullable = true, unique = true)
-    val googleId: String? = null,
+    var googleId: String? = null,
     // 전화번호
     @Column(name = "phone_number", nullable = true)
-    val phoneNumber: String? = null,
+    var phoneNumber: String? = null,
     // 생성, 수정 시간
     @CreatedDate
     @Column(nullable = false, updatable = false)
