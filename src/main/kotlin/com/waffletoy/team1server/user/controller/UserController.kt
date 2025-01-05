@@ -39,7 +39,7 @@ class UserController(
 
     // 로컬 회원가입
     @PostMapping("/signup/local")
-    fun signUp(
+    fun signUpLocal(
         @RequestBody request: LocalSignUpRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
@@ -70,7 +70,7 @@ class UserController(
 
     // 구글 회원가입
     @PostMapping("/signup/google")
-    fun signUp(
+    fun signUpGoogle(
         @RequestBody request: GoogleSignUpRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
@@ -118,7 +118,7 @@ class UserController(
 
     // 로컬 로그인
     @PostMapping("/signin/local")
-    fun signIn(
+    fun signInLocal(
         @RequestBody request: LocalSignInRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
@@ -146,7 +146,7 @@ class UserController(
 
     // 구글 로그인
     @PostMapping("/signin/google")
-    fun signIn(
+    fun signInGoogle(
         @RequestBody request: GoogleSignInRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
@@ -186,8 +186,6 @@ class UserController(
         )
         return ResponseEntity.ok().build()
     }
-
-
 
     // 로그아웃 - webconfig에서 api 관리
     @PostMapping("/logout")
