@@ -1,7 +1,5 @@
 package com.waffletoy.team1server.user.persistence
 
-import com.waffletoy.team1server.post.persistence.PostEntity
-import com.waffletoy.team1server.user.*
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -21,8 +19,8 @@ open class UserEntity(
     @Column(name = "snu_mail", nullable = false, unique = true)
     val snuMail: String,
     // 유저 표시 이름
-    @Column(name = "user_name", nullable = false)
-    var userName: String,
+    @Column(name = "username", nullable = false)
+    var username: String,
     // 로컬 아이디
     @Column(name = "local_id", nullable = true, unique = true)
     val localId: String? = null,

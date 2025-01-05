@@ -8,7 +8,7 @@ import com.waffletoy.team1server.user.persistence.UserEntity
 data class User(
     val id: String,
     val snuMail: String,
-    val userName: String,
+    val username: String,
     val phoneNumber: String?,
     val isAdmin: Boolean = false,
 ) {
@@ -17,7 +17,7 @@ data class User(
             User(
                 id = entity.id,
                 snuMail = entity.snuMail,
-                userName = entity.userName,
+                username = entity.username,
                 phoneNumber = entity.phoneNumber,
             )
     }
