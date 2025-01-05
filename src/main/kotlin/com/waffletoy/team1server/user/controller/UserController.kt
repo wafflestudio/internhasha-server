@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.user.controller
 
 import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.service.EmailService
 import com.waffletoy.team1server.user.service.UserService
 import io.swagger.v3.oas.annotations.Parameter
@@ -12,95 +11,85 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 class UserController(
     private val userService: UserService,
     private val emailService: EmailService,
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
-    private val userRepository: UserRepository,
 ) {
-    // 회원가입
-    @PostMapping("/signup")
-    fun signUp(
-        @RequestBody request: SignUpRequest,
+    @PostMapping("/signup/send-code")
+    fun sendCode(
+        @RequestBody request: SendCodeRequest,
+    ): ResponseEntity<Void> {
+        // 이메일 코드 전송
+        emailService.sendCode(request.snuMail)
+        return ResponseEntity.ok().build()
+    }
+
+    // 유저 이메일 인증 링크 클릭
+    @PostMapping("/verify-email")
+    fun verifyEmail(
+        @RequestBody request: VerifyCodeRequest,
+    ): ResponseEntity<Void> {
+        // 코드 검증
+        emailService.verifyToken(request.snuMail, request.code)
+        return ResponseEntity.ok().build()
+    }
+
+    // 로컬 회원가입
+    @PostMapping("/signup/local")
+    fun signUpLocal(
+        @RequestBody request: LocalSignUpRequest,
         response: HttpServletResponse,
-    ): ResponseEntity<SignUpResponse> {
+    ): ResponseEntity<UserWithTokenDTO> {
         val (user, tokens) =
             userService.signUp(
-                authProvider = request.authProvider,
+                username = request.username,
                 snuMail = request.snuMail,
-                nickname = request.nickname,
-                loginId = request.loginId,
+                localId = request.localId,
                 password = request.password,
-                googleAccessToken = request.googleAccessToken,
             )
 
         // Refresh Token을 HTTP-only 쿠키에 저장
-        val refreshTokenCookie =
-            ResponseCookie.from(
-                "refresh_token",
-                tokens.refreshToken,
-            )
-                .httpOnly(true)
-                .secure(isSecure) // HTTPS 사용 시 활성화
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7일
-                .build()
-
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString())
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
 
         return ResponseEntity.ok(
-            SignUpResponse(
-                userData =
-                    UserData(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
                         id = user.id,
-                        snuMail = user.snuMail,
-                        nickname = user.nickname,
-                        status = user.status,
-                        authProvider = request.authProvider,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
                     ),
                 accessToken = tokens.accessToken,
             ),
         )
     }
 
-    // 로그인
-    @PostMapping("/signin")
-    fun signIn(
-        @RequestBody request: SignInRequest,
+    // 구글 회원가입
+    @PostMapping("/signup/google")
+    fun signUpGoogle(
+        @RequestBody request: GoogleSignUpRequest,
         response: HttpServletResponse,
-    ): ResponseEntity<SignInResponse> {
+    ): ResponseEntity<UserWithTokenDTO> {
         val (user, tokens) =
-            userService.signIn(
-                authProvider = request.authProvider,
+            userService.signUp(
                 googleAccessToken = request.googleAccessToken,
-                loginId = request.loginId,
-                password = request.password,
+                snuMail = request.snuMail,
             )
 
         // Refresh Token을 HTTP-only 쿠키에 저장
-        val refreshTokenCookie =
-            ResponseCookie.from(
-                "refresh_token",
-                tokens.refreshToken,
-            )
-                .httpOnly(true)
-                .secure(isSecure) // HTTPS 사용 시 활성화
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7일
-                .build()
-
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString())
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
 
         return ResponseEntity.ok(
-            SignInResponse(
-                userData =
-                    UserData(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
                         id = user.id,
-                        snuMail = user.snuMail,
-                        nickname = user.nickname,
-                        status = user.status,
-                        authProvider = request.authProvider,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
                     ),
                 accessToken = tokens.accessToken,
             ),
@@ -112,43 +101,90 @@ class UserController(
     fun refreshAccessToken(
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
-    ): ResponseEntity<TokenRefreshResponse> {
+    ): ResponseEntity<TokenDTO> {
         val tokens = userService.refreshAccessToken(refreshToken)
 
         // Refresh Token을 HTTP-only 쿠키에 저장
-        val refreshTokenCookie =
-            ResponseCookie.from(
-                "refresh_token",
-                tokens.refreshToken,
-            )
-                .httpOnly(true)
-                .secure(isSecure) // HTTPS 사용 시 활성화
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7일
-                .build()
-
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString())
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
 
         return ResponseEntity.ok(
-            TokenRefreshResponse(
+            TokenDTO(
                 accessToken = tokens.accessToken,
             ),
         )
     }
 
-    // 유저 이메일 인증 링크 클릭
-    @PostMapping("/verify-email")
-    fun verifyEmail(
-        @Parameter(hidden = true) @AuthUser user: User?,
-        @RequestParam("token") token: String,
-    ): ResponseEntity<Void> {
-        if (user == null) {
-            throw AuthenticateException("Invalid user")
-        }
-        // 토큰 검증 및 이메일 인증 처리
-        val userId = emailService.verifyToken(user.id, token)
-        userService.markEmailAsVerified(userId)
+    // 로컬 로그인
+    @PostMapping("/signin/local")
+    fun signInLocal(
+        @RequestBody request: LocalSignInRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<UserWithTokenDTO> {
+        val (user, tokens) =
+            userService.signIn(
+                localId = request.localId,
+                password = request.password,
+            )
 
+        // Refresh Token을 HTTP-only 쿠키에 저장
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
+
+        return ResponseEntity.ok(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
+                accessToken = tokens.accessToken,
+            ),
+        )
+    }
+
+    // 구글 로그인
+    @PostMapping("/signin/google")
+    fun signInGoogle(
+        @RequestBody request: GoogleSignInRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<UserWithTokenDTO> {
+        val (user, tokens) =
+            userService.signIn(
+                googleAccessToken = request.googleAccessToken,
+            )
+
+        // Refresh Token을 HTTP-only 쿠키에 저장
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
+
+        return ResponseEntity.ok(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
+                accessToken = tokens.accessToken,
+            ),
+        )
+    }
+
+    // 비밀번호 변경
+    @PostMapping("/password/change")
+    fun changePassword(
+        @Parameter(hidden = true) @AuthUser user: User?,
+        @RequestBody request: ChangePasswordRequest,
+    ): ResponseEntity<Void> {
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
+
+        userService.changePassword(
+            user,
+            request.oldPassword,
+            request.newPassword,
+        )
         return ResponseEntity.ok().build()
     }
 
@@ -160,9 +196,7 @@ class UserController(
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        if (user == null) {
-            throw AuthenticateException("Invalid user")
-        }
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
 
         userService.logout(
             user,
@@ -186,39 +220,70 @@ class UserController(
     @GetMapping("/user/info")
     fun getUserInfo(
         @Parameter(hidden = true) @AuthUser user: User?,
-//        @RequestParam("token") accessToken: String,
-    ): ResponseEntity<UserData> {
-//        val user = userService.authenticate(accessToken).user ?: throw AuthenticateException("Unauthorized user")
-        if (user == null) {
-            throw AuthenticateException("Invalid user")
-        }
+    ): ResponseEntity<User> {
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
-            UserData(
-                id = user.id,
-                snuMail = user.snuMail,
-                nickname = user.nickname,
-                status = user.status,
-                authProvider = user.authProvider,
+            user,
+        )
+    }
+
+    // 로컬 로그인 추가(구글 계정)
+    @PostMapping("/local")
+    fun signIn(
+        @RequestBody request: LocalSignUpAddRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<UserWithTokenDTO> {
+        val (user, tokens) =
+            userService.mergeAccount(
+                snuMail = request.snuMail,
+                localId = request.localId,
+                password = request.password,
+            )
+
+        // Refresh Token을 HTTP-only 쿠키에 저장
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
+
+        return ResponseEntity.ok(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
+                accessToken = tokens.accessToken,
             ),
         )
     }
 
-    // 비밀번호 변경
-    @PostMapping("/password/change")
-    fun changePassword(
-        @Parameter(hidden = true) @AuthUser user: User?,
-        @RequestBody request: ChangePasswordRequest,
-    ): ResponseEntity<Void> {
-        if (user == null) {
-            throw AuthenticateException("Invalid user")
-        }
+    // 구글 로그인 추가(로컬 계정)
+    @PostMapping("/google")
+    fun signUp(
+        @RequestBody request: GoogleSignUpRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<UserWithTokenDTO> {
+        val (user, tokens) =
+            userService.mergeAccount(
+                googleAccessToken = request.googleAccessToken,
+                snuMail = request.snuMail,
+            )
 
-        userService.changePassword(
-            user,
-            request.oldPassword,
-            request.newPassword,
+        // Refresh Token을 HTTP-only 쿠키에 저장
+        val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken)
+        response.addHeader("Set-Cookie", refreshTokenCookie)
+
+        return ResponseEntity.ok(
+            UserWithTokenDTO(
+                user =
+                    UserBriefDTO(
+                        id = user.id,
+                        username = user.username,
+                        isAdmin = user.isAdmin,
+                    ),
+                accessToken = tokens.accessToken,
+            ),
         )
-        return ResponseEntity.ok().build()
     }
 
     @GetMapping("/resetDB")
@@ -227,58 +292,73 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    // Refresh Token 쿠키 생성 함수
+    private fun createRefreshTokenCookie(refreshToken: String): String {
+        return ResponseCookie.from("refresh_token", refreshToken)
+            .httpOnly(true)
+            .secure(isSecure) // HTTPS 사용 시 활성화
+            .path("/")
+            .maxAge(7 * 24 * 60 * 60) // 7일
+            .build()
+            .toString()
+    }
+
     @Value("\${custom.domain-url}")
     private lateinit var domainUrl: String
 }
 
-data class UserData(
+data class UserBriefDTO(
     val id: String,
+    val username: String,
+    val isAdmin: Boolean,
+)
+
+data class UserWithTokenDTO(
+    val user: UserBriefDTO,
+    val accessToken: String,
+)
+
+data class TokenDTO(
+    val accessToken: String,
+)
+
+data class SendCodeRequest(
     val snuMail: String,
-    val nickname: String,
-    val status: UserStatus,
-    val authProvider: AuthProvider,
 )
 
-data class SignUpRequest(
-    val authProvider: AuthProvider,
+data class VerifyCodeRequest(
     val snuMail: String,
-    // 로컬 로그인
-    val nickname: String?,
-    val loginId: String?,
-    val password: String?,
-    // 소셜 로그인
-    val googleAccessToken: String?,
+    val code: String,
 )
 
-data class SignUpResponse(
-    val userData: UserData,
-    val accessToken: String,
+data class LocalSignUpRequest(
+    val username: String,
+    val localId: String,
+    val password: String,
+    val snuMail: String,
 )
 
-data class SignInRequest(
-    val authProvider: AuthProvider,
-    // 소셜 로그인
-    val googleAccessToken: String?,
-    // 로컬 로그인
-    val loginId: String?,
-    val password: String?,
+data class LocalSignUpAddRequest(
+    val localId: String,
+    val password: String,
+    val snuMail: String,
 )
 
-data class SignInResponse(
-    val userData: UserData,
-    val accessToken: String,
+data class GoogleSignUpRequest(
+    val googleAccessToken: String,
+    val snuMail: String,
 )
 
-data class TokenRefreshResponse(
-    val accessToken: String,
+data class LocalSignInRequest(
+    val localId: String,
+    val password: String,
+)
+
+data class GoogleSignInRequest(
+    val googleAccessToken: String,
 )
 
 data class ChangePasswordRequest(
     val oldPassword: String,
     val newPassword: String,
-)
-
-data class AuthenticatedUser(
-    val user: User?,
-    val accessToken: String,
 )
