@@ -1,34 +1,126 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.controller.User
+import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.crypto.bcrypt.BCrypt
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
+import java.util.*
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val googleOAuth2Client: GoogleOAuth2Client,
+    private val emailService: EmailService,
+    private val redisTokenService: RedisTokenService,
 ) {
     // 회원가입
     @Transactional
     fun signUp(
-        name: String,
-        email: String,
-        phoneNumber: String,
-        password: String?,
         authProvider: AuthProvider,
-    ): User {
-        // 이미 이메일이 존재한다면 throw
-        if (userRepository.existsByEmail(email)) {
-            throw SignUpUserEmailConflictException()
+        snuMail: String,
+        nickname: String?,
+        loginId: String?,
+        password: String?,
+        googleAccessToken: String?,
+    ): Pair<User, UserTokenUtil.Tokens> {
+        val finalNickname: String
+        var googleId: String? = null
+        var googleEmail: String? = null
+
+        if (authProvider == AuthProvider.GOOGLE) {
+            // 구글 소셜 로그인
+            // 필수값 확인
+            if (googleAccessToken.isNullOrBlank()) {
+                throw UserServiceException(
+                    "Social access token is required for Google signup",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            // Google OAuth2를 통해 구글 이메일과 이름, 구글 id 가져오기 (실패하면 NOT_FOUND)
+            val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
+
+            googleEmail = googleUserInfo.email
+            finalNickname = nickname ?: googleUserInfo.name
+            googleId = googleUserInfo.sub
+
+            // 이미 같은 구글 아이디가 존재한다면 throw(CONFLICT)
+            if (userRepository.existsByGoogleId(googleId)) {
+                throw UserServiceException(
+                    "GoogleId Conflict",
+                    HttpStatus.CONFLICT,
+                )
+            }
+        } else {
+            // 로컬 로그인
+            // 필수값 확인
+            if (nickname.isNullOrBlank()) {
+                throw UserServiceException(
+                    "Nickname is required for Local signup",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+            if (loginId.isNullOrBlank()) {
+                throw UserServiceException(
+                    "loginId is required for Local signup",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+            if (password.isNullOrBlank()) {
+                throw UserServiceException(
+                    "password is required for Local signup",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            // loginId 조건 확인
+            if (!isValidLoginId(loginId)) {
+                throw UserServiceException(
+                    "loginId must be 5-20 characters long and only contain letters, numbers, '_', or '-'",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            // password 조건 확인
+            if (!isValidPassword(password)) {
+                throw UserServiceException(
+                    "password must be 8-20 characters long, include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@#$!^*)",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            // 이미 같은 로그인Id가 존재한다면 throw(CONFLICT)
+            if (userRepository.existsByLoginId(loginId)) {
+                throw UserServiceException(
+                    "User LoginID Conflict",
+                    HttpStatus.CONFLICT,
+                )
+            }
+            finalNickname = nickname
         }
 
-        // 비밀번호 암호화 (null이면 그대로) - 소셜 로그인은 비밀번호 없음
+        // 이미 스누메일이 존재한다면 throw(CONFLICT)
+        if (userRepository.existsBySnuMail(snuMail)) {
+            throw UserServiceException(
+                "User SnuMail Conflict",
+                HttpStatus.CONFLICT,
+            )
+        }
+
+        // 스누메일이 아니면 throw
+        if (!snuMail.endsWith("@snu.ac.kr")) {
+            throw UserServiceException(
+                "Requested mail is not SNU Mail",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        // 비밀번호 암호화 - 소셜 로그인은 비밀번호 없음
         val encryptedPassword =
             password?.let {
                 BCrypt.hashpw(it, BCrypt.gensalt())
@@ -38,63 +130,241 @@ class UserService(
         val user =
             userRepository.save(
                 UserEntity(
-                    name = name,
-                    email = email,
-                    phoneNumber = phoneNumber,
-                    password = encryptedPassword,
+                    snuMail = snuMail,
+                    nickname = finalNickname,
                     status = UserStatus.INACTIVE,
                     authProvider = authProvider,
-                    authoredPosts = emptySet(),
+                    loginId = loginId,
+                    password = encryptedPassword,
+                    googleId = googleId,
+                    googleEmail = googleEmail,
                 ),
             )
 
-        return User.fromEntity(user)
+        // 토큰 발급 및 저장
+        val tokens = issueTokens(user)
+
+        // 인증 이메일 발송
+        emailService.sendEmailVerification(user, snuMail)
+
+        return Pair(User.fromEntity(user), tokens)
     }
 
     // 로그인
     @Transactional
     fun signIn(
-        email: String,
-        password: String,
         authProvider: AuthProvider,
+        googleAccessToken: String?,
+        loginId: String?,
+        password: String?,
     ): Pair<User, UserTokenUtil.Tokens> {
-        // 입력한 이메일을 기준으로 해당 유저를 찾음
-        val targetUser = userRepository.findByEmail(email) ?: throw SignInUserNotFoundException()
+        val finalUser: UserEntity
 
-        // 비밀번호 확인(소셜 로그인이면 null)
-        if (!BCrypt.checkpw(password, targetUser.password)) {
-            throw SignInInvalidPasswordException()
+        if (authProvider == AuthProvider.GOOGLE) {
+            // 구글 소셜 로그인
+            // 필수값 확인
+            if (googleAccessToken.isNullOrBlank()) {
+                throw UserServiceException(
+                    "Social access token is required for Google signIn",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            // Google OAuth2를 통해 이메일과 이름 가져오기
+            val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
+            val googleEmail = googleUserInfo.email
+            val googleId = googleUserInfo.sub
+
+            val user =
+                userRepository.findByGoogleId(googleId)
+                    ?: throw UserServiceException(
+                        "User Not Found",
+                        HttpStatus.NOT_FOUND,
+                    )
+
+            // Google 이메일 확인
+            if (user.googleEmail != googleEmail) {
+                throw UserServiceException(
+                    "The provided Google ID does not match the user's record.",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+
+            finalUser = user
+        } else {
+            // 로컬 로그인
+            if (loginId.isNullOrBlank()) {
+                throw UserServiceException(
+                    "loginId is required for Local sign in",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+            if (password.isNullOrBlank()) {
+                throw UserServiceException(
+                    "password is required for Local sign in",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+            val user =
+                userRepository.findByLoginId(loginId)
+                    ?: throw UserServiceException(
+                        "User Not Found",
+                        HttpStatus.NOT_FOUND,
+                    )
+
+            // 비밀번호 확인(소셜 로그인이면 null)
+            if (!BCrypt.checkpw(password, user.password)) {
+                throw UserServiceException(
+                    "The provided password does not match the user's record.",
+                    HttpStatus.BAD_REQUEST,
+                )
+            }
+            finalUser = user
         }
 
-        // 토큰 발급
-        val tokens = UserTokenUtil.generateTokens(targetUser, userRepository)
+        // RTR 방식
+        // 새로운 Access Token 및 Refresh Token 발급
+        val newTokens = UserTokenUtil.generateTokens(finalUser)
 
-        return Pair(User.fromEntity(targetUser), tokens)
+        // 새 Refresh Token 저장 - 기존 토큰이 있으면 삭제됨(RTR)
+        redisTokenService.saveRefreshToken(finalUser.id, newTokens.refreshToken)
+
+        return Pair(User.fromEntity(finalUser), newTokens)
     }
 
     // Access Token 만료 시 Refresh Token으로 재발급
     @Transactional
     fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
-        val now = Instant.now()
+        // Refresh Token으로 사용자 ID 조회
+        val userId =
+            redisTokenService.getUserIdByRefreshToken(refreshToken)
+                ?: throw UserServiceException("Invalid Refresh Token", HttpStatus.BAD_REQUEST)
 
-        // Refresh Token 유효성 검증
+        // 사용자 정보 조회
         val userEntity =
-            userRepository.findByRefreshToken(refreshToken)
-                ?: throw RefreshTokenInvalidException()
+            userRepository.findByIdOrNull(userId)
+                ?: throw UserServiceException("User not found.", HttpStatus.NOT_FOUND)
 
-        if (userEntity.refreshTokenExpiresAt?.isBefore(now) == true) {
-            throw RefreshTokenExpiredException()
+        // 새로운 토큰 발급
+        val newTokens = UserTokenUtil.generateTokens(userEntity)
+
+        // Redis에 새 Refresh Token 저장
+        redisTokenService.saveRefreshToken(userId, newTokens.refreshToken)
+
+        return newTokens
+    }
+
+    @Transactional
+    fun markEmailAsVerified(userId: String) {
+        val user =
+            userRepository.findByIdOrNull(userId)
+                ?: throw UserServiceException(
+                    "User not found in email verification",
+                    HttpStatus.NOT_FOUND,
+                )
+
+        user.status = UserStatus.ACTIVE
+        userRepository.save(user)
+    }
+
+    @Transactional
+    fun logout(
+        user: User,
+        refreshToken: String,
+    ) {
+        // Redis에서 Refresh Token 조회
+        val storedUserId =
+            redisTokenService.getUserIdByRefreshToken(refreshToken)
+                ?: throw UserServiceException(
+                    "Invalid Refresh Token",
+                    HttpStatus.BAD_REQUEST,
+                )
+
+        if (user.id != storedUserId) {
+            throw UserServiceException(
+                "Access Token do not match with Refresh Token",
+                HttpStatus.BAD_REQUEST,
+            )
         }
 
-        // 새 토큰 발급
-        return UserTokenUtil.generateTokens(userEntity, userRepository)
+        // Refresh Token 삭제
+        try {
+            redisTokenService.deleteRefreshTokenByUserId(storedUserId)
+        } catch (e: Exception) {
+            // Refresh Token이 없더라도 로그아웃은 성공으로 간주
+        }
     }
 
     // Access token으로 인증
-    @Transactional
+    @Transactional(readOnly = true)
     fun authenticate(accessToken: String): User {
-        val userId = UserTokenUtil.validateAccessTokenGetUserId(accessToken) ?: throw AuthenticateException()
-        val user = userRepository.findByIdOrNull(userId.toInt()) ?: throw AuthenticateException()
-        return User.fromEntity(user)
+        val userId =
+            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+                ?: throw AuthenticateException("Invalid or expired access token")
+
+        val userEntity =
+            userRepository.findByIdOrNull(userId)
+                ?: throw AuthenticateException("User not found for the given token")
+
+        return User.fromEntity(userEntity)
     }
+
+    @Transactional
+    fun changePassword(
+        user: User,
+        oldPassword: String,
+        newPassword: String,
+    ) {
+        val userFromDB =
+            userRepository.findByIdOrNull(user.id)
+                ?: throw UserServiceException(
+                    "User not found.",
+                    HttpStatus.NOT_FOUND,
+                )
+
+        // 소셜 로그인이면 비밀번호를 바꾸지 못 함
+        if (userFromDB.authProvider == AuthProvider.GOOGLE) {
+            throw UserServiceException(
+                "Password change is not allowed for social login users.",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        // 비밀번호 확인 (소셜 로그인이면 null)
+        if (userFromDB.password == null || !BCrypt.checkpw(oldPassword, userFromDB.password)) {
+            throw UserServiceException(
+                "The provided password does not match the user's record.",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        // password 조건 확인
+        if (!isValidPassword(newPassword)) {
+            throw UserServiceException(
+                "password must be 8-20 characters long, include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@#$!^*)",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        userFromDB.password = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        userRepository.save(userFromDB)
+    }
+
+    fun deleteAllUsers() {
+        userRepository.deleteAll()
+        redisTokenService.deleteAllKeys()
+    }
+
+    private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {
+        val tokens = UserTokenUtil.generateTokens(user)
+        redisTokenService.saveRefreshToken(user.id, tokens.refreshToken)
+        return tokens
+    }
+
+    private val loginIdRegex = Regex("^[a-zA-Z][a-zA-Z0-9_-]{4,19}$")
+    private val passwordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$!^*])[A-Za-z\\d@#$!^*]{8,20}$")
+
+    fun isValidLoginId(loginId: String): Boolean = loginIdRegex.matches(loginId)
+
+    fun isValidPassword(password: String): Boolean = passwordRegex.matches(password)
 }
