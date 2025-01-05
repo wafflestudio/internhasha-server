@@ -45,10 +45,4 @@ springdoc:
     api-docs:
         enabled: ${SPRING_DOC_API_DOCS_ENABLED:true}
         path: ${SPRING_DOC_API_DOCS_PATH:/v3/api-docs}
-        server-base-url: https://www.survey-josha.site # HTTPS 기본 URL 설정
-
-logging:
-    level:
-        com:
-            waffletoy:
-                team1server=DEBUG:
+        server-base-url: https://www.api.survey-josha.site # HTTPS 기본 URL 설정
