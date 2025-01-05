@@ -5,6 +5,7 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity(name = "users")
@@ -36,8 +37,8 @@ open class UserEntity(
     // 생성, 수정 시간
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    var createdAt: Instant = Instant.now(),
+    var createdAt: LocalDateTime = LocalDateTime.now(),
     @LastModifiedDate
     @Column(nullable = false)
-    var updatedAt: Instant = Instant.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
 )

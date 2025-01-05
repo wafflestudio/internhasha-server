@@ -177,7 +177,7 @@ class UserController(
         @Parameter(hidden = true) @AuthUser user: User?,
         @RequestBody request: ChangePasswordRequest,
     ): ResponseEntity<Void> {
-        if (user == null) throw AuthenticateException("Invalid user")
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
 
         userService.changePassword(
             user,
@@ -195,7 +195,7 @@ class UserController(
         @CookieValue("refresh_token") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        if (user == null) throw AuthenticateException("Invalid user")
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
 
         userService.logout(
             user,
@@ -220,7 +220,7 @@ class UserController(
     fun getUserInfo(
         @Parameter(hidden = true) @AuthUser user: User?,
     ): ResponseEntity<User> {
-        if (user == null) throw AuthenticateException("Invalid user")
+        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
             user
         )
