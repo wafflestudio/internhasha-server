@@ -4,27 +4,21 @@ import com.waffletoy.team1server.user.AuthProvider
 import com.waffletoy.team1server.user.UserStatus
 import com.waffletoy.team1server.user.persistence.UserEntity
 
+// admin 클래스는 User를 상속하는 방식 고려할 것(isAdmin = true)
 data class User(
     val id: String,
     val snuMail: String,
-    val nickname: String,
-    val status: UserStatus,
-    val authProvider: AuthProvider,
-    val loginId: String?,
-    val googleId: String?,
-    val googleEmail: String?,
+    val userName: String,
+    val phoneNumber: String?,
+    val isAdmin: Boolean = false,
 ) {
     companion object {
         fun fromEntity(entity: UserEntity): User =
             User(
                 id = entity.id,
                 snuMail = entity.snuMail,
-                nickname = entity.nickname,
-                status = entity.status,
-                authProvider = entity.authProvider,
-                loginId = entity.loginId,
-                googleId = entity.googleId,
-                googleEmail = entity.googleEmail,
+                userName = entity.userName,
+                phoneNumber = entity.phoneNumber,
             )
     }
 }
