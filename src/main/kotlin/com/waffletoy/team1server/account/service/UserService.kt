@@ -1,9 +1,14 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.account.service
 
+import com.waffletoy.team1server.account.AccountTokenUtil
+import com.waffletoy.team1server.account.AuthenticateException
+import com.waffletoy.team1server.account.EmailServiceException
+import com.waffletoy.team1server.account.UserServiceException
+import com.waffletoy.team1server.account.controller.User
+import com.waffletoy.team1server.account.controller.UserOrAdmin
+import com.waffletoy.team1server.account.persistence.*
 import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
-import com.waffletoy.team1server.user.persistence.UserEntity
-import com.waffletoy.team1server.user.persistence.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -13,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class UserService(
     private val userRepository: UserRepository,
+    private val adminRepository: AdminRepository,
+    private val accountRepository: AccountRepository,
     private val googleOAuth2Client: GoogleOAuth2Client,
     private val emailService: EmailService,
     private val redisTokenService: RedisTokenService,
@@ -25,7 +32,7 @@ class UserService(
         localId: String? = null,
         password: String? = null,
         googleAccessToken: String? = null,
-    ): Pair<User, UserTokenUtil.Tokens> {
+    ): Pair<User, AccountTokenUtil.Tokens> {
         val finalUsername: String
         var googleId: String? = null
 
@@ -126,8 +133,8 @@ class UserService(
         googleAccessToken: String? = null,
         localId: String? = null,
         password: String? = null,
-    ): Pair<User, UserTokenUtil.Tokens> {
-        val userEntity: UserEntity
+    ): Pair<UserOrAdmin, AccountTokenUtil.Tokens> {
+        val accountEntity: AccountEntity
 
         if (googleAccessToken != null) {
             // 필수값 확인
@@ -148,7 +155,7 @@ class UserService(
                         "해당 구글 계정의 사용자 정보가 존재하지 않습니다.",
                         HttpStatus.NOT_FOUND,
                     )
-            userEntity = user
+            accountEntity = user
         } else {
             // 로컬 로그인
             if (localId.isNullOrBlank()) {
@@ -163,31 +170,31 @@ class UserService(
                     HttpStatus.BAD_REQUEST,
                 )
             }
-            val user =
-                userRepository.findByLocalId(localId)
+            val account =
+                accountRepository.findByLocalId(localId)
                     ?: throw UserServiceException(
                         "해당 아이디의 사용자 정보가 존재하지 않습니다.",
                         HttpStatus.NOT_FOUND,
                     )
 
             // 비밀번호 확인(소셜 로그인이면 null)
-            if (!BCrypt.checkpw(password, user.password)) {
+            if (!BCrypt.checkpw(password, account.password)) {
                 throw UserServiceException(
                     "비밀번호가 일치하지 않습니다.",
                     HttpStatus.BAD_REQUEST,
                 )
             }
-            userEntity = user
+            accountEntity = account
         }
 
         // 토큰 발급 및 저장
-        val tokens = issueTokens(userEntity)
-        return Pair(User.fromEntity(userEntity), tokens)
+        val tokens = issueTokens(accountEntity)
+        return Pair(UserOrAdmin.fromEntity(accountEntity), tokens)
     }
 
     // Access Token 만료 시 Refresh Token으로 재발급
     @Transactional
-    fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
+    fun refreshAccessToken(refreshToken: String): AccountTokenUtil.Tokens {
         // Refresh Token으로 사용자 ID 조회
         val userId =
             redisTokenService.getUserIdByRefreshToken(refreshToken)
@@ -197,15 +204,15 @@ class UserService(
                 )
 
         // 사용자 정보 조회
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
+        val accountEntity =
+            accountRepository.findByLocalId(userId)
                 ?: throw UserServiceException(
                     "유효하지 않은 refresh token(userId 조회 실패)",
                     HttpStatus.BAD_REQUEST,
                 )
 
         // 토큰 발급 및 저장
-        val tokens = issueTokens(userEntity)
+        val tokens = issueTokens(accountEntity)
         return tokens
     }
 
@@ -280,9 +287,9 @@ class UserService(
 
     // Access token으로 인증
     @Transactional(readOnly = true)
-    fun authenticate(accessToken: String): User {
+    fun authenticateUser(accessToken: String): User {
         val userId =
-            UserTokenUtil.validateAccessTokenGetUserId(accessToken)
+            AccountTokenUtil.validateAccessTokenGetAccountId(accessToken)
                 ?: throw AuthenticateException("Invalid or expired access token")
 
         val userEntity =
@@ -297,7 +304,7 @@ class UserService(
         localId: String? = null,
         password: String? = null,
         googleAccessToken: String? = null,
-    ): Pair<User, UserTokenUtil.Tokens> {
+    ): Pair<User, AccountTokenUtil.Tokens> {
         // 기존 계정 불러오기
         val userEntity =
             userRepository.findBySnuMail(snuMail)
@@ -359,9 +366,9 @@ class UserService(
         redisTokenService.deleteAllKeys()
     }
 
-    private fun issueTokens(user: UserEntity): UserTokenUtil.Tokens {
-        val tokens = UserTokenUtil.generateTokens(user)
-        redisTokenService.saveRefreshToken(user.id, tokens.refreshToken)
+    private fun issueTokens(account: AccountEntity): AccountTokenUtil.Tokens {
+        val tokens = AccountTokenUtil.generateTokens(account)
+        redisTokenService.saveRefreshToken(account.id, tokens.refreshToken)
         return tokens
     }
 
