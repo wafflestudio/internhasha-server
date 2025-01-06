@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.user
+package com.waffletoy.team1server.account
 
 import com.waffletoy.team1server.DomainException
 import org.springframework.http.HttpStatus

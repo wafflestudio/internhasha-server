@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.user
+package com.waffletoy.team1server.account
 
-import com.waffletoy.team1server.user.persistence.UserEntity
+import com.waffletoy.team1server.account.persistence.AccountEntity
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.*
 
-object UserTokenUtil {
+object AccountTokenUtil {
     data class Tokens(
         val accessToken: String,
         val refreshToken: String,
@@ -16,40 +16,40 @@ object UserTokenUtil {
 
     // 토큰 생성(access & refresh 쌍)
     fun generateTokens(
-        userEntity: UserEntity,
+        accountEntity: AccountEntity,
     ): Tokens {
         return Tokens(
-            generateAccessToken(userEntity),
-            generateRefreshToken(userEntity),
+            generateAccessToken(accountEntity),
+            generateRefreshToken(accountEntity),
         )
     }
 
-    fun generateAccessToken(userEntity: UserEntity): String {
+    fun generateAccessToken(accountEntity: AccountEntity): String {
         val now = Instant.now()
         val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME))
 
         return Jwts.builder()
             .signWith(SECRET_KEY)
-            .setSubject(userEntity.id)
+            .setSubject(accountEntity.id)
             .setIssuedAt(Date.from(now))
             .setExpiration(accessExpiryDate)
             .compact()
     }
 
-    fun generateRefreshToken(userEntity: UserEntity): String {
+    fun generateRefreshToken(accountEntity: AccountEntity): String {
         val now = Instant.now()
         val refreshExpiryDate = now.plusSeconds(REFRESH_TOKEN_EXPIRATION_TIME)
 
         return Jwts.builder()
             .signWith(SECRET_KEY)
-            .setSubject(userEntity.id)
+            .setSubject(accountEntity.id)
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(refreshExpiryDate))
             .compact()
     }
 
     // Access Token 유효성 검증
-    fun validateAccessTokenGetUserId(token: String): String? {
+    fun validateAccessTokenGetAccountId(token: String): String? {
         return try {
             val claims =
                 Jwts.parserBuilder()

@@ -1,8 +1,9 @@
-package com.waffletoy.team1server.user.controller
+package com.waffletoy.team1server.account.controller
 
-import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.service.EmailService
-import com.waffletoy.team1server.user.service.UserService
+import com.waffletoy.team1server.account.AuthUser
+import com.waffletoy.team1server.account.AuthenticateException
+import com.waffletoy.team1server.account.service.EmailService
+import com.waffletoy.team1server.account.service.UserService
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -121,7 +122,7 @@ class UserController(
         @RequestBody request: LocalSignInRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithTokenDTO> {
-        val (user, tokens) =
+        val (userOrAdmin, tokens) =
             userService.signIn(
                 localId = request.localId,
                 password = request.password,
@@ -135,9 +136,9 @@ class UserController(
             UserWithTokenDTO(
                 user =
                     UserBriefDTO(
-                        id = user.id,
-                        username = user.username,
-                        isAdmin = user.isAdmin,
+                        id = userOrAdmin.id,
+                        username = userOrAdmin.username,
+                        isAdmin = userOrAdmin.isAdmin,
                     ),
                 accessToken = tokens.accessToken,
             ),
