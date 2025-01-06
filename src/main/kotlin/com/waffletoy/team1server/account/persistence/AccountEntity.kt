@@ -21,7 +21,7 @@ open class AccountEntity(
     open var username: String,
     @Column(name = "local_id", unique = true)
     open var localId: String? = null,
-    @Column(name = "local_password_hash", nullable = true)
+    @Column(name = "password", nullable = true)
     open var password: String? = null,
     @CreatedDate
     @Column(nullable = false, updatable = false)
