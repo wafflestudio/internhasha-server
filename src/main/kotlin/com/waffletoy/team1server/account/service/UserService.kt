@@ -7,8 +7,6 @@ import com.waffletoy.team1server.account.UserServiceException
 import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.account.controller.UserOrAdmin
 import com.waffletoy.team1server.account.persistence.*
-import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.controller.*
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
