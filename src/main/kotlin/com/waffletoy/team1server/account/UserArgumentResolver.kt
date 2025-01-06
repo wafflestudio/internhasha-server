@@ -1,7 +1,7 @@
-package com.waffletoy.team1server.user
+package com.waffletoy.team1server.account
 
-import com.waffletoy.team1server.user.controller.User
-import com.waffletoy.team1server.user.service.UserService
+import com.waffletoy.team1server.account.controller.User
+import com.waffletoy.team1server.account.service.UserService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
@@ -47,7 +47,7 @@ class UserArgumentResolver(
                 }
             logger.info("Extracted Access Token: $accessToken")
 
-            userService.authenticate(accessToken).also {
+            userService.authenticateUser(accessToken).also {
                 logger.info("Authenticated User: $it")
             }
         }.getOrElse {

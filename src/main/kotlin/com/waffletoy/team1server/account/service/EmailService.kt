@@ -1,14 +1,13 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.account.service
 
-import com.waffletoy.team1server.user.EmailServiceException
-import com.waffletoy.team1server.user.persistence.UserRepository
+import com.waffletoy.team1server.account.EmailServiceException
+import com.waffletoy.team1server.account.persistence.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.http.HttpStatus
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class EmailService(

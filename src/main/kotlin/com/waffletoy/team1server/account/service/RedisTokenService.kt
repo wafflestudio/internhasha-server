@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.account.service
 
-import com.waffletoy.team1server.user.UserTokenUtil
+import com.waffletoy.team1server.account.AccountTokenUtil
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
@@ -25,7 +25,7 @@ class RedisTokenService(
         redisTemplate.opsForValue().set(
             userKey,
             refreshToken,
-            UserTokenUtil.refreshTokenExpirationTime * 1000,
+            AccountTokenUtil.refreshTokenExpirationTime * 1000,
             TimeUnit.MILLISECONDS,
         )
 
@@ -34,7 +34,7 @@ class RedisTokenService(
         redisTemplate.opsForValue().set(
             tokenKey,
             userId,
-            UserTokenUtil.refreshTokenExpirationTime * 1000,
+            AccountTokenUtil.refreshTokenExpirationTime * 1000,
             TimeUnit.MILLISECONDS,
         )
     }
@@ -85,7 +85,7 @@ class RedisTokenService(
         redisTemplate.opsForValue().set(
             key,
             emailCode,
-            UserTokenUtil.emailTokenExpirationTime * 1000,
+            AccountTokenUtil.emailTokenExpirationTime * 1000,
             TimeUnit.MILLISECONDS,
         )
     }
