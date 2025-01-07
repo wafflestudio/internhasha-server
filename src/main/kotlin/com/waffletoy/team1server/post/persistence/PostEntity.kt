@@ -6,10 +6,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "POSTS")
+@Table(name = "posts")
 open class PostEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -17,10 +17,10 @@ open class PostEntity(
     open val admin: AdminEntity,
 
     @Column(name = "CREATED_AT", nullable = false)
-    open val createdAt: LocalDateTime,
+    open val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "UPDATED_AT", nullable = false)
-    open var updatedAt: LocalDateTime,
+    open var updatedAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "TITLE", nullable = false, length = 255)
     open val title: String,
@@ -53,5 +53,21 @@ open class PostEntity(
     open val landingPageLink: String? = null,
 
     @Column(name = "EMPLOYMENT_END_DATE", nullable = false)
-    open val employmentEndDate: LocalDateTime
+    open val employmentEndDate: LocalDateTime,
+
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "POST_ID") // LINKS 테이블의 POST_ID 외래 키를 매핑
+    open val links: List<LinkEntity> = mutableListOf(),
+
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "POST_ID") // ROLES 테이블의 POST_ID 외래 키를 매핑
+    open val roles: List<RoleEntity> = mutableListOf(),
+
+    @ManyToMany
+    @JoinTable(
+        name = "post_tags", // 중간 테이블 명
+        joinColumns = [JoinColumn(name = "post_id")], // POST_ID와 매핑
+        inverseJoinColumns = [JoinColumn(name = "tag_id")] // TAG_ID와 매핑
+    )
+    val tags: MutableSet<TagEntity> = mutableSetOf()
 )
