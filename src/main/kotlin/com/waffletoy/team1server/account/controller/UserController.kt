@@ -28,7 +28,7 @@ class UserController(
     }
 
     // 유저 이메일 인증 링크 클릭
-    @PostMapping("/verify-email")
+    @PostMapping("/signup/verify-email")
     fun verifyEmail(
         @RequestBody request: VerifyCodeRequest,
     ): ResponseEntity<Void> {
