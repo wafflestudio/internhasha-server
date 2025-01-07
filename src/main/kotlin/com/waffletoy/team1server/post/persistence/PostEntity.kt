@@ -41,7 +41,7 @@ open class PostEntity(
     open val imageLink: String? = null,
 
     @Column(name = "INVEST_AMOUNT")
-    open val investAmount: Int? = null,
+    open val investAmount: Int = 0,
 
     @Column(name = "INVEST_COMPANY")
     open val investCompany: String? = null,
@@ -69,7 +69,10 @@ open class PostEntity(
         joinColumns = [JoinColumn(name = "post_id")], // POST_ID와 매핑
         inverseJoinColumns = [JoinColumn(name = "tag_id")] // TAG_ID와 매핑
     )
-    val tags: MutableSet<TagEntity> = mutableSetOf()
+    val tags: MutableSet<TagEntity> = mutableSetOf(),
+
+    @Column(name = "IS_ACTIVE")
+    open val isActive: Boolean = false,
 ) {
     // 기본 생성자 추가
     constructor() : this(
@@ -82,6 +85,7 @@ open class PostEntity(
         employmentEndDate = LocalDateTime.now(),
         links = mutableListOf(),
         roles = mutableListOf(),
-        tags = mutableSetOf()
+        tags = mutableSetOf(),
+        isActive = false,
     )
 }

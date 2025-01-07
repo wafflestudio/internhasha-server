@@ -1,14 +1,14 @@
 package com.waffletoy.team1server.post.persistence
 
 import jakarta.persistence.*
+import java.util.*
 
 @Entity
 @Table(name = "tags")
 open class TagEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", nullable = false)
-    val id: Int = 0,
+    open val id: String = UUID.randomUUID().toString(),
 
     @Column(name = "TAG", nullable = false, unique = true)
     val tag: String,
@@ -17,7 +17,7 @@ open class TagEntity(
     val posts: MutableSet<PostEntity> = mutableSetOf()
 ) {
     constructor() : this(
-        id = 0,
+        id = UUID.randomUUID().toString(),
         tag = "",
         posts = mutableSetOf()
     )
