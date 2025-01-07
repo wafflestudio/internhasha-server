@@ -120,13 +120,6 @@ class UserService(
                 ),
             )
 
-        if (user.username == null) {
-            throw UserServiceException(
-                "user.username is Null",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
-
         // 토큰 발급 및 저장
         val tokens = issueTokens(user)
         return Pair(User.fromEntity(user), tokens)
