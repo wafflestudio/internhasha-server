@@ -7,12 +7,19 @@ import jakarta.persistence.*
 open class TagEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "ID", nullable = false)
     val id: Int = 0,
 
-    @Column(name = "tag", nullable = false, unique = true)
+    @Column(name = "TAG", nullable = false, unique = true)
     val tag: String,
 
     @ManyToMany(mappedBy = "tags")
     val posts: MutableSet<PostEntity> = mutableSetOf()
-)
+) {
+    constructor() : this(
+        id = 0,
+        tag = "",
+        posts = mutableSetOf()
+    )
+}
+

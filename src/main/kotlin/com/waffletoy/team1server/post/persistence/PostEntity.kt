@@ -25,7 +25,7 @@ open class PostEntity(
     @Column(name = "TITLE", nullable = false, length = 255)
     open val title: String,
 
-    @Column(name = "companyName", nullable = false, length = 255)
+    @Column(name = "NAME", nullable = false, length = 255)
     open val companyName: String,
 
     @Column(name = "EXPLANATION", columnDefinition = "TEXT")
@@ -70,4 +70,18 @@ open class PostEntity(
         inverseJoinColumns = [JoinColumn(name = "tag_id")] // TAG_ID와 매핑
     )
     val tags: MutableSet<TagEntity> = mutableSetOf()
-)
+) {
+    // 기본 생성자 추가
+    constructor() : this(
+        id = UUID.randomUUID().toString(),
+        admin = AdminEntity(username = "default"),
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+        title = "",
+        companyName = "",
+        employmentEndDate = LocalDateTime.now(),
+        links = mutableListOf(),
+        roles = mutableListOf(),
+        tags = mutableSetOf()
+    )
+}
