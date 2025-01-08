@@ -7,7 +7,7 @@ import java.util.*
 
 @Entity
 @Table(name = "INVEST_COMPANY")
-open class InvestCompany(
+open class InvestCompanyEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),

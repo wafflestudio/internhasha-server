@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 class PostController(
     private val postService: PostService,
 ) {
-
+    // 채용 공고 상세 페이지 불러오기
     @GetMapping("/{post_id}")
     fun getPageDetail(
         @PathVariable("post_id") postId: String
@@ -23,16 +23,27 @@ class PostController(
         return ResponseEntity.ok(post)
     }
 
-    @GetMapping("/")
+    // 채용 공고 리스트 불러오기
+    @GetMapping
     fun getPosts(
         @RequestParam(required = false) roles: List<String>?,
         @RequestParam(required = false) investment: Int?,
-        @RequestParam(required = false) investors: List<String>?
+        @RequestParam(required = false) investors: List<String>?,
+        @RequestParam(required = false) status: Int?,
+        @RequestParam(required = false) page: Int?,
     ): ResponseEntity<List<PostBrief>> {
-        val posts = postService.getPosts(roles, investment, investors)
-        return ResponseEntity.ok(posts)
+        val posts = postService.getPosts(roles, investment, investors, status, page?:0)
+
+        // 총 페이지
+        val totalPages = posts.totalPages
+
+        // PostBrief로 매핑하여 반환
+        return ResponseEntity.ok(
+            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) }
+        )
     }
 
+    // 관심 채용 추가하기
     @PostMapping("/{post_id}/bookmark")
     fun bookmarkPost(
         @Parameter(hidden = true) @AuthUser user: User?,
@@ -42,7 +53,8 @@ class PostController(
         postService.bookmarkPost(user, postId)
         return ResponseEntity.ok().build()
     }
-
+    
+    // 관심 채용 삭제하기
     @DeleteMapping("/{post_id}/bookmark")
     fun deleteBookmark(
         @Parameter(hidden = true) @AuthUser user: User?,
@@ -53,14 +65,21 @@ class PostController(
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/post/bookmarks")
+    @GetMapping("/bookmarks")
     fun getBookMarks(
         @Parameter(hidden = true) @AuthUser user: User?,
-        @RequestParam(required = false) page: Int = 0,
+        @RequestParam(required = false) page: Int?,
     ): ResponseEntity<List<PostBrief>> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        val postList = postService.getBookmarks(user, page)
-        return ResponseEntity.ok(postList)
+        val posts = postService.getBookmarks(user, page?:0)
+
+        // 총 페이지
+        val totalPages = posts.totalPages
+
+        // PostBrief로 매핑하여 반환
+        return ResponseEntity.ok(
+            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) }
+        )
     }
 }
 
