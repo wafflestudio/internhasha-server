@@ -3,6 +3,7 @@ package com.waffletoy.team1server.post.controller
 import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.account.persistence.UserEntity
 import com.waffletoy.team1server.post.persistence.PostEntity
+import java.time.LocalDateTime
 
 data class Post(
     val id: String,
@@ -19,6 +20,7 @@ data class Post(
     val landingPageLink: String,
     val externalDescriptionLink: List<String>,
     val isActive: Boolean,
+    val employeeEndDate: LocalDateTime,
 ) {
     companion object {
         fun fromEntity(entity: PostEntity): Post =
@@ -43,11 +45,12 @@ data class Post(
                 },
                 imageLink = entity.imageLink ?: "",
                 investAmount = entity.investAmount,
-                investCompany = List<String>(1) { entity.investCompany ?: "" },
+                investCompany = entity.investCompany.map { it.companyName },
                 isActive = entity.isActive,
                 IRDeckLink = entity.irDeckLink ?: "",
                 landingPageLink = entity.landingPageLink ?: "",
                 externalDescriptionLink = entity.links.map { it.link },
+                employeeEndDate = entity.employmentEndDate,
             )
     }
 }

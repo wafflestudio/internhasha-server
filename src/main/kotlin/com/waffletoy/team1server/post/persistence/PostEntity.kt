@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.waffletoy.team1server.account.persistence.AdminEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -43,8 +44,14 @@ open class PostEntity(
     @Column(name = "INVEST_AMOUNT")
     open val investAmount: Int = 0,
 
-    @Column(name = "INVEST_COMPANY")
-    open val investCompany: String? = null,
+    @OneToMany(
+        mappedBy = "INVEST_COMPANY", // 양방향 매핑
+        cascade = [CascadeType.ALL],
+        fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
+    @JsonManagedReference // 순환 참조 방지
+    open val investCompany: List<InvestCompany> = mutableListOf(),
 
     @Column(name = "IR_DECK_LINK")
     open val irDeckLink: String? = null,
@@ -53,7 +60,7 @@ open class PostEntity(
     open val landingPageLink: String? = null,
 
     @Column(name = "EMPLOYMENT_END_DATE", nullable = false)
-    open val employmentEndDate: LocalDateTime,
+    open val employmentEndDate: LocalDateTime = LocalDateTime.now(),
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "POST_ID") // LINKS 테이블의 POST_ID 외래 키를 매핑
@@ -78,14 +85,8 @@ open class PostEntity(
     constructor() : this(
         id = UUID.randomUUID().toString(),
         admin = AdminEntity(username = "default"),
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
         title = "",
         companyName = "",
-        employmentEndDate = LocalDateTime.now(),
-        links = mutableListOf(),
-        roles = mutableListOf(),
-        tags = mutableSetOf(),
         isActive = false,
     )
 }
