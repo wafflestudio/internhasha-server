@@ -203,7 +203,7 @@ class UserService(
 
         // 사용자 정보 조회
         val accountEntity =
-            accountRepository.findByLocalId(userId)
+            accountRepository.findByIdOrNull(userId)
                 ?: throw UserServiceException(
                     "유효하지 않은 refresh token(userId 조회 실패)",
                     HttpStatus.BAD_REQUEST,
