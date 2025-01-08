@@ -68,6 +68,18 @@ class UserController(
         )
     }
 
+    @PostMapping("/signup/google-email")
+    fun getGoogleEmailFromAccessToken(
+        @RequestBody request: GoogleEmailRequest,
+    ): ResponseEntity<GoogleEmailResponse> {
+        val email = userService.getGoogleEmailFromAccessToken(request.googleAccessToken)
+        return ResponseEntity.ok(
+            GoogleEmailResponse(
+                googleEmail = email,
+            ),
+        )
+    }
+
     // 구글 회원가입
     @PostMapping("/signup/google")
     fun signUpGoogle(
@@ -218,7 +230,7 @@ class UserController(
     }
 
     // 사용자 정보 확인
-    @GetMapping("/user/info")
+    @GetMapping("/info")
     fun getUserInfo(
         @Parameter(hidden = true) @AuthUser user: User?,
     ): ResponseEntity<User> {
@@ -353,6 +365,14 @@ data class LocalSignUpAddRequest(
     val localId: String,
     val password: String,
     val snuMail: String,
+)
+
+data class GoogleEmailRequest(
+    val googleAccessToken: String,
+)
+
+data class GoogleEmailResponse(
+    val googleEmail: String,
 )
 
 data class GoogleSignUpRequest(
