@@ -364,6 +364,23 @@ class UserService(
         redisTokenService.deleteAllKeys()
     }
 
+    fun checkDuplicate(
+        localId: String?,
+    ) {
+        if (localId == null) {
+            throw UserServiceException(
+                "아이디 필드가 누락되었습니다",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+        if (accountRepository.existsByLocalId(localId)) {
+            throw UserServiceException(
+                "동일한 로컬 아이디로 등록된 사용자가 존재합니다.",
+                HttpStatus.CONFLICT,
+            )
+        }
+    }
+
     private fun issueTokens(account: AccountEntity): AccountTokenUtil.Tokens {
         val tokens = AccountTokenUtil.generateTokens(account)
         redisTokenService.saveRefreshToken(account.id, tokens.refreshToken)

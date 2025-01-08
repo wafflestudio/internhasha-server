@@ -293,6 +293,16 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    @GetMapping("/id-duplicate")
+    fun checkDuplicate(
+        @RequestBody request: CheckId,
+    ): ResponseEntity<Void> {
+        // 중복이 있으면 409 CONFLICT
+        userService.checkDuplicate(request.localId)
+        // 중복이 없으면 200 OK
+        return ResponseEntity.ok().build()
+    }
+
     // Refresh Token 쿠키 생성 함수
     private fun createRefreshTokenCookie(refreshToken: String): String {
         return ResponseCookie.from("refresh_token", refreshToken)
@@ -362,4 +372,8 @@ data class GoogleSignInRequest(
 data class ChangePasswordRequest(
     val oldPassword: String,
     val newPassword: String,
+)
+
+data class CheckId(
+    val localId: String?,
 )
