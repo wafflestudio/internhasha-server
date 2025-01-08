@@ -15,7 +15,10 @@ import java.time.LocalDateTime
 @Repository
 interface PostRepository : JpaRepository<PostEntity, String>, JpaSpecificationExecutor<PostEntity> {
     @Query("SELECT p FROM PostEntity p WHERE p.id IN :ids")
-    fun findAllByIdIn(@Param("ids") ids: List<String>, pageable: Pageable): Page<PostEntity>
+    fun findAllByIdIn(
+        @Param("ids") ids: List<String>,
+        pageable: Pageable,
+    ): Page<PostEntity>
 }
 
 class PostSpecification {
@@ -39,8 +42,8 @@ class PostSpecification {
                             criteriaBuilder.or(
                                 *roleEnums.map { roleEnum ->
                                     criteriaBuilder.equal(roleJoin.get<String>("name"), roleEnum.name)
-                                }.toTypedArray()
-                            )
+                                }.toTypedArray(),
+                            ),
                         )
                     }
                 }
@@ -57,8 +60,8 @@ class PostSpecification {
                         criteriaBuilder.or(
                             *it.map { investorName ->
                                 criteriaBuilder.equal(investorJoin.get<String>("companyName"), investorName)
-                            }.toTypedArray()
-                        )
+                            }.toTypedArray(),
+                        ),
                     )
                 }
 
@@ -68,13 +71,13 @@ class PostSpecification {
                         0 -> {
                             // 진행 중 (현재 날짜가 employmentEndDate 이전)
                             predicates.add(
-                                criteriaBuilder.greaterThanOrEqualTo(root.get("employmentEndDate"), LocalDateTime.now())
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("employmentEndDate"), LocalDateTime.now()),
                             )
                         }
                         1 -> {
                             // 진행 완료 (현재 날짜가 employmentEndDate 이후)
                             predicates.add(
-                                criteriaBuilder.lessThan(root.get("employmentEndDate"), LocalDateTime.now())
+                                criteriaBuilder.lessThan(root.get("employmentEndDate"), LocalDateTime.now()),
                             )
                         }
                         2 -> {
@@ -82,7 +85,6 @@ class PostSpecification {
                         }
 
                         else -> {
-
                         }
                     }
                 }
@@ -93,4 +95,3 @@ class PostSpecification {
         }
     }
 }
-

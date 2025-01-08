@@ -3,7 +3,6 @@ package com.waffletoy.team1server.post.service
 import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.controller.Post
-import com.waffletoy.team1server.post.controller.PostBrief
 import com.waffletoy.team1server.post.persistence.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -15,14 +14,14 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class PostService(
     private val postRepository: PostRepository,
-    private val bookmarkRepository: BookmarkRepository
+    private val bookmarkRepository: BookmarkRepository,
 ) {
-
     fun getPageDetail(postId: String): Post {
-        val postEntity = postRepository.findByIdOrNull(postId)?: throw PostServiceException(
-            "해당 ID를 가진 포스트가 없습니다.",
-            HttpStatus.NOT_FOUND
-        )
+        val postEntity =
+            postRepository.findByIdOrNull(postId) ?: throw PostServiceException(
+                "해당 ID를 가진 포스트가 없습니다.",
+                HttpStatus.NOT_FOUND,
+            )
         return Post.fromEntity(postEntity)
     }
 
@@ -31,11 +30,15 @@ class PostService(
         investment: Int?,
         investor: List<String>?,
         status: Int?,
-        page: Int = 0
+        page: Int = 0,
     ): Page<PostEntity> {
-        val specification = PostSpecification.withFilters(
-            roles, investment, investor, status?:2
-        )
+        val specification =
+            PostSpecification.withFilters(
+                roles,
+                investment,
+                investor,
+                status ?: 2,
+            )
 
         val pageable = PageRequest.of(page, pageSize)
 
@@ -55,19 +58,21 @@ class PostService(
         if (bookmarkRepository.existsByUserIdAndPostId(user.id, postId)) {
             throw PostServiceException(
                 "이미 북마크에 추가된 포스트입니다.",
-                HttpStatus.CONFLICT
+                HttpStatus.CONFLICT,
             )
         }
-        val post = postRepository.findByIdOrNull(postId) ?: throw PostServiceException(
-            "존재하지 않는 채용정보입니다.",
-            HttpStatus.NOT_FOUND,
-        )
-        val bookmarkEntity = bookmarkRepository.save(
-            BookmarkEntity(
-                postId = post.id,
-                userId = user.id,
+        val post =
+            postRepository.findByIdOrNull(postId) ?: throw PostServiceException(
+                "존재하지 않는 채용정보입니다.",
+                HttpStatus.NOT_FOUND,
             )
-        )
+        val bookmarkEntity =
+            bookmarkRepository.save(
+                BookmarkEntity(
+                    postId = post.id,
+                    userId = user.id,
+                ),
+            )
         return
     }
 
@@ -76,7 +81,7 @@ class PostService(
         user: User,
         postId: String,
     ) {
-        if (!bookmarkRepository.existsByUserIdAndPostId(user.id, postId)){
+        if (!bookmarkRepository.existsByUserIdAndPostId(user.id, postId)) {
             throw PostServiceException(
                 "존재하지 않는 북마크입니다",
                 HttpStatus.NOT_FOUND,
@@ -90,7 +95,7 @@ class PostService(
     fun getBookmarks(
         user: User,
         page: Int,
-    ) : Page<PostEntity> {
+    ): Page<PostEntity> {
         val pageable = PageRequest.of(page, pageSize)
 
         // 북마크 ID 가져오기

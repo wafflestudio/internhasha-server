@@ -1,7 +1,5 @@
 package com.waffletoy.team1server.post.controller
 
-import com.waffletoy.team1server.account.controller.User
-import com.waffletoy.team1server.account.persistence.UserEntity
 import com.waffletoy.team1server.post.persistence.PostEntity
 import java.time.LocalDateTime
 
@@ -28,21 +26,23 @@ data class Post(
                 id = entity.id,
                 companyName = entity.companyName,
                 email = entity.email ?: "",
-                author = AuthorBriefDTO(
-                    id = entity.admin.id,
-                    name = entity.admin.username,
-                    profileImageLink = entity.admin.profileImageLink,
-                ),
+                author =
+                    AuthorBriefDTO(
+                        id = entity.admin.id,
+                        name = entity.admin.username,
+                        profileImageLink = entity.admin.profileImageLink,
+                    ),
                 explanation = entity.explanation ?: "",
                 tags = entity.tags.map { it.tag },
-                roles = entity.roles.map {
-                    RoleDTO(
-                        id = it.id,
-                        category = it.category,
-                        detail = it.detail,
-                        headcount = it.headcount,
-                    )
-                },
+                roles =
+                    entity.roles.map {
+                        RoleDTO(
+                            id = it.id,
+                            category = it.category,
+                            detail = it.detail,
+                            headcount = it.headcount,
+                        )
+                    },
                 imageLink = entity.imageLink ?: "",
                 investAmount = entity.investAmount,
                 investCompany = entity.investCompany.map { it.companyName },

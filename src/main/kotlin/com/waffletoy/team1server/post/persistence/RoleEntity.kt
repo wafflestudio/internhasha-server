@@ -10,21 +10,19 @@ open class RoleEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
-
     @Column(name = "CATEGORY", nullable = false)
     @Enumerated(EnumType.STRING)
     val category: Category,
-
     @Column(name = "DETAIL", nullable = true)
     val detail: String? = null,
-
     @Column(name = "HEADCOUNT", nullable = false)
     val headcount: String,
 ) {
     constructor() : this(
         id = UUID.randomUUID().toString(),
-        category = Category.CATEGORY_A, // 기본값 설정
+        // 기본값 설정
+        category = Category.CATEGORY_A,
         detail = null,
-        headcount = "0"
+        headcount = "0",
     )
 }

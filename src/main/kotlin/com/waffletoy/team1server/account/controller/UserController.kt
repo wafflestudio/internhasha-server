@@ -295,8 +295,8 @@ class UserController(
 
     @GetMapping("/id-duplicate")
     fun checkDuplicate(
-        @RequestBody request:checkId
-    ) : ResponseEntity<Void> {
+        @RequestBody request: CheckId,
+    ): ResponseEntity<Void> {
         // 중복이 있으면 409 CONFLICT
         userService.checkDuplicate(request.localId)
         // 중복이 없으면 200 OK
@@ -374,6 +374,6 @@ data class ChangePasswordRequest(
     val newPassword: String,
 )
 
-data class checkId(
-    val localId: String?
+data class CheckId(
+    val localId: String?,
 )

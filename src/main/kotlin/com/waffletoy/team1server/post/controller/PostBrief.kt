@@ -17,19 +17,20 @@ data class PostBrief(
     val employeeEndDate: LocalDateTime,
 ) {
     companion object {
-        fun fromPost(post:Post) : PostBrief = PostBrief(
-            id = post.id,
-            companyName = post.companyName,
-            email = post.email,
-            author = post.author,
-            explanation = post.explanation,
-            tags = post.tags,
-            roles = post.roles,
-            imageLink = post.imageLink,
-            investAmount = post.investAmount,
-            investCompany = post.investCompany,
-            isActive = post.isActive,
-            employeeEndDate = post.employeeEndDate,
-        )
+        fun fromPost(post: Post): PostBrief =
+            PostBrief(
+                id = post.id,
+                companyName = post.companyName,
+                email = post.email,
+                author = post.author,
+                explanation = post.explanation,
+                tags = post.tags,
+                roles = post.roles,
+                imageLink = post.imageLink,
+                investAmount = post.investAmount,
+                investCompany = post.investCompany,
+                isActive = post.isActive,
+                employeeEndDate = post.employeeEndDate,
+            )
     }
 }

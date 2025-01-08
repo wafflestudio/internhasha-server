@@ -16,7 +16,7 @@ class PostServiceException(
     httpStatusCode: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
     errorCode: Int = 0,
 ) : PostException(
-    errorCode = errorCode,
-    httpStatusCode = httpStatusCode,
-    msg = customMessage ?: "Post Service Failed",
-)
+        errorCode = errorCode,
+        httpStatusCode = httpStatusCode,
+        msg = customMessage ?: "Post Service Failed",
+    )
