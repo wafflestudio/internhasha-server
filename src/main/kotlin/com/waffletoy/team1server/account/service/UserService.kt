@@ -22,6 +22,23 @@ class UserService(
     private val emailService: EmailService,
     private val redisTokenService: RedisTokenService,
 ) {
+    fun getGoogleEmailFromAccessToken(
+        googleAccessToken: String,
+    ): String {
+        if (googleAccessToken.isBlank()) {
+            throw UserServiceException(
+                "구글 엑세스 토큰 필드가 비어있습니다.",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        // Google OAuth2를 통해 구글 이메일과 이름, 구글 id 가져오기
+        // 가져오는 데 실패하면(토큰이 유효하지 않거나 통신 실패)
+        // 400 Bad Request
+        val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
+        return googleUserInfo.email
+    }
+
     // 회원가입
     @Transactional
     fun signUp(
