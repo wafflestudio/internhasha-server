@@ -12,7 +12,7 @@ data class PostBrief(
     val roles: List<RoleDTO>,
     val imageLink: String,
     val investAmount: Int,
-    val investCompany: List<String>,
+    val investCompany: String,
     val isActive: Boolean,
     val employeeEndDate: LocalDateTime,
 ) {

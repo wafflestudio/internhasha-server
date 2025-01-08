@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.account.persistence.AdminEntity
 import com.waffletoy.team1server.post.Category
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
@@ -55,14 +56,12 @@ class PostSpecification {
 
                 // investors 조건
                 investors?.let {
-                    val investorJoin = root.join<PostEntity, InvestCompanyEntity>("investCompany")
-                    predicates.add(
-                        criteriaBuilder.or(
-                            *it.map { investorName ->
-                                criteriaBuilder.equal(investorJoin.get<String>("companyName"), investorName)
-                            }.toTypedArray(),
-                        ),
-                    )
+                    if (it.isNotEmpty()) {
+                        val adminJoin = root.join<PostEntity, AdminEntity>("admin")
+                        predicates.add(
+                            adminJoin.get<String>("username").`in`(it),
+                        )
+                    }
                 }
 
                 // status 조건

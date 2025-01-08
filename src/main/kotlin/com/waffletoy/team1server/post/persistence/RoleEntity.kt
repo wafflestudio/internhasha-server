@@ -21,7 +21,7 @@ open class RoleEntity(
     constructor() : this(
         id = UUID.randomUUID().toString(),
         // 기본값 설정
-        category = Category.CATEGORY_A,
+        category = Category.PLANNER,
         detail = null,
         headcount = "0",
     )

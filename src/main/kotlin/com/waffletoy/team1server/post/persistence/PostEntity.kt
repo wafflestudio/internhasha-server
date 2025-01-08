@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.post.persistence
 
-import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.waffletoy.team1server.account.persistence.AdminEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -33,16 +32,8 @@ open class PostEntity(
     open val imageLink: String? = null,
     @Column(name = "INVEST_AMOUNT")
     open val investAmount: Int = 0,
-    // 양방향 매핑
-    @OneToMany(
-        mappedBy = "postEntity",
-        cascade = [CascadeType.ALL],
-        fetch = FetchType.LAZY,
-        orphanRemoval = true,
-    )
-    // 순환 참조 방지
-    @JsonManagedReference
-    open val investCompany: List<InvestCompanyEntity> = mutableListOf(),
+    @Column(name = "INVEST_COMPANY")
+    open val investCompany: String? = null,
     @Column(name = "IR_DECK_LINK")
     open val irDeckLink: String? = null,
     @Column(name = "LANDING_PAGE_LINK")
