@@ -17,7 +17,7 @@ open class AccountEntity(
     @Id
     @Column(name = "id", nullable = false, updatable = false, length = 36)
     open val id: String = UUID.randomUUID().toString(),
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = false)
     open var username: String,
     @Column(name = "local_id", unique = true)
     open var localId: String? = null,
@@ -36,3 +36,4 @@ open class AccountEntity(
 // password, username 등의 naming 모호함 issue-> 나중에
 // username -> User를 일반 유저로 한정지은 순간 username이라는 Naming이 모호해짐.
 // username nullable 해야 하지 않나? 아니면 나방129 등으로 자동생성해주는 library라도 불러와야.
+// username은 겹칠 수 있음(동명이인)
