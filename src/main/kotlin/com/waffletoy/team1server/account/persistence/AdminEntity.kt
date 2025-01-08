@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.account.persistence
 
-import com.waffletoy.team1server.post.persistence.PostEntity
 import jakarta.persistence.*
 
 @Entity(name = "admins")
@@ -8,7 +7,6 @@ import jakarta.persistence.*
 class AdminEntity(
     @Column(name = "profile_image_link", length = 255)
     var profileImageLink: String? = null,
-
     username: String,
     password: String? = null,
     localId: String? = null,
