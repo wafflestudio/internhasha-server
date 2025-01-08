@@ -293,7 +293,7 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/id-duplicate")
+    @PostMapping("/signup/id-duplicate")
     fun checkDuplicate(
         @RequestBody request: CheckId,
     ): ResponseEntity<Void> {
