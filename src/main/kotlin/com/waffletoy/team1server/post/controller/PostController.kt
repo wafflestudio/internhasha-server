@@ -6,6 +6,7 @@ import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.service.PostService
 import io.swagger.v3.oas.annotations.Parameter
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -91,8 +92,21 @@ class PostController(
     @PostMapping("/make-dummy")
     fun makeDummyPost(
         @RequestBody cnt: Int,
-    ) {
+    ): ResponseEntity<Void> {
         postService.makeDummyPosts(cnt)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/reset-db")
+    fun resetDBPosts(
+        @RequestBody pw: PasswordRequest,
+    ): ResponseEntity<Void> {
+        if (pw.pw == "0000") {
+            postService.resetDB()
+            return ResponseEntity.ok().build()
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
     }
 }
 
@@ -117,3 +131,5 @@ data class PostWithPageDTO(
     val posts: List<PostBrief>,
     val paginator: Paginator,
 )
+
+data class PasswordRequest(val pw: String)

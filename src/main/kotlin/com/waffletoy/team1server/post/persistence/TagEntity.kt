@@ -12,5 +12,5 @@ open class TagEntity(
     @Column(name = "TAG", nullable = false, unique = true)
     val tag: String,
     @ManyToMany(mappedBy = "tags")
-    val posts: MutableSet<PostEntity> = mutableSetOf(),
+    var posts: MutableSet<PostEntity> = mutableSetOf(),
 )

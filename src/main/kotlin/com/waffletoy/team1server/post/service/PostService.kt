@@ -117,19 +117,18 @@ class PostService(
     @Transactional
     fun makeDummyPosts(cnt: Int) {
         (1..cnt).forEach {
-            val admin: AccountEntity
-            if (accountRepository.existsByLocalId("dummy$it")) {
-                admin = accountRepository.findByLocalId("dummy$it") ?: throw UserServiceException()
-            } else {
-                admin =
+            val admin: AdminEntity =
+                if (accountRepository.existsByLocalId("dummy$it")) {
+                    accountRepository.findByLocalId("dummy$it") as? AdminEntity ?: throw UserServiceException()
+                } else {
                     accountRepository.save(
-                        AccountEntity(
+                        AdminEntity(
                             username = "dummy$it",
                             localId = "dummy$it",
                             password = "DummyPW$it!99",
                         ),
                     )
-            }
+                }
 
             val roles =
                 listOf("PLANNER", "FRONT", "BACKEND").map { it2 ->
@@ -175,6 +174,12 @@ class PostService(
                 )
             postRepository.save(post)
         }
+    }
+
+    fun resetDB() {
+        postRepository.deleteAll()
+        tagRepository.deleteAll()
+        roleRepository.deleteAll()
     }
 
     private val pageSize = 12
