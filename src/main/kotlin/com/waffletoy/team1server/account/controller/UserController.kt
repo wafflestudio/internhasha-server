@@ -2,14 +2,17 @@ package com.waffletoy.team1server.account.controller
 
 import com.waffletoy.team1server.account.AuthUser
 import com.waffletoy.team1server.account.AuthenticateException
+import com.waffletoy.team1server.account.EmailServiceException
 import com.waffletoy.team1server.account.service.EmailService
 import com.waffletoy.team1server.account.service.UserService
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.CompletableFuture
 
 @RestController
 @RequestMapping("/api/user")
@@ -22,8 +25,15 @@ class UserController(
     fun sendCode(
         @RequestBody request: SendCodeRequest,
     ): ResponseEntity<Void> {
-        // 이메일 코드 전송
-        emailService.sendCode(request.snuMail)
+        CompletableFuture.runAsync {
+            emailService.sendCode(request.snuMail)
+        }.exceptionally {
+            throw EmailServiceException(
+                "동일한 스누메일로 등록된 계정이 존재합니다.",
+                HttpStatus.CONFLICT,
+            )
+        }.join()
+
         return ResponseEntity.ok().build()
     }
 
