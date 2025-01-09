@@ -7,7 +7,7 @@ interface UserRepository : JpaRepository<UserEntity, String> {
 
     fun findByGoogleId(googleId: String): UserEntity?
 
-    fun findByLocalId(loginID: String): UserEntity?
+    fun findByLocalId(localId: String): UserEntity?
 
     fun existsBySnuMail(snuMail: String): Boolean
 
