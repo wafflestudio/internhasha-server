@@ -6,7 +6,6 @@ import org.mindrot.jbcrypt.BCrypt
 import org.springframework.http.HttpStatus
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,7 +14,6 @@ class EmailService(
     private val userRepository: UserRepository,
     private val redisTokenService: RedisTokenService,
 ) {
-    @Async
     fun sendCode(
         snuMail: String,
     ) {

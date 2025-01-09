@@ -2,7 +2,6 @@ package com.waffletoy.team1server.account.controller
 
 import com.waffletoy.team1server.account.AuthUser
 import com.waffletoy.team1server.account.AuthenticateException
-import com.waffletoy.team1server.account.EmailServiceException
 import com.waffletoy.team1server.account.service.EmailService
 import com.waffletoy.team1server.account.service.UserService
 import io.swagger.v3.oas.annotations.Parameter
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.concurrent.CompletableFuture
 
 @RestController
 @RequestMapping("/api/user")
@@ -23,19 +21,9 @@ class UserController(
     @PostMapping("/signup/send-code")
     fun sendCode(
         @RequestBody request: SendCodeRequest,
-    ): CompletableFuture<ResponseEntity<Void>> {
-        return CompletableFuture.runAsync {
-            emailService.sendCode(request.snuMail)
-        }.handle { _, ex ->
-            if (ex != null) {
-                val cause = ex.cause ?: ex
-                if (cause is EmailServiceException) {
-                    throw cause // Propagate the original EmailServiceException
-                }
-                throw RuntimeException("Unexpected error occurred", cause) // Wrap other exceptions
-            }
-            ResponseEntity.ok().build() // Return the successful response
-        }
+    ): ResponseEntity<Void> {
+        emailService.sendCode(request.snuMail)
+        return ResponseEntity.ok().build() // Return the successful response
     }
 
     // 유저 이메일 인증 링크 클릭
