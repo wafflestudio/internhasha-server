@@ -6,6 +6,7 @@ import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.service.PostService
 import io.swagger.v3.oas.annotations.Parameter
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -31,7 +32,7 @@ class PostController(
         @RequestParam(required = false) investors: List<String>?,
         @RequestParam(required = false) status: Int?,
         @RequestParam(required = false) page: Int?,
-    ): ResponseEntity<List<PostBrief>> {
+    ): ResponseEntity<PostWithPageDTO> {
         val posts = postService.getPosts(roles, investment, investors, status, page ?: 0)
 
         // 총 페이지
@@ -39,7 +40,10 @@ class PostController(
 
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
-            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+            PostWithPageDTO(
+                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                paginator = Paginator(totalPages),
+            ),
         )
     }
 
@@ -69,7 +73,7 @@ class PostController(
     fun getBookMarks(
         @Parameter(hidden = true) @AuthUser user: User?,
         @RequestParam(required = false) page: Int?,
-    ): ResponseEntity<List<PostBrief>> {
+    ): ResponseEntity<PostWithPageDTO> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         val posts = postService.getBookmarks(user, page ?: 0)
 
@@ -78,8 +82,31 @@ class PostController(
 
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
-            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+            PostWithPageDTO(
+                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                paginator = Paginator(totalPages),
+            ),
         )
+    }
+
+    @PostMapping("/make-dummy")
+    fun makeDummyPost(
+        @RequestBody cnt: Int,
+    ): ResponseEntity<Void> {
+        postService.makeDummyPosts(cnt)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/reset-db")
+    fun resetDBPosts(
+        @RequestBody pw: PasswordRequest,
+    ): ResponseEntity<Void> {
+        if (pw.pw == "0000") {
+            postService.resetDB()
+            return ResponseEntity.ok().build()
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
     }
 }
 
@@ -95,3 +122,14 @@ data class RoleDTO(
     val detail: String?,
     val headcount: String,
 )
+
+data class Paginator(
+    val lastPage: Int,
+)
+
+data class PostWithPageDTO(
+    val posts: List<PostBrief>,
+    val paginator: Paginator,
+)
+
+data class PasswordRequest(val pw: String)

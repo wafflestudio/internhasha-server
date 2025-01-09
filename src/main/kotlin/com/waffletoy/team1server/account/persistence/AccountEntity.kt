@@ -29,6 +29,8 @@ open class AccountEntity(
     @LastModifiedDate
     @Column(nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "snu_mail", nullable = false, unique = true)
+    val snuMail: String = id,
 )
 
 // snu_mail nullable false, unique true, googleId var nullable true unique true, phoneNumber nullable true var, posts 제외됨.
