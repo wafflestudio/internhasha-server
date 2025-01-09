@@ -17,12 +17,4 @@ open class RoleEntity(
     val detail: String? = null,
     @Column(name = "HEADCOUNT", nullable = false)
     val headcount: String,
-) {
-    constructor() : this(
-        id = UUID.randomUUID().toString(),
-        // 기본값 설정
-        category = Category.PLANNER,
-        detail = null,
-        headcount = "0",
-    )
-}
+)

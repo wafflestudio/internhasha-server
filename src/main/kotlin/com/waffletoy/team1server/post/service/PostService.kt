@@ -1,6 +1,10 @@
 package com.waffletoy.team1server.post.service
 
+import com.waffletoy.team1server.account.UserServiceException
 import com.waffletoy.team1server.account.controller.User
+import com.waffletoy.team1server.account.persistence.*
+import com.waffletoy.team1server.account.service.UserService
+import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.controller.Post
 import com.waffletoy.team1server.post.persistence.*
@@ -10,11 +14,16 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class PostService(
     private val postRepository: PostRepository,
     private val bookmarkRepository: BookmarkRepository,
+    private val userService: UserService,
+    private val accountRepository: AccountRepository,
+    private val tagRepository: TagRepository,
+    private val roleRepository: RoleRepository,
 ) {
     fun getPageDetail(postId: String): Post {
         val postEntity =
@@ -103,6 +112,69 @@ class PostService(
 
         // PostEntity를 페이징 처리하여 가져오기
         return postRepository.findAllByIdIn(bookmarkIds, pageable)
+    }
+
+    @Transactional
+    fun makeDummyPosts(cnt: Int) {
+        (1..cnt).forEach {
+            val admin: AccountEntity
+            if (accountRepository.existsByLocalId("dummy$it")) {
+                admin = accountRepository.findByLocalId("dummy$it") ?: throw UserServiceException()
+            } else {
+                admin =
+                    accountRepository.save(
+                        AccountEntity(
+                            username = "dummy$it",
+                            localId = "dummy$it",
+                            password = "DummyPW$it!99",
+                        ),
+                    )
+            }
+
+            val roles =
+                listOf("PLANNER", "FRONT", "BACKEND").map { it2 ->
+                    roleRepository.save(
+                        RoleEntity(
+                            category = Category.entries.find { it3 -> it3.name == it2 } ?: Category.DESIGN,
+                            detail = it2,
+                            headcount = "$it",
+                        ),
+                    )
+                }
+
+            val companies = listOf("Company A$it", "Company B$it", "Company C$it").joinToString(", ")
+
+            val tags =
+                listOf("Tech", "Finance", "Health").map { tagName ->
+                    tagRepository.findByTag(tagName) ?: // 태그가 이미 있는지 확인
+                        tagRepository.save(TagEntity(tag = tagName))
+                }
+
+            val post =
+                PostEntity(
+                    admin =
+                        admin as? AdminEntity
+                            ?: throw IllegalStateException("Admin is not an instance of AdminEntity"),
+                    title = "Post Title $it",
+                    companyName = "Company $it",
+                    explanation = "This is explanation for post $it",
+                    content = "This is content for post $it",
+                    email = "contact$it@company.com",
+                    imageLink = "https://example.com/image$it.jpg",
+                    investAmount = (1000..5000).random(),
+                    investCompany = companies,
+                    roles = roles.shuffled().take((1..2).random()).toMutableList(),
+                    tags = tags.shuffled().take((1..3).random()).toMutableSet(),
+                    isActive = it % 2 == 0,
+                    employmentEndDate = LocalDateTime.now().plusDays((1..30).random().toLong()),
+                    links =
+                        listOf(
+                            LinkEntity(link = "https://example.com/$it/link1"),
+                            LinkEntity(link = "https://example.com/$it/link2"),
+                        ),
+                )
+            postRepository.save(post)
+        }
     }
 
     private val pageSize = 12

@@ -31,7 +31,7 @@ class PostController(
         @RequestParam(required = false) investors: List<String>?,
         @RequestParam(required = false) status: Int?,
         @RequestParam(required = false) page: Int?,
-    ): ResponseEntity<List<PostBrief>> {
+    ): ResponseEntity<PostWithPageDTO> {
         val posts = postService.getPosts(roles, investment, investors, status, page ?: 0)
 
         // 총 페이지
@@ -39,7 +39,10 @@ class PostController(
 
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
-            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+            PostWithPageDTO(
+                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                paginator = Paginator(totalPages),
+            ),
         )
     }
 
@@ -69,7 +72,7 @@ class PostController(
     fun getBookMarks(
         @Parameter(hidden = true) @AuthUser user: User?,
         @RequestParam(required = false) page: Int?,
-    ): ResponseEntity<List<PostBrief>> {
+    ): ResponseEntity<PostWithPageDTO> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         val posts = postService.getBookmarks(user, page ?: 0)
 
@@ -78,8 +81,18 @@ class PostController(
 
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
-            posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+            PostWithPageDTO(
+                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                paginator = Paginator(totalPages),
+            ),
         )
+    }
+
+    @PostMapping("/make-dummy")
+    fun makeDummyPost(
+        @RequestBody cnt: Int,
+    ) {
+        postService.makeDummyPosts(cnt)
     }
 }
 
@@ -94,4 +107,13 @@ data class RoleDTO(
     val category: Category,
     val detail: String?,
     val headcount: String,
+)
+
+data class Paginator(
+    val lastPage: Int,
+)
+
+data class PostWithPageDTO(
+    val posts: List<PostBrief>,
+    val paginator: Paginator,
 )

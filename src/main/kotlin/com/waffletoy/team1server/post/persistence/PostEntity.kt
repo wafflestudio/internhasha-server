@@ -60,13 +60,4 @@ open class PostEntity(
     val tags: MutableSet<TagEntity> = mutableSetOf(),
     @Column(name = "IS_ACTIVE")
     open val isActive: Boolean = false,
-) {
-    // 기본 생성자 추가
-    constructor() : this(
-        id = UUID.randomUUID().toString(),
-        admin = AdminEntity(username = "default"),
-        title = "",
-        companyName = "",
-        isActive = false,
-    )
-}
+)

@@ -13,10 +13,4 @@ open class TagEntity(
     val tag: String,
     @ManyToMany(mappedBy = "tags")
     val posts: MutableSet<PostEntity> = mutableSetOf(),
-) {
-    constructor() : this(
-        id = UUID.randomUUID().toString(),
-        tag = "",
-        posts = mutableSetOf(),
-    )
-}
+)

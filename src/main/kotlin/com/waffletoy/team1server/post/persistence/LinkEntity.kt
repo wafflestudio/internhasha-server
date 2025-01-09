@@ -12,9 +12,4 @@ open class LinkEntity(
     // POST -> LINK 단방향 관계
     @Column(name = "LINK", nullable = false)
     open val link: String,
-) {
-    constructor() : this(
-        id = UUID.randomUUID().toString(),
-        link = "",
-    )
-}
+)
