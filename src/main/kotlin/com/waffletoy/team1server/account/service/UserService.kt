@@ -51,22 +51,6 @@ class UserService(
         val finalUsername: String
         var googleId: String? = null
 
-        // 이미 등록된 스누 메일인지 확인
-        if (userRepository.existsBySnuMail(snuMail)) {
-            throw EmailServiceException(
-                "동일한 스누메일로 등록된 계정이 존재합니다.",
-                HttpStatus.CONFLICT,
-            )
-        }
-
-        // 스누메일이 아니면 throw
-        if (!snuMail.endsWith("@snu.ac.kr")) {
-            throw UserServiceException(
-                "스누메일 형식에 맞지 않습니다.",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
-
         if (googleAccessToken != null) {
             // 구글 소셜 로그인
             // 필수값 확인
@@ -117,6 +101,21 @@ class UserService(
             checkLocalIdAndPassword(localId, password)
 
             finalUsername = username
+        }
+
+        // 이미 등록된 스누 메일인지 확인
+        if (userRepository.existsBySnuMail(snuMail)) {
+            throw EmailServiceException(
+                "동일한 스누메일로 등록된 계정이 존재합니다.",
+                HttpStatus.CONFLICT,
+            )
+        }
+        // 스누메일이 아니면 throw
+        if (!snuMail.endsWith("@snu.ac.kr")) {
+            throw UserServiceException(
+                "스누메일 형식에 맞지 않습니다.",
+                HttpStatus.BAD_REQUEST,
+            )
         }
 
         // 비밀번호 암호화 - 소셜 로그인은 비밀번호 없음
