@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.CompletableFuture
 
 @RestController
 @RequestMapping("/api/user")
@@ -22,8 +23,10 @@ class UserController(
     fun sendCode(
         @RequestBody request: SendCodeRequest,
     ): ResponseEntity<Void> {
-        // 이메일 코드 전송
-        emailService.sendCode(request.snuMail)
+        CompletableFuture.runAsync {
+            emailService.sendCode(request.snuMail)
+        }.join()
+
         return ResponseEntity.ok().build()
     }
 
