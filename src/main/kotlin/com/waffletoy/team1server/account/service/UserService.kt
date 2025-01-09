@@ -378,7 +378,7 @@ class UserService(
     }
 
     fun deleteAllUsers() {
-        userRepository.deleteAll()
+        accountRepository.deleteAll()
         redisTokenService.deleteAllKeys()
     }
 
