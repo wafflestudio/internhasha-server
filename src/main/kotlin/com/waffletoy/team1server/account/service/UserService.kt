@@ -90,6 +90,7 @@ class UserService(
                 throw UserServiceException(
                     "동일한 구글 계정으로 등록된 계정이 존재합니다.",
                     HttpStatus.CONFLICT,
+                    1,
                 )
             }
         } else {
@@ -113,7 +114,7 @@ class UserService(
                     HttpStatus.BAD_REQUEST,
                 )
             }
-            // 아이디와 비밀번호 조건 체크
+
             checkLocalIdAndPassword(localId, password)
 
             finalUsername = username
@@ -377,7 +378,7 @@ class UserService(
     }
 
     fun deleteAllUsers() {
-        userRepository.deleteAll()
+        accountRepository.deleteAll()
         redisTokenService.deleteAllKeys()
     }
 
@@ -394,6 +395,7 @@ class UserService(
             throw UserServiceException(
                 "동일한 로컬 아이디로 등록된 사용자가 존재합니다.",
                 HttpStatus.CONFLICT,
+                1,
             )
         }
     }
