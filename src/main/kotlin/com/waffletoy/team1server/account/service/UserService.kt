@@ -22,6 +22,23 @@ class UserService(
     private val emailService: EmailService,
     private val redisTokenService: RedisTokenService,
 ) {
+    fun getGoogleEmailFromAccessToken(
+        googleAccessToken: String,
+    ): String {
+        if (googleAccessToken.isBlank()) {
+            throw UserServiceException(
+                "구글 엑세스 토큰 필드가 비어있습니다.",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        // Google OAuth2를 통해 구글 이메일과 이름, 구글 id 가져오기
+        // 가져오는 데 실패하면(토큰이 유효하지 않거나 통신 실패)
+        // 400 Bad Request
+        val googleUserInfo = googleOAuth2Client.getUserInfo(googleAccessToken)
+        return googleUserInfo.email
+    }
+
     // 회원가입
     @Transactional
     fun signUp(
@@ -33,22 +50,6 @@ class UserService(
     ): Pair<User, AccountTokenUtil.Tokens> {
         val finalUsername: String
         var googleId: String? = null
-
-        // 이미 등록된 스누 메일인지 확인
-        if (userRepository.existsBySnuMail(snuMail)) {
-            throw EmailServiceException(
-                "동일한 스누메일로 등록된 계정이 존재합니다.",
-                HttpStatus.CONFLICT,
-            )
-        }
-
-        // 스누메일이 아니면 throw
-        if (!snuMail.endsWith("@snu.ac.kr")) {
-            throw UserServiceException(
-                "스누메일 형식에 맞지 않습니다.",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
 
         if (googleAccessToken != null) {
             // 구글 소셜 로그인
@@ -73,6 +74,7 @@ class UserService(
                 throw UserServiceException(
                     "동일한 구글 계정으로 등록된 계정이 존재합니다.",
                     HttpStatus.CONFLICT,
+                    1,
                 )
             }
         } else {
@@ -96,10 +98,25 @@ class UserService(
                     HttpStatus.BAD_REQUEST,
                 )
             }
-            // 아이디와 비밀번호 조건 체크
+
             checkLocalIdAndPassword(localId, password)
 
             finalUsername = username
+        }
+
+        // 이미 등록된 스누 메일인지 확인
+        if (userRepository.existsBySnuMail(snuMail)) {
+            throw EmailServiceException(
+                "동일한 스누메일로 등록된 계정이 존재합니다.",
+                HttpStatus.CONFLICT,
+            )
+        }
+        // 스누메일이 아니면 throw
+        if (!snuMail.endsWith("@snu.ac.kr")) {
+            throw UserServiceException(
+                "스누메일 형식에 맞지 않습니다.",
+                HttpStatus.BAD_REQUEST,
+            )
         }
 
         // 비밀번호 암호화 - 소셜 로그인은 비밀번호 없음
@@ -360,7 +377,7 @@ class UserService(
     }
 
     fun deleteAllUsers() {
-        userRepository.deleteAll()
+        accountRepository.deleteAll()
         redisTokenService.deleteAllKeys()
     }
 
@@ -377,6 +394,7 @@ class UserService(
             throw UserServiceException(
                 "동일한 로컬 아이디로 등록된 사용자가 존재합니다.",
                 HttpStatus.CONFLICT,
+                1,
             )
         }
     }
