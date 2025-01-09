@@ -6,9 +6,8 @@ plugins {
     id("org.springframework.boot") version "3.4.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.5.30"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
 }
-
 group = "com.waffletoy"
 version = "0.0.1-SNAPSHOT"
 
