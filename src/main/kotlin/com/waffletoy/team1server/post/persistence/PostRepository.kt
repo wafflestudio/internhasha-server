@@ -42,7 +42,7 @@ class PostSpecification {
                         predicates.add(
                             criteriaBuilder.or(
                                 *roleEnums.map { roleEnum ->
-                                    criteriaBuilder.equal(roleJoin.get<String>("name"), roleEnum.name)
+                                    criteriaBuilder.equal(roleJoin.get<Category>("category"), roleEnum.name)
                                 }.toTypedArray(),
                             ),
                         )
