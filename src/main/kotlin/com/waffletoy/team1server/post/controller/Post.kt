@@ -18,7 +18,7 @@ data class Post(
     val landingPageLink: String,
     val externalDescriptionLink: List<String>,
     val isActive: Boolean,
-    val employeeEndDate: LocalDateTime,
+    val employmentEndDate: LocalDateTime,
 ) {
     companion object {
         fun fromEntity(entity: PostEntity): Post =
@@ -50,7 +50,7 @@ data class Post(
                 IRDeckLink = entity.irDeckLink ?: "",
                 landingPageLink = entity.landingPageLink ?: "",
                 externalDescriptionLink = entity.links.map { it.link },
-                employeeEndDate = entity.employmentEndDate,
+                employmentEndDate = entity.employmentEndDate,
             )
     }
 }
