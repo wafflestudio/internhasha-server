@@ -14,7 +14,7 @@ data class PostBrief(
     val investAmount: Int,
     val investCompany: String,
     val isActive: Boolean,
-    val employeeEndDate: LocalDateTime,
+    val employmentEndDate: LocalDateTime,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
@@ -30,7 +30,7 @@ data class PostBrief(
                 investAmount = post.investAmount,
                 investCompany = post.investCompany,
                 isActive = post.isActive,
-                employeeEndDate = post.employeeEndDate,
+                employmentEndDate = post.employmentEndDate,
             )
     }
 }

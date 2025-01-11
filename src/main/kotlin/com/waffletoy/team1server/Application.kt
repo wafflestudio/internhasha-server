@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.servers.Server
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
+import java.util.*
 
 @OpenAPIDefinition(
     servers = [
@@ -39,6 +40,6 @@ fun main(args: Array<String>) {
     dotenv.entries().forEach { entry ->
         System.setProperty(entry.key, entry.value)
     }
-
+    TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
     runApplication<Application>(*args)
 }

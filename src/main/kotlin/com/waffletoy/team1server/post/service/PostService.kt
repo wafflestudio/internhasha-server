@@ -8,6 +8,7 @@ import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.controller.Post
 import com.waffletoy.team1server.post.persistence.*
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -36,16 +37,16 @@ class PostService(
 
     fun getPosts(
         roles: List<String>?,
-        investment: Int?,
-        investor: List<String>?,
+        investmentUp: Int?,
+        investmentDown: Int?,
         status: Int?,
         page: Int = 0,
     ): Page<PostEntity> {
         val specification =
             PostSpecification.withFilters(
                 roles,
-                investment,
-                investor,
+                investmentUp,
+                investmentDown,
                 status ?: 2,
             )
 
@@ -125,7 +126,7 @@ class PostService(
                         AdminEntity(
                             username = "dummy$it",
                             localId = "dummy$it",
-                            password = "DummyPW$it!99",
+                            password = BCrypt.hashpw("DummyPW$it!99", BCrypt.gensalt()),
                         ),
                     )
                 }
@@ -165,7 +166,7 @@ class PostService(
                     roles = roles.shuffled().take((1..2).random()).toMutableList(),
                     tags = tags.shuffled().take((1..3).random()).toMutableSet(),
                     isActive = it % 2 == 0,
-                    employmentEndDate = LocalDateTime.now().plusDays((1..30).random().toLong()),
+                    employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                     links =
                         listOf(
                             LinkEntity(link = "https://example.com/$it/link1"),
