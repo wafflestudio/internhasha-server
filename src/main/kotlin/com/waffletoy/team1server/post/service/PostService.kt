@@ -166,7 +166,7 @@ class PostService(
                     roles = roles.shuffled().take((1..2).random()).toMutableList(),
                     tags = tags.shuffled().take((1..3).random()).toMutableSet(),
                     isActive = it % 2 == 0,
-                    employmentEndDate = LocalDateTime.now().plusDays((1..30).random().toLong()),
+                    employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                     links =
                         listOf(
                             LinkEntity(link = "https://example.com/$it/link1"),

@@ -1,6 +1,11 @@
 spring:
     application:
         name: team1server
+    jpa:
+        properties:
+            hibernate:
+                jdbc:
+                    timezone: Asia/Seoul
     security:
         oauth2:
             client:
