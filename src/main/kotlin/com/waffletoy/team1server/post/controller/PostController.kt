@@ -28,12 +28,12 @@ class PostController(
     @GetMapping
     fun getPosts(
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) investment: Int?,
-        @RequestParam(required = false) investors: List<String>?,
+        @RequestParam(required = false) investmentUp: Int?,
+        @RequestParam(required = false) investmentDown: Int?,
         @RequestParam(required = false) status: Int?,
         @RequestParam(required = false) page: Int?,
     ): ResponseEntity<PostWithPageDTO> {
-        val posts = postService.getPosts(roles, investment, investors, status, page ?: 0)
+        val posts = postService.getPosts(roles, investmentUp, investmentDown, status, page ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages

@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.post.persistence
 
-import com.waffletoy.team1server.account.persistence.AdminEntity
 import com.waffletoy.team1server.post.Category
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
@@ -26,8 +25,8 @@ class PostSpecification {
     companion object {
         fun withFilters(
             roles: List<String>?,
-            investment: Int?,
-            investors: List<String>?,
+            investmentUp: Int?,
+            investmentDown: Int?,
             status: Int,
         ): Specification<PostEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -50,18 +49,11 @@ class PostSpecification {
                 }
 
                 // investment 조건
-                investment?.let {
+                investmentUp?.let {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("investAmount"), it))
                 }
-
-                // investors 조건
-                investors?.let {
-                    if (it.isNotEmpty()) {
-                        val adminJoin = root.join<PostEntity, AdminEntity>("admin")
-                        predicates.add(
-                            adminJoin.get<String>("username").`in`(it),
-                        )
-                    }
+                investmentDown?.let {
+                    predicates.add(criteriaBuilder.lessThan(root.get("investAmount"), it))
                 }
 
                 // status 조건
