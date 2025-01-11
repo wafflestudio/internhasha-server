@@ -95,5 +95,6 @@ jobs:
             cd ~/app
             docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down
             docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker image prune -f
             docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up --build -d
           debug: true
