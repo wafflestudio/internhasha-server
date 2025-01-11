@@ -8,6 +8,7 @@ import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.controller.Post
 import com.waffletoy.team1server.post.persistence.*
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -125,7 +126,7 @@ class PostService(
                         AdminEntity(
                             username = "dummy$it",
                             localId = "dummy$it",
-                            password = "DummyPW$it!99",
+                            password = BCrypt.hashpw("DummyPW$it!99", BCrypt.gensalt()),
                         ),
                     )
                 }
