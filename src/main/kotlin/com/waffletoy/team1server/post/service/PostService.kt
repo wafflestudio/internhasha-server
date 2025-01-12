@@ -169,9 +169,16 @@ class PostService(
                     employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                     links =
                         listOf(
-                            LinkEntity(link = "https://example.com/$it/link1"),
-                            LinkEntity(link = "https://example.com/$it/link2"),
+                            LinkEntity(
+                                link = "https://example.com/$it/link1",
+                                description = "link1",
+                            ),
+                            LinkEntity(
+                                link = "https://example.com/$it/link2",
+                                description = "link2",
+                            ),
                         ),
+                    slogan = "this is slogan of Company $it",
                 )
             postRepository.save(post)
         }

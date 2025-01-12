@@ -12,4 +12,6 @@ open class LinkEntity(
     // POST -> LINK 단방향 관계
     @Column(name = "LINK", nullable = false)
     open val link: String,
+    @Column(name = "DESCRIPTION")
+    open val description: String? = null,
 )
