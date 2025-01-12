@@ -60,4 +60,6 @@ open class PostEntity(
     val tags: MutableSet<TagEntity> = mutableSetOf(),
     @Column(name = "IS_ACTIVE")
     open val isActive: Boolean = false,
+    @Column(name = "SLOGUN")
+    open val slogan: String? = null,
 )
