@@ -49,10 +49,10 @@ class PostSpecification {
                 }
 
                 // investment 조건
-                investmentUp?.let {
+                investmentDown?.let {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("investAmount"), it))
                 }
-                investmentDown?.let {
+                investmentUp?.let {
                     predicates.add(criteriaBuilder.lessThan(root.get("investAmount"), it))
                 }
 
