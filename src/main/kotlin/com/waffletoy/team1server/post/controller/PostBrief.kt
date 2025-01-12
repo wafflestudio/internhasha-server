@@ -15,6 +15,7 @@ data class PostBrief(
     val investCompany: String,
     val isActive: Boolean,
     val employmentEndDate: LocalDateTime,
+    val slogan: String,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
@@ -31,6 +32,7 @@ data class PostBrief(
                 investCompany = post.investCompany,
                 isActive = post.isActive,
                 employmentEndDate = post.employmentEndDate,
+                slogan = post.slogan,
             )
     }
 }
