@@ -37,16 +37,16 @@ class PostService(
 
     fun getPosts(
         roles: List<String>?,
-        investmentUp: Int?,
-        investmentDown: Int?,
+        investmentMax: Int?,
+        investmentMin: Int?,
         status: Int?,
         page: Int = 0,
     ): Page<PostEntity> {
         val specification =
             PostSpecification.withFilters(
                 roles,
-                investmentUp,
-                investmentDown,
+                investmentMax,
+                investmentMin,
                 status ?: 2,
             )
 
