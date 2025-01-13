@@ -6,7 +6,7 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
 
-@Entity
+@Entity(name = "resumeEntity")
 @Table(name = "resumes")
 open class ResumeEntity(
     @Id
@@ -17,10 +17,12 @@ open class ResumeEntity(
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "CONTENT", columnDefinition = "TEXT")
-    val content: String? = null,
+    open var content: String? = null,
+    @Column(name = "PHONENUMBER")
+    open var phoneNumber: String? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "POST_ID", nullable = false)
-    val post: PostEntity,
+    open val post: PostEntity,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID", nullable = false)
     open val user: UserEntity,

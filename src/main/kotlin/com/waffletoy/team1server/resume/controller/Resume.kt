@@ -9,6 +9,7 @@ data class Resume(
     val postId: String,
     val author: User,
     val content: String,
+    val phoneNumber: String,
     val createdAt: LocalDateTime,
 ) {
     companion object {
@@ -26,6 +27,7 @@ data class Resume(
                     ),
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
+                phoneNumber = resumeEntity.phoneNumber ?: "",
             )
     }
 }
