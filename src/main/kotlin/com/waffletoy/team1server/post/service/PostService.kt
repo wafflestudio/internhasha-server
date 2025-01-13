@@ -76,13 +76,12 @@ class PostService(
                 "존재하지 않는 채용정보입니다.",
                 HttpStatus.NOT_FOUND,
             )
-        val bookmarkEntity =
-            bookmarkRepository.save(
-                BookmarkEntity(
-                    postId = post.id,
-                    userId = user.id,
-                ),
-            )
+        bookmarkRepository.save(
+            BookmarkEntity(
+                postId = post.id,
+                userId = user.id,
+            ),
+        )
         return
     }
 

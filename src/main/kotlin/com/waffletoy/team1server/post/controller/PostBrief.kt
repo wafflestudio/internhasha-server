@@ -9,7 +9,7 @@ data class PostBrief(
     val author: AuthorBriefDTO,
     val explanation: String,
     val tags: List<String>,
-    val roles: List<RoleDTO>,
+    val roles: List<Role>,
     val imageLink: String,
     val investAmount: Int,
     val investCompany: String,
