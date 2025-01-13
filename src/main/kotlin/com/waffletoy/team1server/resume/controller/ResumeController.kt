@@ -5,11 +5,10 @@ import com.waffletoy.team1server.account.AuthenticateException
 import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.resume.service.ResumeService
 import org.springframework.http.ResponseEntity
-import org.springframework.stereotype.Controller
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
-@Controller
+@RestController
 @RequestMapping("/api/resume")
 @Validated
 class ResumeController(
