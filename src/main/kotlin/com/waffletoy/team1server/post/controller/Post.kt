@@ -10,7 +10,7 @@ data class Post(
     val author: AuthorBriefDTO,
     val explanation: String,
     val tags: List<String>,
-    val roles: List<RoleDTO>,
+    val roles: List<Role>,
     val imageLink: String,
     val investAmount: Int,
     val investCompany: String,
@@ -37,12 +37,7 @@ data class Post(
                 tags = entity.tags.map { it.tag },
                 roles =
                     entity.roles.map {
-                        RoleDTO(
-                            id = it.id,
-                            category = it.category,
-                            detail = it.detail,
-                            headcount = it.headcount,
-                        )
+                        Role.fromEntity(it)
                     },
                 imageLink = entity.imageLink ?: "",
                 investAmount = entity.investAmount,

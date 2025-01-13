@@ -3,7 +3,6 @@ package com.waffletoy.team1server.post.controller
 import com.waffletoy.team1server.account.AuthUser
 import com.waffletoy.team1server.account.AuthenticateException
 import com.waffletoy.team1server.account.controller.User
-import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.service.PostService
 import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.HttpStatus
@@ -114,13 +113,6 @@ data class AuthorBriefDTO(
     val id: String,
     val name: String,
     val profileImageLink: String?,
-)
-
-data class RoleDTO(
-    val id: String,
-    val category: Category,
-    val detail: String?,
-    val headcount: String,
 )
 
 data class Paginator(
