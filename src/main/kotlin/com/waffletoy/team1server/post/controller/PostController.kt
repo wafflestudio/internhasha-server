@@ -3,15 +3,18 @@ package com.waffletoy.team1server.post.controller
 import com.waffletoy.team1server.account.AuthUser
 import com.waffletoy.team1server.account.AuthenticateException
 import com.waffletoy.team1server.account.controller.User
-import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.service.PostService
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/post")
+@Validated
 class PostController(
     private val postService: PostService,
 ) {
@@ -28,12 +31,12 @@ class PostController(
     @GetMapping
     fun getPosts(
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) investmentUp: Int?,
-        @RequestParam(required = false) investmentDown: Int?,
-        @RequestParam(required = false) status: Int?,
-        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) @Min(0) investmentMax: Int?,
+        @RequestParam(required = false) @Min(0) investmentMin: Int?,
+        @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
+        @RequestParam(required = false) @Min(0) page: Int?,
     ): ResponseEntity<PostWithPageDTO> {
-        val posts = postService.getPosts(roles, investmentUp, investmentDown, status, page ?: 0)
+        val posts = postService.getPosts(roles, investmentMax, investmentMin, status, page ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages
@@ -72,7 +75,7 @@ class PostController(
     @GetMapping("/bookmarks")
     fun getBookMarks(
         @Parameter(hidden = true) @AuthUser user: User?,
-        @RequestParam(required = false) page: Int?,
+        @RequestParam(required = false) @Min(0) page: Int?,
     ): ResponseEntity<PostWithPageDTO> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         val posts = postService.getBookmarks(user, page ?: 0)
@@ -114,13 +117,6 @@ data class AuthorBriefDTO(
     val id: String,
     val name: String,
     val profileImageLink: String?,
-)
-
-data class RoleDTO(
-    val id: String,
-    val category: Category,
-    val detail: String?,
-    val headcount: String,
 )
 
 data class Paginator(
