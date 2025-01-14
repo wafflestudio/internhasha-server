@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.account.persistence.AdminEntity
+import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -62,4 +63,6 @@ open class PostEntity(
     open val isActive: Boolean = false,
     @Column(name = "SLOGUN")
     open val slogan: String? = null,
+    @OneToMany(mappedBy = "post", cascade = [CascadeType.ALL], orphanRemoval = true)
+    open val resumes: List<ResumeEntity> = mutableListOf(),
 )

@@ -37,16 +37,16 @@ class PostService(
 
     fun getPosts(
         roles: List<String>?,
-        investmentUp: Int?,
-        investmentDown: Int?,
+        investmentMax: Int?,
+        investmentMin: Int?,
         status: Int?,
         page: Int = 0,
     ): Page<PostEntity> {
         val specification =
             PostSpecification.withFilters(
                 roles,
-                investmentUp,
-                investmentDown,
+                investmentMax,
+                investmentMin,
                 status ?: 2,
             )
 
@@ -76,13 +76,12 @@ class PostService(
                 "존재하지 않는 채용정보입니다.",
                 HttpStatus.NOT_FOUND,
             )
-        val bookmarkEntity =
-            bookmarkRepository.save(
-                BookmarkEntity(
-                    postId = post.id,
-                    userId = user.id,
-                ),
-            )
+        bookmarkRepository.save(
+            BookmarkEntity(
+                postId = post.id,
+                userId = user.id,
+            ),
+        )
         return
     }
 

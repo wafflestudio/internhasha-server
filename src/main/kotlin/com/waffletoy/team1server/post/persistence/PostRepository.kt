@@ -25,8 +25,8 @@ class PostSpecification {
     companion object {
         fun withFilters(
             roles: List<String>?,
-            investmentUp: Int?,
-            investmentDown: Int?,
+            investmentMax: Int?,
+            investmentMin: Int?,
             status: Int,
         ): Specification<PostEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -49,11 +49,13 @@ class PostSpecification {
                 }
 
                 // investment 조건
-                investmentDown?.let {
+                // 하한
+                investmentMin?.let {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("investAmount"), it))
                 }
-                investmentUp?.let {
-                    predicates.add(criteriaBuilder.lessThan(root.get("investAmount"), it))
+                // 상한
+                investmentMax?.let {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("investAmount"), it))
                 }
 
                 // status 조건
