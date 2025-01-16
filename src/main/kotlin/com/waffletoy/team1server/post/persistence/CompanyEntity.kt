@@ -10,11 +10,10 @@ import java.util.UUID
 @Table(name = "companies")
 class CompanyEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ADMIN_ID", nullable = false)
+    @JoinColumn(name = "ADMIN", nullable = false)
     open val admin: AdminEntity,
     @Column(name = "NAME", nullable = false)
     open var companyName: String,
@@ -45,11 +44,11 @@ class CompanyEntity(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "POST_ID")
     open val links: MutableList<LinkEntity> = mutableListOf(),
-    // TAGS 테이블의 POST_ID를 외래키로 사용
+    // TAGS 테이블의 POST를 외래키로 사용
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "POST_ID")
     open val tags: MutableList<TagEntity> = mutableListOf(),
-    // ROLES 테이블의 POST_ID 외래 키를 매핑
+    // ROLES 테이블의 POST 외래 키를 매핑
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "COMPANY_ID")
     open val roles: MutableList<RoleEntity> = mutableListOf(),

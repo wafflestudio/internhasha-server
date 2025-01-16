@@ -10,7 +10,6 @@ import java.util.*
 @Table(name = "roles")
 class RoleEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @Column(name = "CATEGORY", nullable = false)
@@ -28,13 +27,13 @@ class RoleEntity(
     open var employmentEndDate: LocalDateTime = LocalDateTime.now(),
     @Column(name = "IS_ACTIVE")
     open val isActive: Boolean = false,
-    // 특정 POST에 join
+    // 특정 Company에 join
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY_ID", nullable = false)
     open val company: CompanyEntity,
     // ResumeEntity의 role 필드와 join
     @OneToMany(mappedBy = "role", cascade = [CascadeType.ALL], orphanRemoval = true)
-    open val resumes: List<ResumeEntity> = emptyList(),
+    open val resumes: MutableList<ResumeEntity> = mutableListOf(),
 ) {
     @PrePersist
     fun onCreate() {

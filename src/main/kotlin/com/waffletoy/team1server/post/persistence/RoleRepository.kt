@@ -49,8 +49,8 @@ class RoleSpecification {
                     }
                 }
 
-                // investment 조건 (PostEntity와 조인)
-                val postJoin = root.join<RoleEntity, CompanyEntity>("post")
+                // investment 조건 (Company Entity와 join)
+                val postJoin = root.join<RoleEntity, CompanyEntity>("company")
 
                 // 하한
                 investmentMin?.let {

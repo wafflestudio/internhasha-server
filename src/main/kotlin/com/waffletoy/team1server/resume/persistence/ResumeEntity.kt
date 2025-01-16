@@ -10,7 +10,6 @@ import java.util.*
 @Table(name = "resumes")
 class ResumeEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @Column(name = "CREATED_AT", nullable = false, updatable = false)

@@ -13,7 +13,6 @@ import java.util.*
 )
 class BookmarkEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
