@@ -1,7 +1,7 @@
-package com.waffletoy.team1server.account
+package com.waffletoy.team1server.user
 
-import com.waffletoy.team1server.account.controller.User
-import com.waffletoy.team1server.account.service.UserService
+import com.waffletoy.team1server.user.dtos.User
+import com.waffletoy.team1server.user.service.UserService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
@@ -30,33 +30,29 @@ class UserArgumentResolver(
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): User? {
+    ): User {
         logger.info("resolveArgument called for parameter: ${parameter.parameterName}")
 
         val authorizationHeader = webRequest.getHeader("Authorization")
         logger.info("Authorization Header: $authorizationHeader")
 
-        return runCatching {
-            val accessToken =
-                requireNotNull(
-                    authorizationHeader?.split(" ")?.let {
-                        if (it.getOrNull(0) == "Bearer") it.getOrNull(1) else null
-                    },
-                ) {
-                    "Authorization header is missing or invalid"
-                }
-            logger.info("Extracted Access Token: $accessToken")
+        val accessToken =
+            requireNotNull(
+                authorizationHeader?.split(" ")?.let {
+                    if (it.getOrNull(0) == "Bearer") it.getOrNull(1) else null
+                },
+            ) {
+                "Authorization header is missing or invalid"
+            }
+        logger.info("Extracted Access Token: $accessToken")
 
-            userService.authenticateUser(accessToken).also {
+        return runCatching {
+            userService.authenticate(accessToken).also {
                 logger.info("Authenticated User: $it")
             }
         }.getOrElse {
             logger.error("Error during resolveArgument: ${it.message}", it)
-            if (parameter.hasParameterAnnotation(AuthUser::class.java)) {
-                throw AuthenticateException()
-            } else {
-                null
-            }
+            throw AuthenticateException("Unable to authenticate user: ${it.message}")
         }
     }
 }

@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.account.service
+package com.waffletoy.team1server.user.service
 
-import com.waffletoy.team1server.account.GoogleOAuthServiceException
+import com.waffletoy.team1server.user.GoogleOAuthServiceException
 import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException

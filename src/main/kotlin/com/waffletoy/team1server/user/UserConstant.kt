@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.account
+package com.waffletoy.team1server.user
 
 enum class UserStatus {
     ACTIVE,
