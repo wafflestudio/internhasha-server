@@ -1,38 +1,46 @@
 package com.waffletoy.team1server.post.controller
 
+import com.waffletoy.team1server.post.Category
+import com.waffletoy.team1server.post.Series
 import java.time.LocalDateTime
 
 data class PostBrief(
     val id: String,
-    val companyName: String,
-    val email: String,
     val author: AuthorBriefDTO,
-    val explanation: String,
-    val tags: List<String>,
-    val roles: List<RoleDTO>,
-    val imageLink: String,
+    val companyName: String,
+    val slogan: String,
+    val email: String,
     val investAmount: Int,
     val investCompany: String,
+    val series: Series,
+    val imageLink: String,
+    val title: String,
+    val employmentEndDate: LocalDateTime?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
     val isActive: Boolean,
-    val employmentEndDate: LocalDateTime,
-    val slogan: String,
+    val category: Category,
+    val headcount: String,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
             PostBrief(
                 id = post.id,
-                companyName = post.companyName,
-                email = post.email,
                 author = post.author,
-                explanation = post.explanation,
-                tags = post.tags,
-                roles = post.roles,
-                imageLink = post.imageLink,
+                companyName = post.companyName,
+                slogan = post.slogan,
+                email = post.email,
                 investAmount = post.investAmount,
                 investCompany = post.investCompany,
-                isActive = post.isActive,
+                series = post.series,
+                imageLink = post.imageLink,
+                title = post.title,
                 employmentEndDate = post.employmentEndDate,
-                slogan = post.slogan,
+                createdAt = post.createdAt,
+                updatedAt = post.updatedAt,
+                isActive = post.isActive,
+                category = post.category,
+                headcount = post.headcount,
             )
     }
 }

@@ -1,58 +1,69 @@
 package com.waffletoy.team1server.post.controller
 
-import com.waffletoy.team1server.post.persistence.PostEntity
+import com.waffletoy.team1server.post.Category
+import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.post.persistence.RoleEntity
 import java.time.LocalDateTime
 
 data class Post(
     val id: String,
-    val companyName: String,
-    val email: String,
+    // 작성자
     val author: AuthorBriefDTO,
+    // 회사 정보
+    val companyName: String,
     val explanation: String,
-    val tags: List<String>,
-    val roles: List<RoleDTO>,
-    val imageLink: String,
+    val email: String,
+    val slogan: String,
     val investAmount: Int,
     val investCompany: String,
+    val series: Series,
     val IRDeckLink: String,
     val landingPageLink: String,
+    val imageLink: String,
     val externalDescriptionLink: List<Link>,
+    val tags: List<String>,
+    // 직군 정보
+    val title: String,
+    val employmentEndDate: LocalDateTime?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
     val isActive: Boolean,
-    val employmentEndDate: LocalDateTime,
-    val slogan: String,
+    val category: Category,
+    val detail: String,
+    val headcount: String,
 ) {
     companion object {
-        fun fromEntity(entity: PostEntity): Post =
+        fun fromEntity(entity: RoleEntity): Post =
             Post(
                 id = entity.id,
-                companyName = entity.companyName,
-                email = entity.email ?: "",
                 author =
                     AuthorBriefDTO(
-                        id = entity.admin.id,
-                        name = entity.admin.username,
-                        profileImageLink = entity.admin.profileImageLink,
+                        id = entity.company.admin.id,
+                        name = entity.company.admin.username,
+                        profileImageLink = entity.company.admin.profileImageLink,
                     ),
-                explanation = entity.explanation ?: "",
-                tags = entity.tags.map { it.tag },
-                roles =
-                    entity.roles.map {
-                        RoleDTO(
-                            id = it.id,
-                            category = it.category,
-                            detail = it.detail,
-                            headcount = it.headcount,
-                        )
-                    },
-                imageLink = entity.imageLink ?: "",
-                investAmount = entity.investAmount,
-                investCompany = entity.investCompany ?: "",
-                isActive = entity.isActive,
-                IRDeckLink = entity.irDeckLink ?: "",
-                landingPageLink = entity.landingPageLink ?: "",
-                externalDescriptionLink = entity.links.map { Link.fromEntity(it) },
+                companyName = entity.company.companyName,
+                explanation = entity.company.explanation ?: "",
+                email = entity.company.email ?: "",
+                slogan = entity.company.slogan ?: "",
+                investAmount = entity.company.investAmount,
+                investCompany = entity.company.investCompany ?: "",
+                series = entity.company.series,
+                IRDeckLink = entity.company.irDeckLink ?: "",
+                landingPageLink = entity.company.landingPageLink ?: "",
+                imageLink = entity.company.imageLink ?: "",
+                externalDescriptionLink = entity.company.links.map { Link.fromEntity(it) },
+                tags = entity.company.tags.map { it.tag },
+                // roles 정보
+                title = entity.title,
+                // 생성 시간은 Roles 생성 기준
                 employmentEndDate = entity.employmentEndDate,
-                slogan = entity.slogan ?: "",
+                createdAt = entity.createdAt,
+                updatedAt = entity.updatedAt,
+                isActive = entity.isActive,
+                category = entity.category,
+                detail = entity.detail ?: "",
+                headcount = entity.headcount,
             )
     }
 }
