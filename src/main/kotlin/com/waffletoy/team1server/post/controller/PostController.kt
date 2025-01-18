@@ -57,7 +57,7 @@ class PostController(
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Void> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        postService.bookmarkPost(user, postId)
+        postService.bookmarkPost(user.id, postId)
         return ResponseEntity.ok().build()
     }
 
@@ -68,17 +68,18 @@ class PostController(
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Void> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        postService.deleteBookmark(user, postId)
+        postService.deleteBookmark(user.id, postId)
         return ResponseEntity.ok().build()
     }
 
+    // 북마크 가져오기
     @GetMapping("/bookmarks")
     fun getBookMarks(
         @Parameter(hidden = true) @AuthUser user: User?,
         @RequestParam(required = false) @Min(0) page: Int?,
     ): ResponseEntity<PostWithPageDTO> {
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        val posts = postService.getBookmarks(user, page ?: 0)
+        val posts = postService.getBookmarks(user.id, page ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages

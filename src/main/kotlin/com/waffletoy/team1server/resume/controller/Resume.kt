@@ -16,7 +16,7 @@ data class Resume(
         fun fromEntity(resumeEntity: ResumeEntity) =
             Resume(
                 id = resumeEntity.id,
-                postId = resumeEntity.post.id,
+                postId = resumeEntity.role.id,
                 author =
                     User(
                         id = resumeEntity.user.id,
