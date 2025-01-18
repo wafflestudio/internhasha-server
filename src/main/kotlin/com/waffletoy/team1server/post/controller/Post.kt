@@ -23,7 +23,8 @@ data class Post(
     val externalDescriptionLink: List<Link>,
     val tags: List<String>,
     // 직군 정보
-    val employmentEndDate: LocalDateTime,
+    val title: String,
+    val employmentEndDate: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val isActive: Boolean,
@@ -48,16 +49,19 @@ data class Post(
                 investAmount = entity.company.investAmount,
                 investCompany = entity.company.investCompany ?: "",
                 series = entity.company.series,
-                imageLink = entity.company.imageLink ?: "",
                 IRDeckLink = entity.company.irDeckLink ?: "",
                 landingPageLink = entity.company.landingPageLink ?: "",
-                employmentEndDate = entity.employmentEndDate,
+                imageLink = entity.company.imageLink ?: "",
+                externalDescriptionLink = entity.company.links.map { Link.fromEntity(it) },
+                tags = entity.company.tags.map { it.tag },
+                
+                // roles 정보
+                title = entity.title,
                 // 생성 시간은 Roles 생성 기준
+                employmentEndDate = entity.employmentEndDate,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 isActive = entity.isActive,
-                externalDescriptionLink = entity.company.links.map { Link.fromEntity(it) },
-                tags = entity.company.tags.map { it.tag },
                 category = entity.category,
                 detail = entity.detail ?: "",
                 headcount = entity.headcount,

@@ -34,6 +34,9 @@ class RoleSpecification {
 
                 val predicates = mutableListOf<Predicate>()
 
+                // 상시채용의 종료일
+                val endDay = LocalDateTime.of(2099,12,31,23,59)
+
                 // roles 조건
                 roles?.let { it ->
                     val roleJoin = root.join<RoleEntity, RoleEntity>("roles")
@@ -67,15 +70,19 @@ class RoleSpecification {
                     when (it) {
                         0 -> {
                             // 진행 중 (현재 날짜가 employmentEndDate 이전)
-                            predicates.add(
-                                criteriaBuilder.greaterThanOrEqualTo(root.get("employmentEndDate"), currentDateTime),
+                            val employmentEndDate = criteriaBuilder.coalesce(
+                                root.get("employmentEndDate"),
+                                endDay,
                             )
+                            predicates.add(criteriaBuilder.greaterThanOrEqualTo(employmentEndDate, currentDateTime))
                         }
                         1 -> {
                             // 진행 완료 (현재 날짜가 employmentEndDate 이후)
-                            predicates.add(
-                                criteriaBuilder.lessThan(root.get("employmentEndDate"), currentDateTime),
+                            val employmentEndDate = criteriaBuilder.coalesce(
+                                root.get("employmentEndDate"),
+                                endDay,
                             )
+                            predicates.add(criteriaBuilder.lessThan(employmentEndDate, currentDateTime))
                         }
                         2 -> {
                             // 전체 (조건 없음)

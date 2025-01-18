@@ -12,6 +12,8 @@ class RoleEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
+    @Column(name = "TITLE", nullable = false)
+    open val title: String = "",
     @Column(name = "CATEGORY", nullable = false)
     @Enumerated(EnumType.STRING)
     open var category: Category,
@@ -23,8 +25,8 @@ class RoleEntity(
     open var createdAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "EMPLOYMENT_END_DATE", nullable = false)
-    open var employmentEndDate: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "EMPLOYMENT_END_DATE", nullable = true)
+    open var employmentEndDate: LocalDateTime? = null,
     @Column(name = "IS_ACTIVE")
     open val isActive: Boolean = false,
     // 특정 Company에 join
