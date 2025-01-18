@@ -54,7 +54,6 @@ data class Post(
                 imageLink = entity.company.imageLink ?: "",
                 externalDescriptionLink = entity.company.links.map { Link.fromEntity(it) },
                 tags = entity.company.tags.map { it.tag },
-                
                 // roles 정보
                 title = entity.title,
                 // 생성 시간은 Roles 생성 기준
