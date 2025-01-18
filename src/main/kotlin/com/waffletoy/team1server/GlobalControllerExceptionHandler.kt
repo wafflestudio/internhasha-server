@@ -1,6 +1,6 @@
 package com.waffletoy.team1server
 
-import com.waffletoy.team1server.account.AuthenticateException
+import com.waffletoy.team1server.user.AuthenticateException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice

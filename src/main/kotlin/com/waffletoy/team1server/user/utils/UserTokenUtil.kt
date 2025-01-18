@@ -1,55 +1,77 @@
-package com.waffletoy.team1server.account
+package com.waffletoy.team1server.user.utils
 
-import com.waffletoy.team1server.account.persistence.AccountEntity
+import com.waffletoy.team1server.user.dtos.User
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import org.springframework.http.ResponseCookie
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.*
 
-object AccountTokenUtil {
+object UserTokenUtil {
     data class Tokens(
         val accessToken: String,
         val refreshToken: String,
     )
 
     // 토큰 생성(access & refresh 쌍)
-    fun generateTokens(
-        accountEntity: AccountEntity,
-    ): Tokens {
+    // Generate token pair (access & refresh)
+    fun generateTokens(user: User): Tokens {
         return Tokens(
-            generateAccessToken(accountEntity),
-            generateRefreshToken(accountEntity),
+            generateAccessToken(user),
+            generateRefreshToken(user),
         )
     }
 
-    fun generateAccessToken(accountEntity: AccountEntity): String {
+    fun generateAccessToken(user: User): String {
         val now = Instant.now()
         val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME))
 
         return Jwts.builder()
             .signWith(SECRET_KEY)
-            .setSubject(accountEntity.id)
+            .setSubject(user.id) // Use user ID for subject
+            .claim("role", user.role) // Include role as a custom claim
             .setIssuedAt(Date.from(now))
             .setExpiration(accessExpiryDate)
             .compact()
     }
 
-    fun generateRefreshToken(accountEntity: AccountEntity): String {
+    fun generateRefreshToken(user: User): String {
         val now = Instant.now()
         val refreshExpiryDate = now.plusSeconds(REFRESH_TOKEN_EXPIRATION_TIME)
 
         return Jwts.builder()
             .signWith(SECRET_KEY)
-            .setSubject(accountEntity.id)
+            .setSubject(user.id) // Use user ID for subject
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(refreshExpiryDate))
             .compact()
     }
 
+    fun createRefreshTokenCookie(
+        token: Tokens,
+        isSecure: Boolean = true,
+    ): ResponseCookie {
+        return ResponseCookie.from("refresh_token", token.refreshToken)
+            .httpOnly(true)
+            .secure(isSecure) // HTTPS 사용 시 활성화
+            .path("/")
+            .maxAge(7 * 24 * 60 * 60) // 7일
+            .build()
+    }
+
+    fun createEmptyRefreshTokenCookie(isSecure: Boolean = true): ResponseCookie {
+        return ResponseCookie.from("refresh_token", "")
+            .httpOnly(true)
+            .secure(isSecure)
+            .path("/")
+            .maxAge(0)
+            .build()
+    }
+
     // Access Token 유효성 검증
-    fun validateAccessTokenGetAccountId(token: String): String? {
+    fun validateAccessTokenGetUserId(token: String): String? {
         return try {
             val claims =
                 Jwts.parserBuilder()
