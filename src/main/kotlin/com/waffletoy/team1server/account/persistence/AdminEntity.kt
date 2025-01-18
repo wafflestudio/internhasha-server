@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.account.persistence
 
-import com.waffletoy.team1server.post.persistence.PostEntity
+import com.waffletoy.team1server.post.persistence.CompanyEntity
 import jakarta.persistence.*
 
 @Entity(name = "admins")
@@ -12,7 +12,7 @@ class AdminEntity(
     password: String? = null,
     localId: String? = null,
     @OneToMany(mappedBy = "admin", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val posts: List<PostEntity> = mutableListOf(),
+    val posts: List<CompanyEntity> = mutableListOf(),
 ) : AccountEntity(
         username = username,
         localId = localId,

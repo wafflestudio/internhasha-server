@@ -2,17 +2,21 @@ package com.waffletoy.team1server.post
 
 // ENUM 타입 정의
 enum class Category {
-    PLANNER, // 적절한 값을 여기에 추가
     FRONT,
     APP,
     BACKEND,
-    DESIGN,
     DATA,
-    MARKETER,
+    OTHERS,
+    DESIGN,
+    PLANNER,
+    MARKETING,
 }
 
-enum class Category2 {
+enum class Series {
+    SEED,
+    PRE_A,
     A,
     B,
     C,
+    D,
 }

@@ -1,7 +1,8 @@
 package com.waffletoy.team1server.resume.service
 
 import com.waffletoy.team1server.account.persistence.UserRepository
-import com.waffletoy.team1server.post.persistence.PostRepository
+import com.waffletoy.team1server.post.persistence.CompanyRepository
+import com.waffletoy.team1server.post.persistence.RoleRepository
 import com.waffletoy.team1server.resume.ResumeServiceException
 import com.waffletoy.team1server.resume.controller.Resume
 import com.waffletoy.team1server.resume.persistence.ResumeEntity
@@ -10,13 +11,13 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 class ResumeService(
     private val resumeRepository: ResumeRepository,
     private val userRepository: UserRepository,
-    private val postRepository: PostRepository,
+    private val companyRepository: CompanyRepository,
+    private val roleRepository: RoleRepository,
 ) {
     fun getResumeDetail(
         userId: String,
@@ -63,8 +64,8 @@ class ResumeService(
                     HttpStatus.NOT_FOUND,
                 )
 
-        val postEntity =
-            postRepository.findByIdOrNull(postId)
+        val roleEntity =
+            roleRepository.findByIdOrNull(postId)
                 ?: throw ResumeServiceException(
                     "존재하지 않는 게시글입니다.",
                     HttpStatus.NOT_FOUND,
@@ -76,7 +77,7 @@ class ResumeService(
                 ResumeEntity(
                     content = content,
                     phoneNumber = phoneNumber,
-                    post = postEntity,
+                    role = roleEntity,
                     user = userEntity,
                 ),
             )
@@ -134,10 +135,7 @@ class ResumeService(
             resumeEntity.content = it
         }
 
-        // 업데이트 시간 갱신
-        resumeEntity.updatedAt = LocalDateTime.now()
-
-        // 데이터베이스에 저장
+        // 데이터베이스에 저장(수정 시간은 자동 갱신)
         return Resume.fromEntity(
             resumeRepository.save(resumeEntity),
         )
