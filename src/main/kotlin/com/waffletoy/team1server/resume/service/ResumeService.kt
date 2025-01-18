@@ -1,12 +1,12 @@
 package com.waffletoy.team1server.resume.service
 
-import com.waffletoy.team1server.account.persistence.UserRepository
 import com.waffletoy.team1server.post.persistence.CompanyRepository
 import com.waffletoy.team1server.post.persistence.RoleRepository
 import com.waffletoy.team1server.resume.ResumeServiceException
 import com.waffletoy.team1server.resume.controller.Resume
 import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.resume.persistence.ResumeRepository
+import com.waffletoy.team1server.user.persistence.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -41,13 +41,12 @@ class ResumeService(
     fun getResumes(
         userId: String,
     ): List<Resume> {
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
-                ?: throw ResumeServiceException(
-                    "존재하지 않는 사용자입니다.",
-                    HttpStatus.NOT_FOUND,
-                )
-        return userEntity.resumes.map { Resume.fromEntity(it) }
+        return userRepository.findByIdOrNull(userId)?.let { userEntity ->
+            userEntity.resumes.map { Resume.fromEntity(it) }
+        } ?: throw ResumeServiceException(
+            "존재하지 않는 사용자입니다.",
+            HttpStatus.NOT_FOUND,
+        )
     }
 
     @Transactional

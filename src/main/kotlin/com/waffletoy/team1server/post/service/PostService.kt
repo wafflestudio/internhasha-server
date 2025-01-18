@@ -1,12 +1,13 @@
 package com.waffletoy.team1server.post.service
 
-import com.waffletoy.team1server.account.persistence.*
-import com.waffletoy.team1server.account.service.UserService
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.controller.Post
 import com.waffletoy.team1server.post.persistence.*
+import com.waffletoy.team1server.user.Role
+import com.waffletoy.team1server.user.persistence.*
+import com.waffletoy.team1server.user.service.UserService
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -21,7 +22,6 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val userService: UserService,
-    private val accountRepository: AccountRepository,
     private val tagRepository: TagRepository,
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
@@ -135,13 +135,15 @@ class PostService(
     @Transactional
     fun makeDummyPosts(cnt: Int) {
         (1..cnt).forEach {
-            val admin: AdminEntity =
-                accountRepository.findByLocalId("dummy$it") as? AdminEntity
-                    ?: accountRepository.save(
-                        AdminEntity(
-                            username = "dummy$it",
-                            localId = "dummy$it",
-                            password = BCrypt.hashpw("DummyPW$it!99", BCrypt.gensalt()),
+            val admin: UserEntity =
+                userRepository.findByLocalLoginId("dummy$it") as? UserEntity
+                    ?: userRepository.save(
+                        UserEntity(
+                            name = "dummy$it",
+                            localLoginId = "dummy$it",
+                            localLoginPasswordHash = BCrypt.hashpw("DummyPW$it!99", BCrypt.gensalt()),
+                            role = Role.ROLE_POST_ADMIN,
+                            snuMail = null,
                         ),
                     )
 

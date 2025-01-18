@@ -281,7 +281,7 @@ class UserService(
         }
     }
 
-    @Value("\${SECRET}")
+    @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String
 
     fun resetDatabase(secret: String) {

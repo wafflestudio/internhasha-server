@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.resume.controller
 
-import com.waffletoy.team1server.account.AuthUser
-import com.waffletoy.team1server.account.AuthenticateException
-import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.resume.service.ResumeService
+import com.waffletoy.team1server.user.AuthUser
+import com.waffletoy.team1server.user.AuthenticateException
+import com.waffletoy.team1server.user.dtos.User
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*

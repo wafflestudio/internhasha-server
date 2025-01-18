@@ -39,7 +39,7 @@ data class Post(
                 author =
                     AuthorBriefDTO(
                         id = entity.company.admin.id,
-                        name = entity.company.admin.username,
+                        name = entity.company.admin.name,
                         profileImageLink = entity.company.admin.profileImageLink,
                     ),
                 companyName = entity.company.companyName,
