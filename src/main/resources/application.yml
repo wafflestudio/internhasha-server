@@ -40,8 +40,7 @@ spring:
 custom:
     domain-url: api.survey-josha.site
     is-secure: ${IS_SECURE:false}
-
-
+    SECRET: ${SECRET:Helloworld}
 
 springdoc:
     swagger-ui:

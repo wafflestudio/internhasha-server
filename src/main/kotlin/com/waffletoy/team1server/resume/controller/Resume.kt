@@ -1,7 +1,7 @@
 package com.waffletoy.team1server.resume.controller
 
-import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.resume.persistence.ResumeEntity
+import com.waffletoy.team1server.user.dtos.User
 import java.time.LocalDateTime
 
 data class Resume(
@@ -17,14 +17,7 @@ data class Resume(
             Resume(
                 id = resumeEntity.id,
                 postId = resumeEntity.role.id,
-                author =
-                    User(
-                        id = resumeEntity.user.id,
-                        snuMail = resumeEntity.user.snuMail,
-                        username = resumeEntity.user.username,
-                        phoneNumber = resumeEntity.user.phoneNumber,
-                        isAdmin = false,
-                    ),
+                author = User.fromEntity(resumeEntity.user),
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
                 phoneNumber = resumeEntity.phoneNumber ?: "",

@@ -1,8 +1,5 @@
 package com.waffletoy.team1server.post.controller
 
-import com.waffletoy.team1server.account.AuthUser
-import com.waffletoy.team1server.account.AuthenticateException
-import com.waffletoy.team1server.account.controller.User
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.AuthenticateException

@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.persistence
 
-import com.waffletoy.team1server.post.persistence.PostEntity
+import com.waffletoy.team1server.post.persistence.CompanyEntity
+import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.user.Role
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
@@ -43,9 +44,13 @@ class UserEntity(
     val snuMail: String?,
     @Column(name = "phone_number", nullable = true)
     var phoneNumber: String? = null,
+    @OneToMany(mappedBy = "user")
+    val resumes: MutableList<ResumeEntity> = mutableListOf(),
     // POST-ADMIN specific field
     @OneToMany(mappedBy = "admin")
-    var posts: MutableList<PostEntity> = mutableListOf(),
+    var posts: MutableList<CompanyEntity> = mutableListOf(),
+    @Column(name = "profile_image_link", nullable = true)
+    val profileImageLink: String? = null,
 ) {
     // Validates either local or google login is provided
     @PrePersist
