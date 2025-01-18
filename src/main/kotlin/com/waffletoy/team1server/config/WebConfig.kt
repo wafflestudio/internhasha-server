@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.config
 
-import com.waffletoy.team1server.account.UserArgumentResolver
+import com.waffletoy.team1server.user.UserArgumentResolver
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
