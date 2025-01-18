@@ -104,7 +104,7 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/snu-mail-verification/request")
+    @PostMapping("/snu-mail-verification/verify")
     fun checkSnuMailVerification(
         @Valid @RequestBody request: CheckSnuMailVerificationRequest,
     ): ResponseEntity<Void> {

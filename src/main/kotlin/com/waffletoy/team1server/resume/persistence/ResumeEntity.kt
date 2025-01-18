@@ -1,7 +1,7 @@
 package com.waffletoy.team1server.resume.persistence
 
-import com.waffletoy.team1server.account.persistence.UserEntity
 import com.waffletoy.team1server.post.persistence.RoleEntity
+import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*

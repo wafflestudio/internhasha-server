@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.dtos
 
-import com.waffletoy.team1server.post.persistence.PostEntity
+import com.waffletoy.team1server.post.persistence.CompanyEntity
+import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.user.Role
 import com.waffletoy.team1server.user.persistence.UserEntity
 import java.time.LocalDateTime
@@ -13,7 +14,9 @@ data class User(
     val role: Role,
     val snuMail: String?,
     val phoneNumber: String?,
-    val posts: List<PostEntity>?,
+    val resumes: List<ResumeEntity>?,
+    val posts: List<CompanyEntity>?,
+    val profileImageLink: String?,
     val isMerged: Boolean,
 ) {
     companion object {
@@ -29,7 +32,9 @@ data class User(
                 role = entity.role,
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
+                resumes = entity.resumes,
                 posts = entity.posts,
+                profileImageLink = entity.profileImageLink,
                 isMerged = isMerged,
             )
     }

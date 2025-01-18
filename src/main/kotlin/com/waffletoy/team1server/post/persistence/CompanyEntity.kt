@@ -1,7 +1,7 @@
 package com.waffletoy.team1server.post.persistence
 
-import com.waffletoy.team1server.account.persistence.AdminEntity
 import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -14,7 +14,7 @@ class CompanyEntity(
     open val id: String = UUID.randomUUID().toString(),
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ADMIN", nullable = false)
-    open val admin: AdminEntity,
+    open val admin: UserEntity,
     @Column(name = "NAME", nullable = false)
     open var companyName: String,
     @Column(name = "EXPLANATION", columnDefinition = "TEXT")
