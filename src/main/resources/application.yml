@@ -50,3 +50,10 @@ springdoc:
         enabled: ${SPRING_DOC_API_DOCS_ENABLED:true}
         path: ${SPRING_DOC_API_DOCS_PATH:/v3/api-docs}
         server-base-url: https://api.survey-josha.site # HTTPS 기본 URL 설정
+
+amazon:
+    aws:
+        accessKey: ${S3ACCESSKEY:""}
+        secretKey: ${S3SECRETKEY:""}
+        region: ap-northeast-2
+        bucket: wafflestudio-22.5-project-dev
