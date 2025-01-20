@@ -42,15 +42,14 @@ class CompanyEntity(
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     // Links 테이블에서 POST_ID를 외래 키로 사용
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "POST_ID")
+    @JoinColumn(name = "LINK_POST_ID")
     open val links: MutableList<LinkEntity> = mutableListOf(),
     // TAGS 테이블의 POST를 외래키로 사용
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "POST_ID")
+    @JoinColumn(name = "TAG_POST_ID")
     open val tags: MutableList<TagEntity> = mutableListOf(),
     // ROLES 테이블의 POST 외래 키를 매핑
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "COMPANY_ID")
+    @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
     open val roles: MutableList<RoleEntity> = mutableListOf(),
 ) {
     @PrePersist

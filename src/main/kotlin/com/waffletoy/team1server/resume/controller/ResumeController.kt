@@ -34,7 +34,7 @@ class ResumeController(
         if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
             Resumes(
-                coffees = resumeService.getResumes(user.id),
+                resumeList = resumeService.getResumes(user.id),
             ),
         )
     }
@@ -81,7 +81,7 @@ class ResumeController(
 }
 
 data class Resumes(
-    val coffees: List<Resume>,
+    val resumeList: List<Resume>,
 )
 
 data class Coffee(
