@@ -38,14 +38,16 @@ class RoleSpecification {
                 val endDay = LocalDateTime.of(2099, 12, 31, 23, 59)
 
                 // roles 조건
-                roles?.let { it ->
-                    val roleJoin = root.join<RoleEntity, RoleEntity>("roles")
-                    val roleEnums = it.mapNotNull { roleName -> Category.entries.find { it.name == roleName } }
+                roles?.let {
+                    val roleEnums =
+                        it.mapNotNull { roleName ->
+                            Category.entries.find { it.name == roleName }
+                        }
                     if (roleEnums.isNotEmpty()) {
                         predicates.add(
                             criteriaBuilder.or(
                                 *roleEnums.map { roleEnum ->
-                                    criteriaBuilder.equal(roleJoin.get<Category>("category"), roleEnum.name)
+                                    criteriaBuilder.equal(root.get<String>("category"), roleEnum.name)
                                 }.toTypedArray(),
                             ),
                         )
@@ -66,33 +68,30 @@ class RoleSpecification {
                 }
 
                 // status 조건
-                status.let {
-                    when (it) {
-                        0 -> {
-                            // 진행 중 (현재 날짜가 employmentEndDate 이전)
-                            val employmentEndDate =
-                                criteriaBuilder.coalesce(
-                                    root.get("employmentEndDate"),
-                                    endDay,
-                                )
-                            predicates.add(criteriaBuilder.greaterThanOrEqualTo(employmentEndDate, currentDateTime))
-                        }
-                        1 -> {
-                            // 진행 완료 (현재 날짜가 employmentEndDate 이후)
-                            val employmentEndDate =
-                                criteriaBuilder.coalesce(
-                                    root.get("employmentEndDate"),
-                                    endDay,
-                                )
-                            predicates.add(criteriaBuilder.lessThan(employmentEndDate, currentDateTime))
-                        }
-                        2 -> {
-                            // 전체 (조건 없음)
-                        }
-
-                        else -> {
-                            throw IllegalArgumentException("Invalid status value: $it")
-                        }
+                when (status) {
+                    0 -> {
+                        // 진행 중 (현재 날짜가 employmentEndDate 이전)
+                        val employmentEndDate =
+                            criteriaBuilder.coalesce(
+                                root.get("employmentEndDate"),
+                                endDay,
+                            )
+                        predicates.add(criteriaBuilder.greaterThanOrEqualTo(employmentEndDate, currentDateTime))
+                    }
+                    1 -> {
+                        // 진행 완료 (현재 날짜가 employmentEndDate 이후)
+                        val employmentEndDate =
+                            criteriaBuilder.coalesce(
+                                root.get("employmentEndDate"),
+                                endDay,
+                            )
+                        predicates.add(criteriaBuilder.lessThan(employmentEndDate, currentDateTime))
+                    }
+                    2 -> {
+                        // 전체 (조건 없음)
+                    }
+                    else -> {
+                        throw IllegalArgumentException("Invalid status value: $status")
                     }
                 }
 
