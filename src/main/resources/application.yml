@@ -56,4 +56,4 @@ amazon:
         accessKey: ${S3ACCESSKEY:""}
         secretKey: ${S3SECRETKEY:""}
         region: ap-northeast-2
-        bucket: wafflestudio-22.5-project-dev
+        bucket: intern-hasha-client
