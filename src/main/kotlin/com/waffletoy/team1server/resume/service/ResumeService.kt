@@ -184,6 +184,7 @@ class ResumeService(
             throw ResumeServiceException(
                 "유효한 사용자 역할이 아닙니다.",
                 HttpStatus.FORBIDDEN,
+                1,
             )
         }
         return user
