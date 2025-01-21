@@ -33,9 +33,6 @@ class RoleEntity(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY_ID", nullable = false)
     open val company: CompanyEntity,
-    // ResumeEntity의 role 필드와 join
-    @OneToMany(mappedBy = "role", cascade = [CascadeType.ALL], orphanRemoval = true)
-    open val resumes: MutableList<ResumeEntity> = mutableListOf(),
 ) {
     @PrePersist
     fun onCreate() {
