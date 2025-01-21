@@ -40,6 +40,7 @@ class PostService(
         investmentMax: Int?,
         investmentMin: Int?,
         status: Int?,
+        series: List<String>?,
         page: Int = 0,
     ): Page<RoleEntity> {
         val specification =
@@ -48,6 +49,7 @@ class PostService(
                 investmentMax,
                 investmentMin,
                 status ?: 2,
+                series,
             )
 
         val pageable = PageRequest.of(page, pageSize)
@@ -136,7 +138,7 @@ class PostService(
     fun makeDummyPosts(cnt: Int) {
         (1..cnt).forEach {
             val admin: UserEntity =
-                userRepository.findByLocalLoginId("dummy$it") as? UserEntity
+                userRepository.findByLocalLoginId("dummy$it")
                     ?: userRepository.save(
                         UserEntity(
                             name = "dummy$it",
