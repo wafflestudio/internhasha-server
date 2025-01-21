@@ -1,7 +1,8 @@
-package com.waffletoy.team1server.post.controller
+package com.waffletoy.team1server.post.dto
 
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.post.controller.AuthorBriefDTO
 import java.time.LocalDateTime
 
 data class PostBrief(

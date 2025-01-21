@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.post.controller
 
+import com.waffletoy.team1server.post.dto.Post
+import com.waffletoy.team1server.post.dto.PostBrief
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.AuthenticateException
