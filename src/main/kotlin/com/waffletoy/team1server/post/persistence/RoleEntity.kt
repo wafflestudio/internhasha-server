@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.post.Category
-import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*

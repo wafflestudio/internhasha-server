@@ -20,9 +20,10 @@ class ResumeEntity(
     open var content: String? = null,
     @Column(name = "PHONENUMBER", length = 20, nullable = true)
     open var phoneNumber: String? = null,
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ROLE_ID", nullable = false)
-    open val role: RoleEntity,
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "ROLE_ID", nullable = true)
+    // `RoleEntity`가 삭제되더라도 `null`로 처리
+    open var role: RoleEntity? = null,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USER_ID", nullable = false)
     open val user: UserEntity,

@@ -45,7 +45,7 @@ data class Post(
                     ),
                 companyName = entity.company.companyName,
                 explanation = entity.company.explanation ?: "",
-                email = entity.company.email ?: "",
+                email = entity.company.email,
                 slogan = entity.company.slogan ?: "",
                 investAmount = entity.company.investAmount,
                 investCompany = entity.company.investCompany ?: "",

@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.resume.service
 
-import com.waffletoy.team1server.post.persistence.CompanyRepository
+import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.post.persistence.RoleRepository
 import com.waffletoy.team1server.resume.ResumeServiceException
 import com.waffletoy.team1server.resume.controller.Coffee
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class ResumeService(
     private val resumeRepository: ResumeRepository,
     private val userRepository: UserRepository,
-    private val companyRepository: CompanyRepository,
+    private val emailService: EmailService,
     private val roleRepository: RoleRepository,
 ) {
     fun getResumeDetail(
@@ -86,6 +86,37 @@ class ResumeService(
                     user = userEntity,
                 ),
             )
+
+        val companyEntity = roleEntity.company
+
+        // 이메일 전송
+        emailService.sendEmail(
+            to = companyEntity.email,
+            subject = "[인턴하샤] 지원자 커피챗이 도착하였습니다.",
+            text =
+                """
+                [${companyEntity.companyName}] ${roleEntity.title} 포지션 지원자 정보:
+                
+                - 회사명: ${companyEntity.companyName}
+                - 회사 이메일: ${companyEntity.email}
+                - 직무명: ${roleEntity.title}
+                - 카테고리: ${roleEntity.category}
+                - 지원 마감일: ${roleEntity.employmentEndDate ?: "정보 없음"}
+                
+                지원자 정보:
+                - 이름: ${validUser.name}
+                - 이메일: ${validUser.snuMail ?: "이메일 정보 없음"}
+                - 전화번호: ${resumeEntity.phoneNumber ?: "전화번호 정보 없음"}
+                
+                커피챗 내용:
+                --------------------------------------------
+                ${resumeEntity.content ?: "커피챗 내용이 없습니다."}
+                --------------------------------------------
+                
+                인턴하샤 지원 시스템을 통해 지원자가 회사에 커피챗을 제출하였습니다.
+                """.trimIndent(),
+        )
+
         return Resume.fromEntity(resumeEntity)
     }
 
