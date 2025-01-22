@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.post.Category
+import com.waffletoy.team1server.post.Series
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -28,6 +29,7 @@ class RoleSpecification {
             investmentMax: Int?,
             investmentMin: Int?,
             status: Int,
+            series: List<String>?,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
         ): Specification<RoleEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -41,7 +43,7 @@ class RoleSpecification {
                 roles?.let {
                     val roleEnums =
                         it.mapNotNull { roleName ->
-                            Category.entries.find { it.name == roleName }
+                            Category.entries.find { c -> c.name == roleName }
                         }
                     if (roleEnums.isNotEmpty()) {
                         predicates.add(
@@ -54,17 +56,34 @@ class RoleSpecification {
                     }
                 }
 
-                // investment 조건 (Company Entity와 join)
-                val postJoin = root.join<RoleEntity, CompanyEntity>("company")
+                // Company Entity와 join
+                val companyJoin = root.join<RoleEntity, CompanyEntity>("company")
+
+                // 시리즈 조건
+                series?.let {
+                    val seriesEnums =
+                        it.mapNotNull { seriesString ->
+                            Series.entries.find { c -> c.name == seriesString }
+                        }
+                    if (seriesEnums.isNotEmpty()) {
+                        predicates.add(
+                            criteriaBuilder.or(
+                                *seriesEnums.map { seriesEnum ->
+                                    criteriaBuilder.equal(companyJoin.get<String>("series"), seriesEnum.name)
+                                }.toTypedArray(),
+                            ),
+                        )
+                    }
+                }
 
                 // 하한
                 investmentMin?.let {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(postJoin.get<Int>("investAmount"), it))
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(companyJoin.get<Int>("investAmount"), it))
                 }
 
                 // 상한
                 investmentMax?.let {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(postJoin.get<Int>("investAmount"), it))
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(companyJoin.get<Int>("investAmount"), it))
                 }
 
                 // status 조건

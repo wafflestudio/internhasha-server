@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.post.Category
-import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*
@@ -33,9 +32,6 @@ class RoleEntity(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY_ID", nullable = false)
     open val company: CompanyEntity,
-    // ResumeEntity의 role 필드와 join
-    @OneToMany(mappedBy = "role", cascade = [CascadeType.ALL], orphanRemoval = true)
-    open val resumes: MutableList<ResumeEntity> = mutableListOf(),
 ) {
     @PrePersist
     fun onCreate() {

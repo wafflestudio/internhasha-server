@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class Resume(
     val id: String,
-    val postId: String,
+    val postId: String?,
     val author: User,
     val content: String,
     val phoneNumber: String,
@@ -16,7 +16,7 @@ data class Resume(
         fun fromEntity(resumeEntity: ResumeEntity) =
             Resume(
                 id = resumeEntity.id,
-                postId = resumeEntity.role.id,
+                postId = resumeEntity.role?.id,
                 author = User.fromEntity(resumeEntity.user),
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,

@@ -1,7 +1,6 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.email.service
 
 import com.waffletoy.team1server.user.EmailServiceException
-import com.waffletoy.team1server.user.persistence.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -10,8 +9,6 @@ import org.springframework.stereotype.Service
 @Service
 class EmailService(
     private val mailSender: JavaMailSender,
-    private val userRepository: UserRepository,
-    private val userRedisCacheService: UserRedisCacheService,
 ) {
     fun sendEmail(
         to: String,

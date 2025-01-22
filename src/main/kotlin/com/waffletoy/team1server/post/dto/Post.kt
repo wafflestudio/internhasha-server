@@ -1,7 +1,8 @@
-package com.waffletoy.team1server.post.controller
+package com.waffletoy.team1server.post.dto
 
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.post.controller.AuthorBriefDTO
 import com.waffletoy.team1server.post.persistence.RoleEntity
 import java.time.LocalDateTime
 
@@ -20,7 +21,7 @@ data class Post(
     val IRDeckLink: String,
     val landingPageLink: String,
     val imageLink: String,
-    val externalDescriptionLink: List<Link>,
+    val externalDescriptionLink: List<LinkDto>,
     val tags: List<String>,
     // 직군 정보
     val title: String,
@@ -44,7 +45,7 @@ data class Post(
                     ),
                 companyName = entity.company.companyName,
                 explanation = entity.company.explanation ?: "",
-                email = entity.company.email ?: "",
+                email = entity.company.email,
                 slogan = entity.company.slogan ?: "",
                 investAmount = entity.company.investAmount,
                 investCompany = entity.company.investCompany ?: "",
@@ -52,7 +53,7 @@ data class Post(
                 IRDeckLink = entity.company.irDeckLink ?: "",
                 landingPageLink = entity.company.landingPageLink ?: "",
                 imageLink = entity.company.imageLink ?: "",
-                externalDescriptionLink = entity.company.links.map { Link.fromEntity(it) },
+                externalDescriptionLink = entity.company.links.map { LinkDto.fromLink(it) },
                 tags = entity.company.tags.map { it.tag },
                 // roles 정보
                 title = entity.title,

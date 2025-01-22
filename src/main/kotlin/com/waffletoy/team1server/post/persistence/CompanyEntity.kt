@@ -1,6 +1,8 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.post.dto.Link
+import com.waffletoy.team1server.post.dto.Tag
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -19,8 +21,8 @@ class CompanyEntity(
     open var companyName: String,
     @Column(name = "EXPLANATION", columnDefinition = "TEXT")
     open var explanation: String? = null,
-    @Column(name = "EMAIL")
-    open var email: String? = null,
+    @Column(name = "EMAIL", nullable = false)
+    open var email: String,
     @Column(name = "SLOGUN")
     open var slogan: String? = null,
     @Column(name = "INVEST_AMOUNT")
@@ -40,14 +42,22 @@ class CompanyEntity(
     open var createdAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
-    // Links 테이블에서 POST_ID를 외래 키로 사용
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "LINK_POST_ID")
-    open val links: MutableList<LinkEntity> = mutableListOf(),
-    // TAGS 테이블의 POST를 외래키로 사용
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "TAG_POST_ID")
-    open val tags: MutableList<TagEntity> = mutableListOf(),
+    // 링크를 value object로 관리 - 자동으로 테이블 생성
+    @ElementCollection
+    @CollectionTable(
+        // 매핑될 테이블 이름
+        name = "company_links",
+        joinColumns = [JoinColumn(name = "company_id")],
+    )
+    val links: MutableList<Link> = mutableListOf(),
+    // 태그를 value object로 관리 - 자동으로 테이블 생성
+    @ElementCollection
+    @CollectionTable(
+        // 매핑될 테이블 이름
+        name = "company_tags",
+        joinColumns = [JoinColumn(name = "company_id")],
+    )
+    val tags: MutableList<Tag> = mutableListOf(),
     // ROLES 테이블의 POST 외래 키를 매핑
     @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
     open val roles: MutableList<RoleEntity> = mutableListOf(),
