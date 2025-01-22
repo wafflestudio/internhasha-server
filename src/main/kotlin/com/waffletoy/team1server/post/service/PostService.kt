@@ -3,11 +3,12 @@ package com.waffletoy.team1server.post.service
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostServiceException
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.controller.Post
+import com.waffletoy.team1server.post.dto.Link
+import com.waffletoy.team1server.post.dto.Post
+import com.waffletoy.team1server.post.dto.Tag
 import com.waffletoy.team1server.post.persistence.*
 import com.waffletoy.team1server.user.Role
 import com.waffletoy.team1server.user.persistence.*
-import com.waffletoy.team1server.user.service.UserService
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -21,8 +22,6 @@ import java.time.LocalDateTime
 class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
-    private val userService: UserService,
-    private val tagRepository: TagRepository,
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
 ) {
@@ -40,6 +39,7 @@ class PostService(
         investmentMax: Int?,
         investmentMin: Int?,
         status: Int?,
+        series: List<String>?,
         page: Int = 0,
     ): Page<RoleEntity> {
         val specification =
@@ -48,6 +48,7 @@ class PostService(
                 investmentMax,
                 investmentMin,
                 status ?: 2,
+                series,
             )
 
         val pageable = PageRequest.of(page, pageSize)
@@ -136,7 +137,7 @@ class PostService(
     fun makeDummyPosts(cnt: Int) {
         (1..cnt).forEach {
             val admin: UserEntity =
-                userRepository.findByLocalLoginId("dummy$it") as? UserEntity
+                userRepository.findByLocalLoginId("dummy$it")
                     ?: userRepository.save(
                         UserEntity(
                             name = "dummy$it",
@@ -151,11 +152,7 @@ class PostService(
                 listOf("Tech", "Finance", "Health", "Ambient", "Salary")
                     .shuffled()
                     .take((1..3).random())
-                    .map { it2 ->
-                        TagEntity(
-                            tag = it2,
-                        )
-                    }
+                    .map { Tag(it) }
                     .toMutableList()
 
             val companies = listOf("Company A$it", "Company B$it", "Company C$it").joinToString(", ")
@@ -177,11 +174,11 @@ class PostService(
                         tags = tags,
                         links =
                             mutableListOf(
-                                LinkEntity(
+                                Link(
                                     link = "https://example.com/$it/link1",
                                     description = "link1",
                                 ),
-                                LinkEntity(
+                                Link(
                                     link = "https://example.com/$it/link2",
                                     description = "link2",
                                 ),
@@ -209,7 +206,6 @@ class PostService(
 
     fun resetDB() {
         companyRepository.deleteAll()
-        tagRepository.deleteAll()
         bookmarkRepository.deleteAll()
         roleRepository.deleteAll()
     }

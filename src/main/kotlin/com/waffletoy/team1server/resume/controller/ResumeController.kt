@@ -2,7 +2,6 @@ package com.waffletoy.team1server.resume.controller
 
 import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.AuthenticateException
 import com.waffletoy.team1server.user.dtos.User
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
@@ -20,9 +19,8 @@ class ResumeController(
         @AuthUser user: User?,
         @PathVariable resumeId: String,
     ): ResponseEntity<Resume> {
-        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
-            resumeService.getResumeDetail(user.id, resumeId),
+            resumeService.getResumeDetail(user, resumeId),
         )
     }
 
@@ -31,10 +29,9 @@ class ResumeController(
     fun getResumes(
         @AuthUser user: User?,
     ): ResponseEntity<Resumes> {
-        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
         return ResponseEntity.ok(
             Resumes(
-                resumeList = resumeService.getResumes(user.id),
+                resumeList = resumeService.getResumes(user),
             ),
         )
     }
@@ -42,16 +39,15 @@ class ResumeController(
     // 커피챗 신청하기
     @PostMapping("/{postId}")
     fun postResume(
-        @AuthUser user: User,
+        @AuthUser user: User?,
         @PathVariable postId: String,
         @RequestBody coffee: Coffee,
     ): ResponseEntity<Resume> {
         val resume =
             resumeService.postResume(
-                user.id,
+                user,
                 postId,
-                coffee.phoneNumber,
-                coffee.content,
+                coffee,
             )
         return ResponseEntity.ok(resume)
     }
@@ -62,8 +58,7 @@ class ResumeController(
         @AuthUser user: User?,
         @PathVariable resumeId: String,
     ): ResponseEntity<Void> {
-        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        resumeService.deleteResume(user.id, resumeId)
+        resumeService.deleteResume(user, resumeId)
         return ResponseEntity.ok().build()
     }
 
@@ -74,8 +69,7 @@ class ResumeController(
         @PathVariable resumeId: String,
         @RequestBody coffee: Coffee,
     ): ResponseEntity<Resume> {
-        if (user == null) throw AuthenticateException("유효하지 않은 엑세스 토큰입니다.")
-        val updatedResume = resumeService.patchResume(user.id, resumeId, coffee.phoneNumber, coffee.content)
+        val updatedResume = resumeService.patchResume(user, resumeId, coffee)
         return ResponseEntity.ok(updatedResume)
     }
 }

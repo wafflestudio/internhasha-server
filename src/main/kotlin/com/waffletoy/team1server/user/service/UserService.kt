@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.user.service
 
+import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.user.EmailServiceException
 import com.waffletoy.team1server.user.Role
 import com.waffletoy.team1server.user.UserServiceException

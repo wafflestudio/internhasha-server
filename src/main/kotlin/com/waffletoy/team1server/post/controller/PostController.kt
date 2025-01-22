@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.post.controller
 
+import com.waffletoy.team1server.post.dto.Post
+import com.waffletoy.team1server.post.dto.PostBrief
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.AuthenticateException
@@ -34,9 +36,10 @@ class PostController(
         @RequestParam(required = false) @Min(0) investmentMax: Int?,
         @RequestParam(required = false) @Min(0) investmentMin: Int?,
         @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
+        @RequestParam(required = false) series: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
     ): ResponseEntity<PostWithPageDTO> {
-        val posts = postService.getPosts(roles, investmentMax, investmentMin, status, page ?: 0)
+        val posts = postService.getPosts(roles, investmentMax, investmentMin, status, series, page ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages
