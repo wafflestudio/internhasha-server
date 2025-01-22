@@ -2,7 +2,7 @@ package com.waffletoy.team1server.user.persistence
 
 import com.waffletoy.team1server.post.persistence.CompanyEntity
 import com.waffletoy.team1server.resume.persistence.ResumeEntity
-import com.waffletoy.team1server.user.Role
+import com.waffletoy.team1server.user.UserRole
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
 import org.springframework.data.annotation.CreatedDate
@@ -38,7 +38,7 @@ class UserEntity(
     // Role-based access control
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val role: Role,
+    val userRole: UserRole,
     // APPLICATNT specific field
     @Column(name = "snu_mail", nullable = true, unique = true)
     val snuMail: String?,
@@ -59,7 +59,7 @@ class UserEntity(
         if ((localLoginId == null || localLoginPasswordHash == null) && googleLoginId == null) {
             throw ValidationException("Either localLoginId and passwordHash must both be non-null or googleLoginId must be non-null.")
         }
-        if ((role == Role.ROLE_APPLICANT) && snuMail == null) {
+        if ((userRole == UserRole.NORMAL) && snuMail == null) {
             throw ValidationException("snuMail must not be null for APPLICANT.")
         }
     }
@@ -70,5 +70,9 @@ class UserEntity(
 
     fun isGoogleLoginImplemented(): Boolean {
         return !googleLoginId.isNullOrBlank()
+    }
+
+    fun isLoginImplemented(): Boolean {
+        return isLocalLoginImplemented() || isGoogleLoginImplemented()
     }
 }

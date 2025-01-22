@@ -1,9 +1,8 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.email.service.EmailService
-import com.waffletoy.team1server.user.EmailServiceException
-import com.waffletoy.team1server.user.Role
-import com.waffletoy.team1server.user.UserServiceException
+import com.waffletoy.team1server.exceptions.*
+import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.dtos.*
 import com.waffletoy.team1server.user.persistence.UserEntity
@@ -13,63 +12,67 @@ import jakarta.transaction.Transactional
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 
 @Service
 class UserService(
-    val userRepository: UserRepository,
-    val userRedisCacheService: UserRedisCacheService,
-    val googleOAuth2Client: GoogleOAuth2Client,
-    val emailService: EmailService,
+    private val userRepository: UserRepository,
+    private val userRedisCacheService: UserRedisCacheService,
+    private val googleOAuth2Client: GoogleOAuth2Client,
+    private val emailService: EmailService,
 ) {
-    // TODO: UserServiceException을 여기서 쓰는 식이 아니라 Exception을 모아서 declare해줘야 ( UserExistsByLocalLoginIdException)
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
         if (userRepository.existsByLocalLoginId(request.id)) {
-            throw UserServiceException(
-                "동일한 로컬 아이디로 등록된 사용자가 존재합니다.",
-                HttpStatus.CONFLICT,
-                1,
+            throw UserDuplicateLocalIdException(
+                details = mapOf("localLoginId" to request.id),
             )
         }
     }
 
     fun checkDuplicateSnuMail(request: CheckDuplicateSnuMailRequest) {
+        if (userRepository.existsBySnuMail(request.snuMail)) {
+            throw UserDuplicateSnuMailException(
+                details = mapOf("snuMail" to request.snuMail),
+            )
+        }
     }
 
     @Transactional
     fun signUp(request: SignUpRequest): Pair<User, UserTokenUtil.Tokens> {
-        val user: User
-        when (request.authType) { // TODO: inconsistency 우려 + 이거 그냥 request.info를 넣어서 when is LocalAPplicant로 하면 되는 거 아닌지
-            SignUpRequest.AuthType.LOCAL_APPLICANT -> {
-                val info = request.info as SignUpRequest.Info.LocalApplicantInfo
-                user = localApplicantSignUp(info)
-            }
+        val user: User =
+            when (request.authType) {
+                SignUpRequest.AuthType.LOCAL_APPLICANT -> {
+                    val info = request.info as SignUpRequest.Info.LocalApplicantInfo
+                    localApplicantSignUp(info)
+                }
 
-            SignUpRequest.AuthType.SOCIAL_APPLICANT -> {
-                val info = request.info as SignUpRequest.Info.SocialApplicantInfo
-                user = socialApplicantSignUp(info)
-            }
+                SignUpRequest.AuthType.SOCIAL_APPLICANT -> {
+                    val info = request.info as SignUpRequest.Info.SocialApplicantInfo
+                    socialApplicantSignUp(info)
+                }
 
-            SignUpRequest.AuthType.POST_ADMIN -> {
-                throw UserServiceException() // TODO NOT IMPLEMENTED
+                SignUpRequest.AuthType.POST_ADMIN -> {
+                    throw NotImplementedException()
+                }
             }
-        }
         val tokens = UserTokenUtil.generateTokens(user)
         return Pair(user, tokens)
     }
 
-    // TODO verbose control flow
-    fun localApplicantSignUp(info: SignUpRequest.Info.LocalApplicantInfo): User {
+    private fun localApplicantSignUp(info: SignUpRequest.Info.LocalApplicantInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
         if (user != null) {
-            if (user.role != Role.ROLE_APPLICANT) {
-                throw UserServiceException() // TODO
+            if (user.userRole != UserRole.NORMAL) {
+                throw UserRoleConflictException(
+                    details = mapOf("userId" to user.id, "userRole" to user.userRole),
+                )
             }
             if (user.isLocalLoginImplemented()) {
-                throw UserServiceException() // TODO
+                throw UserDuplicateSnuMailException(
+                    details = mapOf("snuMail" to info.snuMail),
+                )
             }
             if (user.isGoogleLoginImplemented()) {
                 user.localLoginId = info.localLoginId
@@ -77,9 +80,16 @@ class UserService(
                 user = userRepository.save(user)
                 isMerged = true
             } else {
-                throw UserServiceException() // TODO UNKNOWN
+                throw UserMergeUnknownFailureException(
+                    details = mapOf("userId" to user.id),
+                )
             }
         } else {
+            if (userRepository.existsByLocalLoginId(info.localLoginId)) {
+                throw UserDuplicateLocalIdException(
+                    details = mapOf("localLoginId" to info.localLoginId),
+                )
+            }
             user =
                 userRepository.save(
                     UserEntity(
@@ -87,7 +97,7 @@ class UserService(
                         name = info.name,
                         localLoginId = info.localLoginId,
                         localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
-                        role = Role.ROLE_APPLICANT,
+                        userRole = UserRole.NORMAL,
                     ),
                 )
         }
@@ -95,43 +105,52 @@ class UserService(
         return User.fromEntity(entity = user, isMerged = isMerged)
     }
 
-    fun socialApplicantSignUp(info: SignUpRequest.Info.SocialApplicantInfo): User {
-        when (info.provider.lowercase()) {
-            "google" -> {
-                return googleApplicantSignUp(info)
-            } // TODO Enum으로 하는 게 나았을듯 적어도 lowercasing이라도
-            else -> {
-                throw UserServiceException() // TODO
-            }
+    private fun socialApplicantSignUp(info: SignUpRequest.Info.SocialApplicantInfo): User {
+        return when (info.provider.lowercase()) {
+            "google" -> googleApplicantSignUp(info)
+            else -> throw InvalidRequestException(
+                details = mapOf("provider" to info.provider),
+            )
         }
     }
 
-    fun googleApplicantSignUp(info: SignUpRequest.Info.SocialApplicantInfo): User {
+    private fun googleApplicantSignUp(info: SignUpRequest.Info.SocialApplicantInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
-        var user = userRepository.findBySnuMail(googleInfo.sub)
+        var user = userRepository.findBySnuMail(googleInfo.email)
         var isMerged = false
         if (user != null) {
-            if (user.role != Role.ROLE_APPLICANT) {
-                throw UserServiceException() // TODO
+            if (user.userRole != UserRole.NORMAL) {
+                throw UserRoleConflictException(
+                    details = mapOf("userId" to user.id, "userRole" to user.userRole),
+                )
             }
             if (user.isGoogleLoginImplemented()) {
-                throw UserServiceException() // TODO
+                throw UserDuplicateGoogleIdException(
+                    details = mapOf("googleLoginId" to googleInfo.sub),
+                )
             }
             if (user.isLocalLoginImplemented()) {
                 user.googleLoginId = googleInfo.sub
                 user = userRepository.save(user)
                 isMerged = true
             } else {
-                throw UserServiceException() // TODO ERROR UNKNOWN
+                throw UserMergeUnknownFailureException(
+                    details = mapOf("userId" to user.id),
+                )
             }
         } else {
+            if (userRepository.existsByGoogleLoginId(googleInfo.sub)) {
+                throw UserDuplicateGoogleIdException(
+                    details = mapOf("googleLoginId" to googleInfo.sub),
+                )
+            }
             user =
                 userRepository.save(
                     UserEntity(
                         snuMail = info.snuMail,
                         name = googleInfo.name,
                         googleLoginId = googleInfo.sub,
-                        role = Role.ROLE_APPLICANT,
+                        userRole = UserRole.NORMAL,
                     ),
                 )
         }
@@ -142,46 +161,55 @@ class UserService(
 
     @Transactional
     fun signIn(request: SignInRequest): Pair<User, UserTokenUtil.Tokens> {
-        val user: User
-        when (request.authType) { // TODO: inconsistency 우려 + 이거 그냥 request.info를 넣어서 when is LocalApplicant로 하면 되는 거 아닌지
-            SignInRequest.AuthType.LOCAL -> {
-                val info = request.info as SignInRequest.Info.LocalInfo
-                user = localSignIn(info)
-            }
+        val user: User =
+            when (request.authType) {
+                SignInRequest.AuthType.LOCAL -> {
+                    val info = request.info as SignInRequest.Info.LocalInfo
+                    localSignIn(info)
+                }
 
-            SignInRequest.AuthType.SOCIAL -> {
-                val info = request.info as SignInRequest.Info.SocialInfo
-                user = socialSignIn(info)
+                SignInRequest.AuthType.SOCIAL -> {
+                    val info = request.info as SignInRequest.Info.SocialInfo
+                    socialSignIn(info)
+                }
             }
-        }
         val tokens = UserTokenUtil.generateTokens(user)
         return Pair(user, tokens)
     }
 
-    fun localSignIn(info: SignInRequest.Info.LocalInfo): User {
-        val user = userRepository.findByLocalLoginId(info.localLoginId)
-        user?.let {
-            return User.fromEntity(entity = it)
-        } ?: throw UserServiceException()
+    private fun localSignIn(info: SignInRequest.Info.LocalInfo): User {
+        val user =
+            userRepository.findByLocalLoginId(info.localLoginId)
+                ?: throw UserNotFoundException(
+                    details = mapOf("localLoginId" to info.localLoginId),
+                )
+
+        if (!BCrypt.checkpw(info.password, user.localLoginPasswordHash)) {
+            throw InvalidCredentialsException(
+                details = mapOf("localLoginId" to info.localLoginId),
+            )
+        }
+
+        return User.fromEntity(entity = user)
     }
 
-    fun socialSignIn(info: SignInRequest.Info.SocialInfo): User {
-        when (info.provider.lowercase()) {
-            "google" -> {
-                return googleSignIn(info)
-            }
-            else -> {
-                throw UserServiceException()
-            }
+    private fun socialSignIn(info: SignInRequest.Info.SocialInfo): User {
+        return when (info.provider.lowercase()) {
+            "google" -> googleSignIn(info)
+            else -> throw InvalidRequestException(
+                details = mapOf("provider" to info.provider),
+            )
         }
     }
 
-    fun googleSignIn(info: SignInRequest.Info.SocialInfo): User {
+    private fun googleSignIn(info: SignInRequest.Info.SocialInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
-        val user = userRepository.findByGoogleLoginId(googleInfo.sub)
-        user?.let {
-            return User.fromEntity(entity = it)
-        } ?: throw UserServiceException()
+        val user =
+            userRepository.findByGoogleLoginId(googleInfo.sub)
+                ?: throw UserNotFoundException(
+                    details = mapOf("googleLoginId" to googleInfo.sub),
+                )
+        return User.fromEntity(entity = user)
     }
 
     fun signOut(
@@ -190,27 +218,29 @@ class UserService(
     ) {
         val userId =
             userRedisCacheService.getUserIdByRefreshToken(refreshToken)
-                ?: throw UserServiceException(
-                    "Invalid refresh token",
-                    HttpStatus.BAD_REQUEST,
-                ) // TODO
+                ?: throw InvalidRefreshTokenException(
+                    details = mapOf("refreshToken" to refreshToken),
+                )
         if (user.id != userId) {
-            throw UserServiceException(
-                "Access token do not match with refresh token",
-                HttpStatus.BAD_REQUEST,
-            ) // TODO
+            throw TokenMismatchException(
+                details = mapOf("userId" to user.id, "refreshTokenUserId" to userId),
+            )
         }
+        // Additional sign-out logic if necessary
     }
 
     // Token related functions
-    // @Transactional(readOnly = true)
+
     fun authenticate(accessToken: String): User {
         val userId =
             UserTokenUtil.validateAccessTokenGetUserId(accessToken)
-                ?: throw UserServiceException() // TODO
+                ?: throw InvalidAccessTokenException()
+
         val user =
             userRepository.findByIdOrNull(userId)
-                ?: throw UserServiceException() // TODO
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to userId),
+                )
         return User.fromEntity(entity = user)
     }
 
@@ -218,22 +248,17 @@ class UserService(
     fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
         val userId =
             userRedisCacheService.getUserIdByRefreshToken(refreshToken)
-                ?: throw UserServiceException(
-                    "유효하지 않은 refresh token(token 조회 실패)",
-                    HttpStatus.UNAUTHORIZED,
+                ?: throw InvalidRefreshTokenException(
+                    details = mapOf("refreshToken" to refreshToken),
                 )
 
-        // 사용자 정보 조회
         val userEntity =
             userRepository.findByIdOrNull(userId)
-                ?: throw UserServiceException(
-                    "유효하지 않은 refresh token(userId 조회 실패)",
-                    HttpStatus.NOT_FOUND,
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to userId),
                 )
 
-        // 토큰 발급 및 저장
-        val tokens = UserTokenUtil.generateTokens(User.fromEntity(userEntity))
-        return tokens
+        return UserTokenUtil.generateTokens(User.fromEntity(entity = userEntity))
     }
 
     // Email verification
@@ -244,38 +269,39 @@ class UserService(
 
     fun sendSnuMailVerification(request: SendSnuMailVerificationRequest) {
         if (userRepository.existsBySnuMail(request.snuMail)) {
-            throw UserServiceException(
-                "동일한 스누메일로 등록된 계정이 존재합니다.",
-                HttpStatus.CONFLICT,
+            throw UserDuplicateSnuMailException(
+                details = mapOf("snuMail" to request.snuMail),
             )
-        } // TODO: 이러면 merge는 어떻게?
+        }
 
-        // 이메일 인증 토큰 생성
         val emailCode = (100000..999999).random().toString()
         val encryptedEmailCode = BCrypt.hashpw(emailCode, BCrypt.gensalt())
 
-        // Redis 에 Email Token 저장
         userRedisCacheService.saveEmailCode(request.snuMail, encryptedEmailCode)
-        emailService.sendEmail(
-            to = request.snuMail,
-            subject = "이메일 인증 요청",
-            text = "이메일 인증 번호: $emailCode",
-        )
+        try {
+            emailService.sendEmail(
+                to = request.snuMail,
+                subject = "이메일 인증 요청",
+                text = "이메일 인증 번호: $emailCode",
+            )
+        } catch (ex: Exception) {
+            throw EmailVerificationSendFailureException(
+                details = mapOf("snuMail" to request.snuMail),
+            )
+        }
     }
 
     fun checkSnuMailVerification(request: CheckSnuMailVerificationRequest) {
         val encryptedCode =
             userRedisCacheService.getEmailCode(request.snuMail)
-                ?: throw EmailServiceException(
-                    "이메일로 전달된 코드가 유효하지 않습니다.",
-                    HttpStatus.FORBIDDEN,
+                ?: throw EmailVerificationInvalidException(
+                    details = mapOf("snuMail" to request.snuMail),
                 )
 
         // 입력된 인증 코드와 Redis에 저장된 암호화된 코드 비교
         if (!BCrypt.checkpw(request.code, encryptedCode)) {
-            throw EmailServiceException(
-                "인증 코드와 입력 코드가 일치하지 않습니다.",
-                HttpStatus.BAD_REQUEST,
+            throw EmailVerificationInvalidException(
+                details = mapOf("snuMail" to request.snuMail),
             )
         } else {
             userRedisCacheService.deleteEmailCode(request.snuMail)
@@ -287,9 +313,8 @@ class UserService(
 
     fun resetDatabase(secret: String) {
         if (secret != resetDbSecret) {
-            throw UserServiceException(
-                "적절한 Key를 X-Secret에 넣어주세요 ",
-                HttpStatus.FORBIDDEN,
+            throw InvalidRequestException(
+                details = mapOf("providedSecret" to secret),
             )
         }
         userRepository.deleteAll()
