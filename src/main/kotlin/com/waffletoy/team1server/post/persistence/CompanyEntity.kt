@@ -23,7 +23,7 @@ class CompanyEntity(
     open var explanation: String? = null,
     @Column(name = "EMAIL", nullable = false)
     open var email: String,
-    @Column(name = "SLOGUN")
+    @Column(name = "SLOGAN")
     open var slogan: String? = null,
     @Column(name = "INVEST_AMOUNT")
     open var investAmount: Int = 0,
