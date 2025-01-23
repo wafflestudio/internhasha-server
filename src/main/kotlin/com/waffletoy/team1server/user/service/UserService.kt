@@ -44,12 +44,12 @@ class UserService(
             when (request.authType) {
                 SignUpRequest.AuthType.LOCAL_NORMAL -> {
                     val info = request.info as SignUpRequest.Info.LocalNormalInfo
-                    localApplicantSignUp(info)
+                    localNormalSignUp(info)
                 }
 
                 SignUpRequest.AuthType.SOCIAL_NORMAL -> {
                     val info = request.info as SignUpRequest.Info.SocialNormalInfo
-                    socialApplicantSignUp(info)
+                    socialNormalSignUp(info)
                 }
 
                 SignUpRequest.AuthType.LOCAL_CURATOR -> {
@@ -60,7 +60,7 @@ class UserService(
         return Pair(user, tokens)
     }
 
-    private fun localApplicantSignUp(info: SignUpRequest.Info.LocalNormalInfo): User {
+    private fun localNormalSignUp(info: SignUpRequest.Info.LocalNormalInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
         if (user != null) {
@@ -105,16 +105,16 @@ class UserService(
         return User.fromEntity(entity = user, isMerged = isMerged)
     }
 
-    private fun socialApplicantSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
+    private fun socialNormalSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
         return when (info.provider.lowercase()) {
-            "google" -> googleApplicantSignUp(info)
+            "google" -> googleNormalSignUp(info)
             else -> throw InvalidRequestException(
                 details = mapOf("provider" to info.provider),
             )
         }
     }
 
-    private fun googleApplicantSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
+    private fun googleNormalSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
         var user = userRepository.findBySnuMail(googleInfo.email)
         var isMerged = false

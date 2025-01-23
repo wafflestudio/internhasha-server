@@ -22,9 +22,9 @@ data class SignUpRequest(
     sealed class Info {
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
         @JsonSubTypes(
-            JsonSubTypes.Type(value = LocalNormalInfo::class, name = "LOCAL_APPLICANT"),
-            JsonSubTypes.Type(value = SocialNormalInfo::class, name = "SOCIAL_APPLICANT"),
-            JsonSubTypes.Type(value = LocalCuratorInfo::class, name = "POST_ADMIN"),
+            JsonSubTypes.Type(value = LocalNormalInfo::class, name = "LOCAL_NORMAL"),
+            JsonSubTypes.Type(value = SocialNormalInfo::class, name = "SOCIAL_NORMAL"),
+            JsonSubTypes.Type(value = LocalCuratorInfo::class, name = "LOCAL_CURATOR"),
         )
         data class LocalNormalInfo(
             @field:NotBlank(message = "name is required")
