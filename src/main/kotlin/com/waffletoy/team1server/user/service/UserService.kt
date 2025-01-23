@@ -43,12 +43,12 @@ class UserService(
         val user: User =
             when (request.authType) {
                 SignUpRequest.AuthType.LOCAL_NORMAL -> {
-                    val info = request.info as SignUpRequest.Info.LocalNormalInfo
+                    val info = request.info as SignUpRequest.LocalNormalInfo
                     localNormalSignUp(info)
                 }
 
                 SignUpRequest.AuthType.SOCIAL_NORMAL -> {
-                    val info = request.info as SignUpRequest.Info.SocialNormalInfo
+                    val info = request.info as SignUpRequest.SocialNormalInfo
                     socialNormalSignUp(info)
                 }
 
@@ -60,7 +60,7 @@ class UserService(
         return Pair(user, tokens)
     }
 
-    private fun localNormalSignUp(info: SignUpRequest.Info.LocalNormalInfo): User {
+    private fun localNormalSignUp(info: SignUpRequest.LocalNormalInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
         if (user != null) {
@@ -105,7 +105,7 @@ class UserService(
         return User.fromEntity(entity = user, isMerged = isMerged)
     }
 
-    private fun socialNormalSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
+    private fun socialNormalSignUp(info: SignUpRequest.SocialNormalInfo): User {
         return when (info.provider.lowercase()) {
             "google" -> googleNormalSignUp(info)
             else -> throw InvalidRequestException(
@@ -114,7 +114,7 @@ class UserService(
         }
     }
 
-    private fun googleNormalSignUp(info: SignUpRequest.Info.SocialNormalInfo): User {
+    private fun googleNormalSignUp(info: SignUpRequest.SocialNormalInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
         var user = userRepository.findBySnuMail(googleInfo.email)
         var isMerged = false
@@ -164,12 +164,12 @@ class UserService(
         val user: User =
             when (request.authType) {
                 SignInRequest.AuthType.LOCAL -> {
-                    val info = request.info as SignInRequest.Info.LocalInfo
+                    val info = request.info as SignInRequest.LocalInfo
                     localSignIn(info)
                 }
 
                 SignInRequest.AuthType.SOCIAL -> {
-                    val info = request.info as SignInRequest.Info.SocialInfo
+                    val info = request.info as SignInRequest.SocialInfo
                     socialSignIn(info)
                 }
             }
@@ -177,7 +177,7 @@ class UserService(
         return Pair(user, tokens)
     }
 
-    private fun localSignIn(info: SignInRequest.Info.LocalInfo): User {
+    private fun localSignIn(info: SignInRequest.LocalInfo): User {
         val user =
             userRepository.findByLocalLoginId(info.localLoginId)
                 ?: throw UserNotFoundException(
@@ -193,7 +193,7 @@ class UserService(
         return User.fromEntity(entity = user)
     }
 
-    private fun socialSignIn(info: SignInRequest.Info.SocialInfo): User {
+    private fun socialSignIn(info: SignInRequest.SocialInfo): User {
         return when (info.provider.lowercase()) {
             "google" -> googleSignIn(info)
             else -> throw InvalidRequestException(
@@ -202,7 +202,7 @@ class UserService(
         }
     }
 
-    private fun googleSignIn(info: SignInRequest.Info.SocialInfo): User {
+    private fun googleSignIn(info: SignInRequest.SocialInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
         val user =
             userRepository.findByGoogleLoginId(googleInfo.sub)
