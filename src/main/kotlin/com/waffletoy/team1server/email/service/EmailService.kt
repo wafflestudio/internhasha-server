@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.email.service
 
-import com.waffletoy.team1server.user.EmailServiceException
-import org.springframework.http.HttpStatus
+import com.waffletoy.team1server.exceptions.EmailVerificationSendFailureException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service
@@ -22,10 +21,7 @@ class EmailService(
             message.setText(text)
             mailSender.send(message)
         } catch (ex: Exception) {
-            throw EmailServiceException(
-                "Sending Email Failure",
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            )
+            throw EmailVerificationSendFailureException()
         }
     }
 }

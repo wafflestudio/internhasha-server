@@ -2,7 +2,7 @@ package com.waffletoy.team1server.user.dtos
 
 import com.waffletoy.team1server.post.persistence.CompanyEntity
 import com.waffletoy.team1server.resume.persistence.ResumeEntity
-import com.waffletoy.team1server.user.Role
+import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
 import java.time.LocalDateTime
 
@@ -11,7 +11,7 @@ data class User(
     val name: String,
     val createdAt: LocalDateTime? = null,
     val updatedAt: LocalDateTime? = null,
-    val role: Role,
+    val userRole: UserRole,
     val snuMail: String?,
     val phoneNumber: String?,
     val resumes: List<ResumeEntity>?,
@@ -29,7 +29,7 @@ data class User(
                 name = entity.name,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
-                role = entity.role,
+                userRole = entity.userRole,
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
                 resumes = entity.resumes,
