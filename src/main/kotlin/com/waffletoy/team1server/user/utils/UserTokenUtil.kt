@@ -31,7 +31,7 @@ object UserTokenUtil {
         return Jwts.builder()
             .signWith(SECRET_KEY)
             .setSubject(user.id) // Use user ID for subject
-            .claim("role", user.role) // Include role as a custom claim
+            .claim("role", user.userRole) // Include role as a custom claim
             .setIssuedAt(Date.from(now))
             .setExpiration(accessExpiryDate)
             .compact()

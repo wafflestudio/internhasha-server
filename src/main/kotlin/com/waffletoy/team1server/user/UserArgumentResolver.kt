@@ -1,5 +1,8 @@
 package com.waffletoy.team1server.user
 
+import com.waffletoy.team1server.exceptions.ApiException
+import com.waffletoy.team1server.exceptions.BadAuthorizationHeaderException
+import com.waffletoy.team1server.exceptions.InvalidAccessTokenException
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.service.UserService
 import org.slf4j.Logger
@@ -21,7 +24,7 @@ class UserArgumentResolver(
         val isSupported =
             parameter.parameterType == User::class.java &&
                 parameter.hasParameterAnnotation(AuthUser::class.java)
-        logger.info("supportsParameter called: $isSupported")
+        logger.debug("supportsParameter called for parameter '${parameter.parameterName}': $isSupported")
         return isSupported
     }
 
@@ -31,61 +34,46 @@ class UserArgumentResolver(
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
     ): User {
-        logger.info("resolveArgument called for parameter: ${parameter.parameterName}")
+        logger.debug("resolveArgument called for parameter: ${parameter.parameterName}")
 
         val authorizationHeader = webRequest.getHeader("Authorization")
-        logger.info("Authorization Header: $authorizationHeader")
+        logger.debug("Authorization Header: $authorizationHeader")
 
-        val accessToken =
-            requireNotNull(
-                authorizationHeader?.split(" ")?.let {
-                    if (it.getOrNull(0) == "Bearer") it.getOrNull(1) else null
-                },
-            ) {
-                "Authorization header is missing or invalid"
-            }
-        logger.info("Extracted Access Token: $accessToken")
+        // Check if the Authorization header is present and not blank
+        if (authorizationHeader.isNullOrBlank()) {
+            logger.warn("Authorization header is missing or blank")
+            throw BadAuthorizationHeaderException(
+                details = mapOf("Authorization" to "Missing or invalid Authorization header"),
+            )
+        }
 
-        return runCatching {
+        // Split the header and validate the format (e.g., "Bearer <token>")
+        val tokenParts = authorizationHeader.split(" ")
+        if (tokenParts.size != 2 || tokenParts[0] != "Bearer") {
+            logger.warn("Authorization header is malformed: $authorizationHeader")
+            throw BadAuthorizationHeaderException(
+                details = mapOf("Authorization" to "Malformed Authorization header. Expected format: Bearer <token>"),
+            )
+        }
+
+        val accessToken = tokenParts[1]
+        logger.debug("Extracted Access Token: $accessToken")
+
+        return try {
+            // Authenticate the user using the extracted access token
             userService.authenticate(accessToken).also {
-                logger.info("Authenticated User: $it")
+                logger.debug("Authenticated User: $it")
             }
-        }.getOrElse {
-            logger.error("Error during resolveArgument: ${it.message}", it)
-            throw AuthenticateException("Unable to authenticate user: ${it.message}")
+        } catch (ex: ApiException) {
+            // Propagate ApiException without modification
+            logger.error("Authentication failed: ${ex.message}", ex)
+            throw ex
+        } catch (ex: Exception) {
+            // Handle unexpected exceptions by wrapping them in an ApiException
+            logger.error("Unexpected error during authentication: ${ex.message}", ex)
+            throw InvalidAccessTokenException(
+                details = mapOf("error" to ex.message.orEmpty()),
+            )
         }
     }
 }
-
-// @Component
-// class UserArgumentResolver(
-//    private val userService: UserService,
-// ) : HandlerMethodArgumentResolver {
-//    override fun supportsParameter(parameter: MethodParameter): Boolean {
-//        return parameter.parameterType == AuthenticatedUser::class.java &&
-//            parameter.hasParameterAnnotation(AuthUser::class.java)
-//    }
-//
-//    override fun resolveArgument(
-//        parameter: MethodParameter,
-//        mavContainer: ModelAndViewContainer?,
-//        webRequest: NativeWebRequest,
-//        binderFactory: WebDataBinderFactory?,
-//    ): User? {
-//        return runCatching {
-//            val accessToken =
-//                requireNotNull(
-//                    webRequest.getHeader("Authorization")?.split(" ")?.let {
-//                        if (it.getOrNull(0) == "Bearer") it.getOrNull(1) else null
-//                    },
-//                )
-//            userService.authenticate(accessToken)
-//        }.getOrElse {
-//            if (parameter.hasParameterAnnotation(AuthUser::class.java)) {
-//                throw AuthenticateException()
-//            } else {
-//                null
-//            }
-//        }
-//    }
-// }

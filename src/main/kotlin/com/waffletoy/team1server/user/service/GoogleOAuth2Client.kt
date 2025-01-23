@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.user.service
 
-import com.waffletoy.team1server.user.GoogleOAuthServiceException
+import com.waffletoy.team1server.exceptions.OAuthFailedException
 import org.springframework.http.*
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
@@ -23,19 +23,11 @@ class GoogleOAuth2Client(
                     request,
                     GoogleUserInfo::class.java,
                 )
-            response.body ?: throw GoogleOAuthServiceException(
-                "구글에서 받아온 사용자 정보가 비어있습니다(Empty body)",
-                HttpStatus.BAD_REQUEST,
-            )
+            response.body ?: throw OAuthFailedException() // 빈 body
         } catch (ex: HttpClientErrorException) {
-            throw GoogleOAuthServiceException(
-                "구글에서 사용자 정보를 받아오는데 실패했습니다.(HttpClientError) - ${ex.statusCode} - ${ex.responseBodyAsString}",
-                HttpStatus.BAD_REQUEST,
-            )
+            throw OAuthFailedException()
         } catch (ex: Exception) {
-            throw GoogleOAuthServiceException(
-                "구글에서 사용자 정보를 받아오는데 실패했습니다. $ex",
-            )
+            throw OAuthFailedException() // TODO Internal error가 맞나?
         }
     }
 }
