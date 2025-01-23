@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.dtos
 
-import com.waffletoy.team1server.user.dtos.SignUpRequest.Info
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -16,6 +17,11 @@ data class SignInRequest(
         SOCIAL,
     }
 
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = Info.LocalInfo::class, name = "LOCAL"),
+        JsonSubTypes.Type(value = Info.SocialInfo::class, name = "SOCIAL"),
+    )
     sealed class Info {
         data class LocalInfo(
             @field:NotBlank(message = "localLoginId is required")

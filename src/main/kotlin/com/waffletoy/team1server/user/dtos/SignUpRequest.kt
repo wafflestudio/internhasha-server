@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.user.dtos
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -12,13 +14,19 @@ data class SignUpRequest(
     val info: Info,
 ) {
     enum class AuthType {
-        LOCAL_APPLICANT,
-        SOCIAL_APPLICANT,
-        POST_ADMIN,
+        LOCAL_NORMAL,
+        SOCIAL_NORMAL,
+        LOCAL_CURATOR,
     }
 
     sealed class Info {
-        data class LocalApplicantInfo(
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+        @JsonSubTypes(
+            JsonSubTypes.Type(value = LocalNormalInfo::class, name = "LOCAL_APPLICANT"),
+            JsonSubTypes.Type(value = SocialNormalInfo::class, name = "SOCIAL_APPLICANT"),
+            JsonSubTypes.Type(value = LocalCuratorInfo::class, name = "POST_ADMIN"),
+        )
+        data class LocalNormalInfo(
             @field:NotBlank(message = "name is required")
             val name: String,
             @field:NotBlank(message = "localLoginId is required")
@@ -40,7 +48,7 @@ data class SignUpRequest(
             val password: String,
         ) : Info()
 
-        data class SocialApplicantInfo(
+        data class SocialNormalInfo(
             @field:NotBlank(message = "provider is required")
             val provider: String,
             @field:NotBlank(message = "snuMail is required")
@@ -53,7 +61,7 @@ data class SignUpRequest(
             val token: String,
         ) : Info()
 
-        data class PostAdminInfo(
+        data class LocalCuratorInfo(
             @field:NotBlank(message = "secretPassword is required")
             val secretPassword: String,
             @field:NotBlank(message = "name is required")
