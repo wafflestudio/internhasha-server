@@ -45,6 +45,7 @@ class ResumeService(
     ): Resume {
         val validUser = getValidUser(user)
         val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
         return Resume.fromEntity(resumeEntity)
     }
 
@@ -166,6 +167,7 @@ class ResumeService(
     ) {
         val validUser = getValidUser(user)
         val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
         try {
             resumeRepository.delete(resumeEntity)
         } catch (ex: Exception) {
@@ -199,6 +201,7 @@ class ResumeService(
     ): Resume {
         val validUser = getValidUser(user)
         val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
 
         // 전달된 데이터로 업데이트
         resumeEntity.phoneNumber = coffee.phoneNumber
@@ -249,21 +252,26 @@ class ResumeService(
             details = mapOf("userId" to userId),
         )
 
-    fun getValidatedResume(
+    fun validateResumeOwnership(
         user: User,
+        resume: ResumeEntity,
+    ) {
+        if (resume.user.id != user.id) {
+            throw ResumeForbiddenException(
+                details = mapOf("userId" to user.id, "resumeId" to resume.id),
+            )
+        }
+    }
+
+    fun getValidatedResume(
+        validUser: User,
         resumeId: String,
     ): ResumeEntity {
-        val validUser = getValidUser(user)
         val resumeEntity =
             resumeRepository.findByIdOrNull(resumeId)
                 ?: throw ResumeNotFoundException(
                     details = mapOf("resumeId" to resumeId),
                 )
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
         return resumeEntity
     }
 }
