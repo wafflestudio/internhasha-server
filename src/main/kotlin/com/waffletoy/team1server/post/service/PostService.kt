@@ -8,9 +8,8 @@ import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
-import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.*
-import org.mindrot.jbcrypt.BCrypt
+import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -24,7 +23,7 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -110,7 +109,7 @@ class PostService(
             )
 
         val userEntity =
-            userRepository.findByIdOrNull(userId)
+            userService.getUserEntityByUserId(userId)
                 ?: throw UserNotFoundException(
                     details = mapOf("userId" to userId),
                 )
@@ -149,7 +148,7 @@ class PostService(
             )
 
         val userEntity =
-            userRepository.findByIdOrNull(userId)
+            userService.getUserEntityByUserId(userId)
                 ?: throw UserNotFoundException(
                     details = mapOf("userId" to userId),
                 )
@@ -176,7 +175,7 @@ class PostService(
         page: Int,
     ): Page<Post> {
         val userEntity =
-            userRepository.findByIdOrNull(userId)
+            userService.getUserEntityByUserId(userId)
                 ?: throw UserNotFoundException(
                     details = mapOf("userId" to userId),
                 )
@@ -195,17 +194,7 @@ class PostService(
     @Transactional
     fun makeDummyPosts(cnt: Int) {
         (1..cnt).forEach { index ->
-            val admin: UserEntity =
-                userRepository.findByLocalLoginId("dummy$index")
-                    ?: userRepository.save(
-                        UserEntity(
-                            name = "dummy$index",
-                            localLoginId = "dummy$index",
-                            localLoginPasswordHash = BCrypt.hashpw("DummyPW$index!99", BCrypt.gensalt()),
-                            userRole = UserRole.CURATOR,
-                            snuMail = null,
-                        ),
-                    )
+            val admin: UserEntity = userService.makeDummyUser(index)
 
             val tags =
                 listOf("Tech", "Finance", "Health", "Ambient", "Salary")
