@@ -15,7 +15,7 @@ data class Resume(
     companion object {
         fun fromEntity(
             resumeEntity: ResumeEntity,
-            includeAuthor: Boolean = true
+            includeAuthor: Boolean = true,
         ): Resume =
             Resume(
                 id = resumeEntity.id,
