@@ -2,14 +2,13 @@ package com.waffletoy.team1server.post.dto
 
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.controller.AuthorBriefDTO
-import com.waffletoy.team1server.post.persistence.RoleEntity
+import com.waffletoy.team1server.post.persistence.PositionEntity
 import java.time.LocalDateTime
 
 data class Post(
     val id: String,
     // 작성자
-    val author: AuthorBriefDTO,
+    val author: AuthorBrief,
     // 회사 정보
     val companyName: String,
     val explanation: String,
@@ -21,7 +20,7 @@ data class Post(
     val irDeckLink: String,
     val landingPageLink: String,
     val imageLink: String,
-    val externalDescriptionLink: List<LinkDto>,
+    val externalDescriptionLink: List<Link>,
     val tags: List<String>,
     // 직군 정보
     val title: String,
@@ -34,11 +33,11 @@ data class Post(
     val headcount: String,
 ) {
     companion object {
-        fun fromEntity(entity: RoleEntity): Post =
+        fun fromEntity(entity: PositionEntity): Post =
             Post(
                 id = entity.id,
                 author =
-                    AuthorBriefDTO(
+                    AuthorBrief(
                         id = entity.company.admin.id,
                         name = entity.company.admin.name,
                         profileImageLink = entity.company.admin.profileImageLink,
@@ -53,7 +52,7 @@ data class Post(
                 irDeckLink = entity.company.irDeckLink ?: "",
                 landingPageLink = entity.company.landingPageLink ?: "",
                 imageLink = entity.company.imageLink ?: "",
-                externalDescriptionLink = entity.company.links.map { LinkDto.fromLink(it) },
+                externalDescriptionLink = entity.company.links.map { Link.fromLink(it) },
                 tags = entity.company.tags.map { it.tag },
                 // roles 정보
                 title = entity.title,

@@ -5,7 +5,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ResumeRepository : JpaRepository<ResumeEntity, String> {
-    fun findByRoleId(roleId: String): List<ResumeEntity>
-
-    fun findByUserId(userId: String): List<ResumeEntity>
+    fun findAllByUserId(userId: String): List<ResumeEntity>
 }

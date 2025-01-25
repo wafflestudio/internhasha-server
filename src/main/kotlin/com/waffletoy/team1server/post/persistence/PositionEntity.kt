@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "roles")
-class RoleEntity(
+@Table(name = "positions")
+class PositionEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
@@ -26,7 +26,7 @@ class RoleEntity(
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "EMPLOYMENT_END_DATE", nullable = true)
     open var employmentEndDate: LocalDateTime? = null,
-    @Column(name = "IS_ACTIVE")
+    @Column(name = "IS_ACTIVE", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     open val isActive: Boolean = false,
     // 특정 Company에 join
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
