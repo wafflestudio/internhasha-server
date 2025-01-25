@@ -1,4 +1,3 @@
-// File: com/waffletoy/team1server/post/service/ResumeService.kt
 package com.waffletoy.team1server.resume.service
 
 import com.waffletoy.team1server.email.service.EmailService
@@ -14,7 +13,6 @@ import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.UserEntity
-import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -85,10 +83,8 @@ class ResumeService(
         coffee: Coffee,
     ): Resume {
         val validUser = getValidUser(user)
-        val userEntity = getUserEntityByUserId(validUser.id)
-
+        val userEntity = getUserEntityOrThrow(validUser.id)
         val positionEntity = getPositionEntityOrThrow(postId)
-
         val resumeEntity =
             try {
                 resumeRepository.save(
@@ -243,17 +239,20 @@ class ResumeService(
         return user
     }
 
-    fun getPositionEntityOrThrow(postId: String) : PositionEntity =
+    fun getPositionEntityOrThrow(postId: String): PositionEntity =
         postService.getPositionEntityByPostId(postId) ?: throw ResumeNotFoundException(
             details = mapOf("postId" to postId),
         )
 
-    fun getUserEntityByUserId(userId: String) : UserEntity =
+    fun getUserEntityOrThrow(userId: String): UserEntity =
         userService.getUserEntityByUserId(userId) ?: throw ResumeNotFoundException(
             details = mapOf("userId" to userId),
         )
 
-    fun getValidatedResume(user:User, resumeId: String): ResumeEntity {
+    fun getValidatedResume(
+        user: User,
+        resumeId: String,
+    ): ResumeEntity {
         val validUser = getValidUser(user)
         val resumeEntity =
             resumeRepository.findByIdOrNull(resumeId)

@@ -3,6 +3,8 @@ package com.waffletoy.team1server.resume.controller
 import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.dtos.User
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -79,6 +81,9 @@ data class Resumes(
 )
 
 data class Coffee(
+    @field:NotBlank(message = "Phone number cannot be blank.")
+    @field:Size(max = 20, message = "Phone number cannot exceed 20 characters.")
     val phoneNumber: String,
+    @field:NotBlank(message = "Content cannot be blank.")
     val content: String,
 )

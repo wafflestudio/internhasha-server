@@ -239,7 +239,7 @@ class PostService(
     fun getPositionEntityOrThrow(postId: String): PositionEntity =
         positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
 
-    fun getPositionEntityByPostId(postId: String) : PositionEntity? = positionRepository.findByIdOrNull(postId)
+    fun getPositionEntityByPostId(postId: String): PositionEntity? = positionRepository.findByIdOrNull(postId)
 
     @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String
