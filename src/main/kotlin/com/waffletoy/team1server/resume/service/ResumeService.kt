@@ -4,7 +4,8 @@ package com.waffletoy.team1server.resume.service
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
-import com.waffletoy.team1server.post.persistence.PositionRepository
+import com.waffletoy.team1server.post.persistence.PositionEntity
+import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.resume.*
 import com.waffletoy.team1server.resume.controller.*
 import com.waffletoy.team1server.resume.controller.Resume
@@ -12,7 +13,9 @@ import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
+import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.persistence.UserRepository
+import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -21,9 +24,9 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ResumeService(
     private val resumeRepository: ResumeRepository,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val emailService: EmailService,
-    private val positionRepository: PositionRepository,
+    private val postService: PostService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -43,16 +46,7 @@ class ResumeService(
         resumeId: String,
     ): Resume {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
         return Resume.fromEntity(resumeEntity)
     }
 
@@ -68,11 +62,8 @@ class ResumeService(
         user: User?,
     ): List<Resume> {
         val validUser = getValidUser(user)
-        return userRepository.findByIdOrNull(validUser.id)?.let { userEntity ->
-            userEntity.resumes.map { Resume.fromEntity(it) }
-        } ?: throw ResumeNotFoundException(
-            details = mapOf("userId" to validUser.id),
-        )
+        val resumes = resumeRepository.findAllByUserId(validUser.id)
+        return resumes.map { Resume.fromEntity(it) }
     }
 
     /**
@@ -94,17 +85,9 @@ class ResumeService(
         coffee: Coffee,
     ): Resume {
         val validUser = getValidUser(user)
-        val userEntity =
-            userRepository.findByIdOrNull(validUser.id)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("userId" to validUser.id),
-                )
+        val userEntity = getUserEntityByUserId(validUser.id)
 
-        val positionEntity =
-            positionRepository.findByIdOrNull(postId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("postId" to postId),
-                )
+        val positionEntity = getPositionEntityOrThrow(postId)
 
         val resumeEntity =
             try {
@@ -112,7 +95,7 @@ class ResumeService(
                     ResumeEntity(
                         content = coffee.content,
                         phoneNumber = coffee.phoneNumber,
-                        role = positionEntity,
+                        position = positionEntity,
                         user = userEntity,
                     ),
                 )
@@ -186,16 +169,7 @@ class ResumeService(
         resumeId: String,
     ) {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
         try {
             resumeRepository.delete(resumeEntity)
         } catch (ex: Exception) {
@@ -228,18 +202,7 @@ class ResumeService(
         coffee: Coffee,
     ): Resume {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-
-        // 작성자가 맞는지 확인
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
 
         // 전달된 데이터로 업데이트
         resumeEntity.phoneNumber = coffee.phoneNumber
@@ -278,5 +241,30 @@ class ResumeService(
             )
         }
         return user
+    }
+
+    fun getPositionEntityOrThrow(postId: String) : PositionEntity =
+        postService.getPositionEntityByPostId(postId) ?: throw ResumeNotFoundException(
+            details = mapOf("postId" to postId),
+        )
+
+    fun getUserEntityByUserId(userId: String) : UserEntity =
+        userService.getUserEntityByUserId(userId) ?: throw ResumeNotFoundException(
+            details = mapOf("userId" to userId),
+        )
+
+    fun getValidatedResume(user:User, resumeId: String): ResumeEntity {
+        val validUser = getValidUser(user)
+        val resumeEntity =
+            resumeRepository.findByIdOrNull(resumeId)
+                ?: throw ResumeNotFoundException(
+                    details = mapOf("resumeId" to resumeId),
+                )
+        if (resumeEntity.user.id != validUser.id) {
+            throw ResumeForbiddenException(
+                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
+            )
+        }
+        return resumeEntity
     }
 }
