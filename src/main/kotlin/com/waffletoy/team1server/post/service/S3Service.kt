@@ -1,9 +1,9 @@
-package com.waffletoy.team1server.admin.service
+package com.waffletoy.team1server.post.service
 
 import com.amazonaws.HttpMethod
 import com.amazonaws.services.s3.AmazonS3
-import com.waffletoy.team1server.admin.controller.PreSignedDownloadReq
-import com.waffletoy.team1server.admin.controller.PreSignedUploadReq
+import com.waffletoy.team1server.post.controller.PreSignedDownloadReq
+import com.waffletoy.team1server.post.controller.PreSignedUploadReq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*

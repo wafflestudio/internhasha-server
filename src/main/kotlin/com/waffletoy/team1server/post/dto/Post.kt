@@ -2,14 +2,13 @@ package com.waffletoy.team1server.post.dto
 
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.controller.AuthorBriefDTO
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import java.time.LocalDateTime
 
 data class Post(
     val id: String,
     // 작성자
-    val author: AuthorBriefDTO,
+    val author: AuthorBrief,
     // 회사 정보
     val companyName: String,
     val explanation: String,
@@ -38,7 +37,7 @@ data class Post(
             Post(
                 id = entity.id,
                 author =
-                    AuthorBriefDTO(
+                    AuthorBrief(
                         id = entity.company.admin.id,
                         name = entity.company.admin.name,
                         profileImageLink = entity.company.admin.profileImageLink,
