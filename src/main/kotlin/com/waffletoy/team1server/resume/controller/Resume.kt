@@ -7,17 +7,20 @@ import java.time.LocalDateTime
 data class Resume(
     val id: String,
     val postId: String?,
-    val author: User,
+    val author: User?,
     val content: String,
     val phoneNumber: String,
     val createdAt: LocalDateTime,
 ) {
     companion object {
-        fun fromEntity(resumeEntity: ResumeEntity) =
+        fun fromEntity(
+            resumeEntity: ResumeEntity,
+            includeAuthor: Boolean = true,
+        ): Resume =
             Resume(
                 id = resumeEntity.id,
                 postId = resumeEntity.role?.id,
-                author = User.fromEntity(resumeEntity.user),
+                author = if (includeAuthor) User.fromEntity(resumeEntity.user, includeResumes = false) else null,
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
                 phoneNumber = resumeEntity.phoneNumber ?: "",
