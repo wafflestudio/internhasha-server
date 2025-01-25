@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.resume.persistence
 
-import com.waffletoy.team1server.post.persistence.RoleEntity
+import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -23,7 +23,7 @@ class ResumeEntity(
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "ROLE_ID", nullable = true)
     // `RoleEntity`가 삭제되더라도 `null`로 처리
-    open var role: RoleEntity? = null,
+    open var role: PositionEntity? = null,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USER_ID", nullable = false)
     open val user: UserEntity,

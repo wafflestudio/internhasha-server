@@ -3,7 +3,7 @@ package com.waffletoy.team1server.post.dto
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.controller.AuthorBriefDTO
-import com.waffletoy.team1server.post.persistence.RoleEntity
+import com.waffletoy.team1server.post.persistence.PositionEntity
 import java.time.LocalDateTime
 
 data class Post(
@@ -34,7 +34,7 @@ data class Post(
     val headcount: String,
 ) {
     companion object {
-        fun fromEntity(entity: RoleEntity): Post =
+        fun fromEntity(entity: PositionEntity): Post =
             Post(
                 id = entity.id,
                 author =

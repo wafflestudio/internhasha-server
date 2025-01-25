@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
-    private val roleRepository: RoleRepository,
+    private val positionRepository: PositionRepository,
     private val userRepository: UserRepository,
 ) {
     @Value("\${custom.page.size:12}")
@@ -38,7 +38,7 @@ class PostService(
      */
     fun getPageDetail(postId: String): Post {
         val postEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
+            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
                 details = mapOf("postId" to postId),
             )
         return Post.fromEntity(postEntity)
@@ -47,23 +47,23 @@ class PostService(
     /**
      * Retrieves a paginated list of posts based on provided filters.
      *
-     * @param roles List of role names to filter by.
+     * @param positions List of position names to filter by.
      * @param investmentMax Maximum investment amount.
      * @param investmentMin Minimum investment amount.
      * @param status Status filter (e.g., active, inactive).
      * @param series List of series names to filter by.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [RoleEntity].
+     * @return A paginated [Page] of [PositionEntity].
      * @throws PostInvalidFiltersException If invalid filters are provided.
      */
     fun getPosts(
-        roles: List<String>?,
+        positions: List<String>?,
         investmentMax: Int?,
         investmentMin: Int?,
         status: Int?,
         series: List<String>?,
         page: Int = 0,
-    ): Page<RoleEntity> {
+    ): Page<PositionEntity> {
         // Example validation: investmentMin should not exceed investmentMax
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
             throw PostInvalidFiltersException(
@@ -76,8 +76,8 @@ class PostService(
         }
 
         val specification =
-            RoleSpecification.withFilters(
-                roles,
+            PositionSpecification.withFilters(
+                positions,
                 investmentMax,
                 investmentMin,
                 status ?: 2,
@@ -86,10 +86,10 @@ class PostService(
 
         val pageable = PageRequest.of(page, pageSize)
 
-        val roleIds = roleRepository.findAll(specification).map { it.id }
+        val positionIds = positionRepository.findAll(specification).map { it.id }
 
-        // Fetch paginated RoleEntities
-        return roleRepository.findAllByIdIn(roleIds, pageable)
+        // Fetch paginated PositionEntities
+        return positionRepository.findAllByIdIn(positionIds, pageable)
     }
 
     /**
@@ -106,8 +106,8 @@ class PostService(
         userId: String,
         postId: String,
     ) {
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
+        val positionEntity =
+            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
                 details = mapOf("postId" to postId),
             )
 
@@ -117,7 +117,7 @@ class PostService(
                     details = mapOf("userId" to userId),
                 )
 
-        if (bookmarkRepository.existsByUserAndRole(userEntity, roleEntity)) {
+        if (bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
             throw PostAlreadyBookmarkedException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
@@ -125,7 +125,7 @@ class PostService(
 
         bookmarkRepository.save(
             BookmarkEntity(
-                role = roleEntity,
+                position = positionEntity,
                 user = userEntity,
             ),
         )
@@ -145,8 +145,8 @@ class PostService(
         userId: String,
         postId: String,
     ) {
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
+        val positionEntity =
+            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
                 details = mapOf("postId" to postId),
             )
 
@@ -156,12 +156,12 @@ class PostService(
                     details = mapOf("userId" to userId),
                 )
 
-        if (!bookmarkRepository.existsByUserAndRole(userEntity, roleEntity)) {
+        if (!bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
             throw PostBookmarkNotFoundException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
         }
-        bookmarkRepository.deleteByUserAndRole(userEntity, roleEntity)
+        bookmarkRepository.deleteByUserAndPosition(userEntity, positionEntity)
     }
 
     /**
@@ -169,14 +169,14 @@ class PostService(
      *
      * @param userId The unique identifier of the user.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [RoleEntity] representing bookmarked posts.
+     * @return A paginated [Page] of [PositionEntity] representing bookmarked posts.
      * @throws UserNotFoundException If the user does not exist.
      */
     @Transactional(readOnly = true)
     fun getBookmarks(
         userId: String,
         page: Int,
-    ): Page<RoleEntity> {
+    ): Page<PositionEntity> {
         val userEntity =
             userRepository.findByIdOrNull(userId)
                 ?: throw UserNotFoundException(
@@ -185,11 +185,11 @@ class PostService(
 
         val pageable = PageRequest.of(page, pageSize)
 
-        // Fetch all bookmark Role IDs
-        val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.role.id }
+        // Fetch all bookmark Position IDs
+        val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.position.id }
 
-        // Fetch paginated RoleEntities
-        return roleRepository.findAllByIdIn(bookmarkIds, pageable)
+        // Fetch paginated PositionEntities
+        return positionRepository.findAllByIdIn(bookmarkIds, pageable)
     }
 
     /**
@@ -251,9 +251,9 @@ class PostService(
                 )
 
             Category.entries.shuffled().take((1..3).random()).forEach { category ->
-                val roleEntity =
-                    roleRepository.save(
-                        RoleEntity(
+                val positionEntity =
+                    positionRepository.save(
+                        PositionEntity(
                             category = category,
                             detail = "Detail of $category",
                             headcount = "${(1..3).random()}",
@@ -262,13 +262,13 @@ class PostService(
                             company = companyEntity,
                         ),
                     )
-                companyEntity.roles += roleEntity
+                companyEntity.positions += positionEntity
             }
         }
     }
 
     /**
-     * Resets the database by deleting all companies, bookmarks, and roles.
+     * Resets the database by deleting all companies, bookmarks, and positions.
      */
     @Transactional
     fun resetDB(secret: String) {
@@ -279,7 +279,7 @@ class PostService(
         }
         companyRepository.deleteAll()
         bookmarkRepository.deleteAll()
-        roleRepository.deleteAll()
+        positionRepository.deleteAll()
     }
 
     companion object {

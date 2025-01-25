@@ -4,7 +4,7 @@ package com.waffletoy.team1server.resume.service
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
-import com.waffletoy.team1server.post.persistence.RoleRepository
+import com.waffletoy.team1server.post.persistence.PositionRepository
 import com.waffletoy.team1server.resume.*
 import com.waffletoy.team1server.resume.controller.*
 import com.waffletoy.team1server.resume.controller.Resume
@@ -23,7 +23,7 @@ class ResumeService(
     private val resumeRepository: ResumeRepository,
     private val userRepository: UserRepository,
     private val emailService: EmailService,
-    private val roleRepository: RoleRepository,
+    private val positionRepository: PositionRepository,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -100,8 +100,8 @@ class ResumeService(
                     details = mapOf("userId" to validUser.id),
                 )
 
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId)
+        val positionEntity =
+            positionRepository.findByIdOrNull(postId)
                 ?: throw ResumeNotFoundException(
                     details = mapOf("postId" to postId),
                 )
@@ -112,7 +112,7 @@ class ResumeService(
                     ResumeEntity(
                         content = coffee.content,
                         phoneNumber = coffee.phoneNumber,
-                        role = roleEntity,
+                        role = positionEntity,
                         user = userEntity,
                     ),
                 )
@@ -127,7 +127,7 @@ class ResumeService(
                 )
             }
 
-        val companyEntity = roleEntity.company
+        val companyEntity = positionEntity.company
 
         // 이메일 전송
         try {
@@ -136,13 +136,13 @@ class ResumeService(
                 subject = "[인턴하샤] 지원자 커피챗이 도착하였습니다.",
                 text =
                     """
-                    [${companyEntity.companyName}] ${roleEntity.title} 포지션 지원자 정보:
+                    [${companyEntity.companyName}] ${positionEntity.title} 포지션 지원자 정보:
                     
                     - 회사명: ${companyEntity.companyName}
                     - 회사 이메일: ${companyEntity.email}
-                    - 직무명: ${roleEntity.title}
-                    - 카테고리: ${roleEntity.category}
-                    - 지원 마감일: ${roleEntity.employmentEndDate ?: "정보 없음"}
+                    - 직무명: ${positionEntity.title}
+                    - 카테고리: ${positionEntity.category}
+                    - 지원 마감일: ${positionEntity.employmentEndDate ?: "정보 없음"}
                     
                     지원자 정보:
                     - 이름: ${validUser.name}

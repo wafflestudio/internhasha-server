@@ -14,24 +14,24 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface RoleRepository : JpaRepository<RoleEntity, String>, JpaSpecificationExecutor<RoleEntity> {
-    @Query("SELECT p FROM RoleEntity p WHERE p.id IN :ids")
+interface PositionRepository : JpaRepository<PositionEntity, String>, JpaSpecificationExecutor<PositionEntity> {
+    @Query("SELECT p FROM PositionEntity p WHERE p.id IN :ids")
     fun findAllByIdIn(
         @Param("ids") ids: List<String>,
         pageable: Pageable,
-    ): Page<RoleEntity>
+    ): Page<PositionEntity>
 }
 
-class RoleSpecification {
+class PositionSpecification {
     companion object {
         fun withFilters(
-            roles: List<String>?,
+            positions: List<String>?,
             investmentMax: Int?,
             investmentMin: Int?,
             status: Int,
             series: List<String>?,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
-        ): Specification<RoleEntity> {
+        ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
 
                 val predicates = mutableListOf<Predicate>()
@@ -39,8 +39,8 @@ class RoleSpecification {
                 // 상시채용의 종료일
                 val endDay = LocalDateTime.of(2099, 12, 31, 23, 59)
 
-                // roles 조건
-                roles?.let {
+                // positions 조건
+                positions?.let {
                     val roleEnums =
                         it.mapNotNull { roleName ->
                             Category.entries.find { c -> c.name == roleName }
@@ -57,7 +57,7 @@ class RoleSpecification {
                 }
 
                 // Company Entity와 join
-                val companyJoin = root.join<RoleEntity, CompanyEntity>("company")
+                val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
 
                 // 시리즈 조건
                 series?.let {

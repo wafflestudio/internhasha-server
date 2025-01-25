@@ -6,14 +6,14 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BookmarkRepository : JpaRepository<BookmarkEntity, String> {
-    fun deleteByUserAndRole(
+    fun deleteByUserAndPosition(
         user: UserEntity?,
-        role: RoleEntity?,
+        role: PositionEntity?,
     )
 
-    fun existsByUserAndRole(
+    fun existsByUserAndPosition(
         user: UserEntity?,
-        role: RoleEntity?,
+        role: PositionEntity?,
     ): Boolean
 
     fun findAllByUser(user: UserEntity): List<BookmarkEntity>

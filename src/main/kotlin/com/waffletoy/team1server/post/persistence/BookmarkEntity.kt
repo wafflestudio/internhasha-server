@@ -20,5 +20,5 @@ class BookmarkEntity(
     open val user: UserEntity,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ROLE_ID", nullable = false)
-    open val role: RoleEntity,
+    open val position: PositionEntity,
 )

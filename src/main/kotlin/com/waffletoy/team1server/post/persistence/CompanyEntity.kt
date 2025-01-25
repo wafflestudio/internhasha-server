@@ -58,9 +58,9 @@ class CompanyEntity(
         joinColumns = [JoinColumn(name = "company_id")],
     )
     val tags: MutableList<Tag> = mutableListOf(),
-    // ROLES 테이블의 POST 외래 키를 매핑
+    // Positions 테이블의 POST 외래 키를 매핑
     @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
-    open val roles: MutableList<RoleEntity> = mutableListOf(),
+    open val positions: MutableList<PositionEntity> = mutableListOf(),
 ) {
     @PrePersist
     fun onCreate() {

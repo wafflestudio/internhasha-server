@@ -6,8 +6,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "roles")
-class RoleEntity(
+@Table(name = "positions")
+class PositionEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
