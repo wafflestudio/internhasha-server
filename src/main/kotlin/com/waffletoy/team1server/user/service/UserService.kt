@@ -325,4 +325,20 @@ class UserService(
         userRepository.deleteUserEntityBySnuMail(user.snuMail!!)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
     }
+
+    // 다른 서비스에서 UserId로 User 가져오기
+    fun getUserEntityByUserId(userId: String): UserEntity? = userRepository.findByIdOrNull(userId)
+
+    fun makeDummyUser(index: Int): UserEntity {
+        return userRepository.findByLocalLoginId("dummy$index")
+            ?: userRepository.save(
+                UserEntity(
+                    name = "dummy$index",
+                    localLoginId = "dummy$index",
+                    localLoginPasswordHash = BCrypt.hashpw("DummyPW$index!99", BCrypt.gensalt()),
+                    userRole = UserRole.CURATOR,
+                    snuMail = null,
+                ),
+            )
+    }
 }

@@ -4,13 +4,11 @@ import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.dto.Link
 import com.waffletoy.team1server.post.dto.Post
-import com.waffletoy.team1server.post.dto.Tag
+import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
-import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.*
-import org.mindrot.jbcrypt.BCrypt
+import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -23,8 +21,8 @@ import java.time.LocalDateTime
 class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
-    private val roleRepository: RoleRepository,
-    private val userRepository: UserRepository,
+    private val positionRepository: PositionRepository,
+    private val userService: UserService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -36,34 +34,33 @@ class PostService(
      * @return The detailed [Post] object.
      * @throws PostNotFoundException If the post with the given ID does not exist.
      */
+    @Transactional(readOnly = true)
     fun getPageDetail(postId: String): Post {
-        val postEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
-        return Post.fromEntity(postEntity)
+        val positionEntity = getPositionEntityOrThrow(postId)
+        return Post.fromEntity(positionEntity)
     }
 
     /**
      * Retrieves a paginated list of posts based on provided filters.
      *
-     * @param roles List of role names to filter by.
+     * @param positions List of position names to filter by.
      * @param investmentMax Maximum investment amount.
      * @param investmentMin Minimum investment amount.
      * @param status Status filter (e.g., active, inactive).
      * @param series List of series names to filter by.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [RoleEntity].
+     * @return A paginated [Page] of [Post].
      * @throws PostInvalidFiltersException If invalid filters are provided.
      */
+    @Transactional(readOnly = true)
     fun getPosts(
-        roles: List<String>?,
+        positions: List<String>?,
         investmentMax: Int?,
         investmentMin: Int?,
         status: Int?,
         series: List<String>?,
         page: Int = 0,
-    ): Page<RoleEntity> {
+    ): Page<Post> {
         // Example validation: investmentMin should not exceed investmentMax
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
             throw PostInvalidFiltersException(
@@ -76,20 +73,18 @@ class PostService(
         }
 
         val specification =
-            RoleSpecification.withFilters(
-                roles,
+            PositionSpecification.withFilters(
+                positions,
                 investmentMax,
                 investmentMin,
                 status ?: 2,
                 series,
             )
 
-        val pageable = PageRequest.of(page, pageSize)
-
-        val roleIds = roleRepository.findAll(specification).map { it.id }
-
-        // Fetch paginated RoleEntities
-        return roleRepository.findAllByIdIn(roleIds, pageable)
+        val validPage = if (page < 0) 0 else page
+        val pageable = PageRequest.of(validPage, pageSize)
+        val positionPage = positionRepository.findAll(specification, pageable)
+        return positionPage.map { position -> Post.fromEntity(position) }
     }
 
     /**
@@ -102,22 +97,16 @@ class PostService(
      * @throws PostAlreadyBookmarkedException If the post is already bookmarked by the user.
      */
     @Transactional
-    fun bookmarkPost(
+    fun addBookmark(
         userId: String,
         postId: String,
     ) {
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
+        val positionEntity = getPositionEntityOrThrow(postId)
 
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+        val userEntity = getUserEntityOrThrow(userId)
 
-        if (bookmarkRepository.existsByUserAndRole(userEntity, roleEntity)) {
+        val existingBookmark = bookmarkRepository.findByUserAndPosition(userEntity, positionEntity)
+        if (existingBookmark != null) {
             throw PostAlreadyBookmarkedException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
@@ -125,7 +114,7 @@ class PostService(
 
         bookmarkRepository.save(
             BookmarkEntity(
-                role = roleEntity,
+                position = positionEntity,
                 user = userEntity,
             ),
         )
@@ -145,23 +134,15 @@ class PostService(
         userId: String,
         postId: String,
     ) {
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
+        val positionEntity = getPositionEntityOrThrow(postId)
 
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+        val userEntity = getUserEntityOrThrow(userId)
 
-        if (!bookmarkRepository.existsByUserAndRole(userEntity, roleEntity)) {
-            throw PostBookmarkNotFoundException(
+        val bookmarkEntity =
+            bookmarkRepository.findByUserAndPosition(userEntity, positionEntity) ?: throw PostBookmarkNotFoundException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
-        }
-        bookmarkRepository.deleteByUserAndRole(userEntity, roleEntity)
+        bookmarkRepository.delete(bookmarkEntity)
     }
 
     /**
@@ -169,27 +150,20 @@ class PostService(
      *
      * @param userId The unique identifier of the user.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [RoleEntity] representing bookmarked posts.
+     * @return A paginated [Page] of [Post] representing bookmarked posts.
      * @throws UserNotFoundException If the user does not exist.
      */
     @Transactional(readOnly = true)
     fun getBookmarks(
         userId: String,
         page: Int,
-    ): Page<RoleEntity> {
-        val userEntity =
-            userRepository.findByIdOrNull(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+    ): Page<Post> {
+        val userEntity = getUserEntityOrThrow(userId)
 
-        val pageable = PageRequest.of(page, pageSize)
-
-        // Fetch all bookmark Role IDs
-        val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.role.id }
-
-        // Fetch paginated RoleEntities
-        return roleRepository.findAllByIdIn(bookmarkIds, pageable)
+        val validPage = if (page < 0) 0 else page
+        val pageable = PageRequest.of(validPage, pageSize)
+        val positionPage = bookmarkRepository.findPositionsByUser(userEntity, pageable)
+        return positionPage.map { position -> Post.fromEntity(position) }
     }
 
     /**
@@ -199,76 +173,53 @@ class PostService(
      */
     @Transactional
     fun makeDummyPosts(cnt: Int) {
-        (1..cnt).forEach { index ->
-            val admin: UserEntity =
-                userRepository.findByLocalLoginId("dummy$index")
-                    ?: userRepository.save(
-                        UserEntity(
-                            name = "dummy$index",
-                            localLoginId = "dummy$index",
-                            localLoginPasswordHash = BCrypt.hashpw("DummyPW$index!99", BCrypt.gensalt()),
-                            userRole = UserRole.CURATOR,
-                            snuMail = null,
-                        ),
-                    )
+        val companies = mutableListOf<CompanyEntity>()
+        val positions = mutableListOf<PositionEntity>()
 
+        (1..cnt).forEach { index ->
+            val admin = userService.makeDummyUser(index)
             val tags =
-                listOf("Tech", "Finance", "Health", "Ambient", "Salary")
+                listOf("Tech", "Finance", "Health")
                     .shuffled()
-                    .take((1..3).random())
-                    .map { Tag(it) }
+                    .take(2)
+                    .map { TagVo(it) }
                     .toMutableList()
 
-            val companies = listOf("Company A$index", "Company B$index", "Company C$index").joinToString(", ")
-
-            val companyEntity: CompanyEntity =
-                companyRepository.save(
-                    CompanyEntity(
-                        admin = admin,
-                        companyName = "dummy Company $index",
-                        explanation = "Explanation of dummy Company $index",
-                        email = "dummy$index@example.com",
-                        slogan = "Slogan of dummy$index",
-                        investAmount = (1000..5000).random(),
-                        investCompany = companies,
-                        series = Series.entries.random(),
-                        imageLink = "https://www.company$index.dummy$index/image",
-                        irDeckLink = "https://www.company$index.dummy$index/IRDECK",
-                        landingPageLink = "https://www.company$index.dummy$index/LandingPage",
-                        tags = tags,
-                        links =
-                            mutableListOf(
-                                Link(
-                                    link = "https://example.com/$index/link1",
-                                    description = "Link 1",
-                                ),
-                                Link(
-                                    link = "https://example.com/$index/link2",
-                                    description = "Link 2",
-                                ),
-                            ),
-                    ),
+            val companyEntity =
+                CompanyEntity(
+                    admin = admin,
+                    companyName = "dummy Company $index",
+                    explanation = "Explanation of dummy Company $index",
+                    email = "dummy$index@example.com",
+                    slogan = "Slogan of dummy$index",
+                    investAmount = (1000..5000).random(),
+                    investCompany = "Company A$index, Company B$index",
+                    series = Series.entries.random(),
+                    imageLink = "https://www.company$index/image",
+                    tags = tags,
                 )
+            companies.add(companyEntity)
 
             Category.entries.shuffled().take((1..3).random()).forEach { category ->
-                val roleEntity =
-                    roleRepository.save(
-                        RoleEntity(
-                            category = category,
-                            detail = "Detail of $category",
-                            headcount = "${(1..3).random()}",
-                            isActive = true,
-                            employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
-                            company = companyEntity,
-                        ),
-                    )
-                companyEntity.roles += roleEntity
+                positions.add(
+                    PositionEntity(
+                        category = category,
+                        detail = "Detail of $category",
+                        headcount = "${(1..3).random()}",
+                        isActive = true,
+                        employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
+                        company = companyEntity,
+                    ),
+                )
             }
         }
+
+        companyRepository.saveAll(companies)
+        positionRepository.saveAll(positions)
     }
 
     /**
-     * Resets the database by deleting all companies, bookmarks, and roles.
+     * Resets the database by deleting all companies, bookmarks, and positions.
      */
     @Transactional
     fun resetDB(secret: String) {
@@ -279,12 +230,16 @@ class PostService(
         }
         companyRepository.deleteAll()
         bookmarkRepository.deleteAll()
-        roleRepository.deleteAll()
+        positionRepository.deleteAll()
     }
 
-    companion object {
-        private const val DEFAULT_PAGE_SIZE = 12
-    }
+    fun getUserEntityOrThrow(userId: String): UserEntity =
+        userService.getUserEntityByUserId(userId) ?: throw UserNotFoundException(mapOf("userId" to userId))
+
+    fun getPositionEntityOrThrow(postId: String): PositionEntity =
+        positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
+
+    fun getPositionEntityByPostId(postId: String): PositionEntity? = positionRepository.findByIdOrNull(postId)
 
     @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String

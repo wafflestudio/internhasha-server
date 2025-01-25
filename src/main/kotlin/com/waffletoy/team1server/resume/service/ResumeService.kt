@@ -1,10 +1,10 @@
-// File: com/waffletoy/team1server/post/service/ResumeService.kt
 package com.waffletoy.team1server.resume.service
 
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
-import com.waffletoy.team1server.post.persistence.RoleRepository
+import com.waffletoy.team1server.post.persistence.PositionEntity
+import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.resume.*
 import com.waffletoy.team1server.resume.controller.*
 import com.waffletoy.team1server.resume.controller.Resume
@@ -12,7 +12,8 @@ import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
-import com.waffletoy.team1server.user.persistence.UserRepository
+import com.waffletoy.team1server.user.persistence.UserEntity
+import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -21,9 +22,9 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ResumeService(
     private val resumeRepository: ResumeRepository,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
     private val emailService: EmailService,
-    private val roleRepository: RoleRepository,
+    private val postService: PostService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -43,16 +44,8 @@ class ResumeService(
         resumeId: String,
     ): Resume {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
         return Resume.fromEntity(resumeEntity)
     }
 
@@ -68,11 +61,8 @@ class ResumeService(
         user: User?,
     ): List<Resume> {
         val validUser = getValidUser(user)
-        return userRepository.findByIdOrNull(validUser.id)?.let { userEntity ->
-            userEntity.resumes.map { Resume.fromEntity(it) }
-        } ?: throw ResumeNotFoundException(
-            details = mapOf("userId" to validUser.id),
-        )
+        val resumes = resumeRepository.findAllByUserId(validUser.id)
+        return resumes.map { Resume.fromEntity(it) }
     }
 
     /**
@@ -94,25 +84,15 @@ class ResumeService(
         coffee: Coffee,
     ): Resume {
         val validUser = getValidUser(user)
-        val userEntity =
-            userRepository.findByIdOrNull(validUser.id)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("userId" to validUser.id),
-                )
-
-        val roleEntity =
-            roleRepository.findByIdOrNull(postId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("postId" to postId),
-                )
-
+        val userEntity = getUserEntityOrThrow(validUser.id)
+        val positionEntity = getPositionEntityOrThrow(postId)
         val resumeEntity =
             try {
                 resumeRepository.save(
                     ResumeEntity(
                         content = coffee.content,
                         phoneNumber = coffee.phoneNumber,
-                        role = roleEntity,
+                        position = positionEntity,
                         user = userEntity,
                     ),
                 )
@@ -127,7 +107,7 @@ class ResumeService(
                 )
             }
 
-        val companyEntity = roleEntity.company
+        val companyEntity = positionEntity.company
 
         // 이메일 전송
         try {
@@ -136,13 +116,13 @@ class ResumeService(
                 subject = "[인턴하샤] 지원자 커피챗이 도착하였습니다.",
                 text =
                     """
-                    [${companyEntity.companyName}] ${roleEntity.title} 포지션 지원자 정보:
+                    [${companyEntity.companyName}] ${positionEntity.title} 포지션 지원자 정보:
                     
                     - 회사명: ${companyEntity.companyName}
                     - 회사 이메일: ${companyEntity.email}
-                    - 직무명: ${roleEntity.title}
-                    - 카테고리: ${roleEntity.category}
-                    - 지원 마감일: ${roleEntity.employmentEndDate ?: "정보 없음"}
+                    - 직무명: ${positionEntity.title}
+                    - 카테고리: ${positionEntity.category}
+                    - 지원 마감일: ${positionEntity.employmentEndDate ?: "정보 없음"}
                     
                     지원자 정보:
                     - 이름: ${validUser.name}
@@ -186,16 +166,8 @@ class ResumeService(
         resumeId: String,
     ) {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
         try {
             resumeRepository.delete(resumeEntity)
         } catch (ex: Exception) {
@@ -228,18 +200,8 @@ class ResumeService(
         coffee: Coffee,
     ): Resume {
         val validUser = getValidUser(user)
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
-                )
-
-        // 작성자가 맞는지 확인
-        if (resumeEntity.user.id != validUser.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to validUser.id, "resumeId" to resumeId),
-            )
-        }
+        val resumeEntity = getValidatedResume(validUser, resumeId)
+        validateResumeOwnership(validUser, resumeEntity)
 
         // 전달된 데이터로 업데이트
         resumeEntity.phoneNumber = coffee.phoneNumber
@@ -278,5 +240,38 @@ class ResumeService(
             )
         }
         return user
+    }
+
+    fun getPositionEntityOrThrow(postId: String): PositionEntity =
+        postService.getPositionEntityByPostId(postId) ?: throw ResumeNotFoundException(
+            details = mapOf("postId" to postId),
+        )
+
+    fun getUserEntityOrThrow(userId: String): UserEntity =
+        userService.getUserEntityByUserId(userId) ?: throw ResumeNotFoundException(
+            details = mapOf("userId" to userId),
+        )
+
+    fun validateResumeOwnership(
+        user: User,
+        resume: ResumeEntity,
+    ) {
+        if (resume.user.id != user.id) {
+            throw ResumeForbiddenException(
+                details = mapOf("userId" to user.id, "resumeId" to resume.id),
+            )
+        }
+    }
+
+    fun getValidatedResume(
+        validUser: User,
+        resumeId: String,
+    ): ResumeEntity {
+        val resumeEntity =
+            resumeRepository.findByIdOrNull(resumeId)
+                ?: throw ResumeNotFoundException(
+                    details = mapOf("resumeId" to resumeId),
+                )
+        return resumeEntity
     }
 }
