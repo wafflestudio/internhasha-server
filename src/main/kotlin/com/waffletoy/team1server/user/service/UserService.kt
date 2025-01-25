@@ -320,4 +320,9 @@ class UserService(
         userRepository.deleteAll()
         userRedisCacheService.deleteAll()
     }
+
+    fun deleteUser(user: User) {
+        userRepository.deleteUserEntityBySnuMail(user.snuMail!!)
+        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+    }
 }
