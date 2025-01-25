@@ -22,6 +22,7 @@ data class User(
         fun fromEntity(
             entity: UserEntity,
             isMerged: Boolean = false,
+            includeResumes: Boolean = false,
         ): User =
             User(
                 id = entity.id,
@@ -31,7 +32,7 @@ data class User(
                 userRole = entity.userRole,
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
-                resumes = entity.resumes.map { Resume.fromEntity(it) },
+                resumes = if (includeResumes) entity.resumes.map { Resume.fromEntity(it, false) } else null,
 //                posts = entity.posts.map { Post.fromEntity(it.roles) },
                 profileImageLink = entity.profileImageLink,
                 isMerged = isMerged,
