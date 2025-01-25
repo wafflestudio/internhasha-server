@@ -87,7 +87,7 @@ data class SignUpRequest(
             message = "Password must be between 8 and 20 characters.",
         )
         @field:Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!]).{8,20}$",
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$",
             message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
         )
         val password: String,
