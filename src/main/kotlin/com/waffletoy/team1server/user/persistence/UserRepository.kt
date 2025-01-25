@@ -14,4 +14,6 @@ interface UserRepository : JpaRepository<UserEntity, String> {
     fun existsByLocalLoginId(localLoginId: String): Boolean
 
     fun existsByGoogleLoginId(googleLoginId: String): Boolean
+
+    fun deleteUserEntityBySnuMail(snuMail: String)
 }

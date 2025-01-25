@@ -124,6 +124,15 @@ class UserController(
         userService.resetDatabase(secret)
         return ResponseEntity.ok("Database has been reset.")
     }
+
+    // 계정 탈퇴 기능 임시로 추가
+    @PostMapping("/dev/delete-user")
+    fun deleteUser(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<Void> {
+        userService.deleteUser(user)
+        return ResponseEntity.ok().build()
+    }
 }
 
 data class CheckDuplicateIdRequest(
