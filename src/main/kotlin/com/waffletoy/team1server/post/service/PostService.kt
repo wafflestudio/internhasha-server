@@ -4,9 +4,9 @@ import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.dto.Link
+import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.Post
-import com.waffletoy.team1server.post.dto.Tag
+import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.*
@@ -216,7 +216,7 @@ class PostService(
                 listOf("Tech", "Finance", "Health", "Ambient", "Salary")
                     .shuffled()
                     .take((1..3).random())
-                    .map { Tag(it) }
+                    .map { TagVo(it) }
                     .toMutableList()
 
             val companies = listOf("Company A$index", "Company B$index", "Company C$index").joinToString(", ")
@@ -238,11 +238,11 @@ class PostService(
                         tags = tags,
                         links =
                             mutableListOf(
-                                Link(
+                                LinkVo(
                                     link = "https://example.com/$index/link1",
                                     description = "Link 1",
                                 ),
-                                Link(
+                                LinkVo(
                                     link = "https://example.com/$index/link2",
                                     description = "Link 2",
                                 ),

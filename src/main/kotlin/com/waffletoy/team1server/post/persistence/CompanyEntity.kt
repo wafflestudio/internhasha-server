@@ -1,8 +1,8 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.dto.Link
-import com.waffletoy.team1server.post.dto.Tag
+import com.waffletoy.team1server.post.dto.LinkVo
+import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -49,7 +49,7 @@ class CompanyEntity(
         name = "company_links",
         joinColumns = [JoinColumn(name = "company_id")],
     )
-    val links: MutableList<Link> = mutableListOf(),
+    val links: MutableList<LinkVo> = mutableListOf(),
     // 태그를 value object로 관리 - 자동으로 테이블 생성
     @ElementCollection
     @CollectionTable(
@@ -57,7 +57,7 @@ class CompanyEntity(
         name = "company_tags",
         joinColumns = [JoinColumn(name = "company_id")],
     )
-    val tags: MutableList<Tag> = mutableListOf(),
+    val tags: MutableList<TagVo> = mutableListOf(),
     // Positions 테이블의 POST 외래 키를 매핑
     @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
     open val positions: MutableList<PositionEntity> = mutableListOf(),
