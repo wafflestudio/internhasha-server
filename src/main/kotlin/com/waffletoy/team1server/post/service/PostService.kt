@@ -36,11 +36,8 @@ class PostService(
      * @throws PostNotFoundException If the post with the given ID does not exist.
      */
     fun getPageDetail(postId: String): Post {
-        val postEntity =
-            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
-        return Post.fromEntity(postEntity)
+        val positionEntity = getPositionEntityOrThrow(postId)
+        return Post.fromEntity(positionEntity)
     }
 
     /**
@@ -103,16 +100,9 @@ class PostService(
         userId: String,
         postId: String,
     ) {
-        val positionEntity =
-            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
+        val positionEntity = getPositionEntityOrThrow(postId)
 
-        val userEntity =
-            userService.getUserEntityByUserId(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+        val userEntity = getUserEntityOrThrow(userId)
 
         if (bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
             throw PostAlreadyBookmarkedException(
@@ -142,16 +132,9 @@ class PostService(
         userId: String,
         postId: String,
     ) {
-        val positionEntity =
-            positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(
-                details = mapOf("postId" to postId),
-            )
+        val positionEntity = getPositionEntityOrThrow(postId)
 
-        val userEntity =
-            userService.getUserEntityByUserId(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+        val userEntity = getUserEntityOrThrow(userId)
 
         if (!bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
             throw PostBookmarkNotFoundException(
@@ -174,11 +157,7 @@ class PostService(
         userId: String,
         page: Int,
     ): Page<Post> {
-        val userEntity =
-            userService.getUserEntityByUserId(userId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("userId" to userId),
-                )
+        val userEntity = getUserEntityOrThrow(userId)
 
         val pageable = PageRequest.of(page, pageSize)
         val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.position.id }
@@ -266,9 +245,12 @@ class PostService(
         positionRepository.deleteAll()
     }
 
-    companion object {
-        private const val DEFAULT_PAGE_SIZE = 12
-    }
+    fun getUserEntityOrThrow(userId: String): UserEntity =
+        userService.getUserEntityByUserId(userId) ?: throw UserNotFoundException(mapOf("userId" to userId))
+
+    fun getPositionEntityOrThrow(postId: String): PositionEntity =
+        positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
+
 
     @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String
