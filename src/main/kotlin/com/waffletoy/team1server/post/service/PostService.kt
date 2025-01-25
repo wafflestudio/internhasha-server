@@ -4,7 +4,6 @@ import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
@@ -35,6 +34,7 @@ class PostService(
      * @return The detailed [Post] object.
      * @throws PostNotFoundException If the post with the given ID does not exist.
      */
+    @Transactional(readOnly = true)
     fun getPageDetail(postId: String): Post {
         val positionEntity = getPositionEntityOrThrow(postId)
         return Post.fromEntity(positionEntity)
@@ -52,6 +52,7 @@ class PostService(
      * @return A paginated [Page] of [Post].
      * @throws PostInvalidFiltersException If invalid filters are provided.
      */
+    @Transactional(readOnly = true)
     fun getPosts(
         positions: List<String>?,
         investmentMax: Int?,
@@ -80,9 +81,9 @@ class PostService(
                 series,
             )
 
-        val pageable = PageRequest.of(page, pageSize)
-        val positionIds = positionRepository.findAll(specification).map { it.id }
-        val positionPage = positionRepository.findAllByIdIn(positionIds, pageable)
+        val validPage = if (page < 0) 0 else page
+        val pageable = PageRequest.of(validPage, pageSize)
+        val positionPage = positionRepository.findAll(specification, pageable)
         return positionPage.map { position -> Post.fromEntity(position) }
     }
 
@@ -104,7 +105,8 @@ class PostService(
 
         val userEntity = getUserEntityOrThrow(userId)
 
-        if (bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
+        val existingBookmark = bookmarkRepository.findByUserAndPosition(userEntity, positionEntity)
+        if (existingBookmark != null) {
             throw PostAlreadyBookmarkedException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
@@ -136,12 +138,11 @@ class PostService(
 
         val userEntity = getUserEntityOrThrow(userId)
 
-        if (!bookmarkRepository.existsByUserAndPosition(userEntity, positionEntity)) {
-            throw PostBookmarkNotFoundException(
+        val bookmarkEntity =
+            bookmarkRepository.findByUserAndPosition(userEntity, positionEntity) ?: throw PostBookmarkNotFoundException(
                 details = mapOf("userId" to userId, "postId" to postId),
             )
-        }
-        bookmarkRepository.deleteByUserAndPosition(userEntity, positionEntity)
+        bookmarkRepository.delete(bookmarkEntity)
     }
 
     /**
@@ -159,9 +160,9 @@ class PostService(
     ): Page<Post> {
         val userEntity = getUserEntityOrThrow(userId)
 
-        val pageable = PageRequest.of(page, pageSize)
-        val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.position.id }
-        val positionPage = positionRepository.findAllByIdIn(bookmarkIds, pageable)
+        val validPage = if (page < 0) 0 else page
+        val pageable = PageRequest.of(validPage, pageSize)
+        val positionPage = bookmarkRepository.findPositionsByUser(userEntity, pageable)
         return positionPage.map { position -> Post.fromEntity(position) }
     }
 
@@ -172,62 +173,49 @@ class PostService(
      */
     @Transactional
     fun makeDummyPosts(cnt: Int) {
-        (1..cnt).forEach { index ->
-            val admin: UserEntity = userService.makeDummyUser(index)
+        val companies = mutableListOf<CompanyEntity>()
+        val positions = mutableListOf<PositionEntity>()
 
+        (1..cnt).forEach { index ->
+            val admin = userService.makeDummyUser(index)
             val tags =
-                listOf("Tech", "Finance", "Health", "Ambient", "Salary")
+                listOf("Tech", "Finance", "Health")
                     .shuffled()
-                    .take((1..3).random())
+                    .take(2)
                     .map { TagVo(it) }
                     .toMutableList()
 
-            val companies = listOf("Company A$index", "Company B$index", "Company C$index").joinToString(", ")
-
-            val companyEntity: CompanyEntity =
-                companyRepository.save(
-                    CompanyEntity(
-                        admin = admin,
-                        companyName = "dummy Company $index",
-                        explanation = "Explanation of dummy Company $index",
-                        email = "dummy$index@example.com",
-                        slogan = "Slogan of dummy$index",
-                        investAmount = (1000..5000).random(),
-                        investCompany = companies,
-                        series = Series.entries.random(),
-                        imageLink = "https://www.company$index.dummy$index/image",
-                        irDeckLink = "https://www.company$index.dummy$index/IRDECK",
-                        landingPageLink = "https://www.company$index.dummy$index/LandingPage",
-                        tags = tags,
-                        links =
-                            mutableListOf(
-                                LinkVo(
-                                    link = "https://example.com/$index/link1",
-                                    description = "Link 1",
-                                ),
-                                LinkVo(
-                                    link = "https://example.com/$index/link2",
-                                    description = "Link 2",
-                                ),
-                            ),
-                    ),
+            val companyEntity =
+                CompanyEntity(
+                    admin = admin,
+                    companyName = "dummy Company $index",
+                    explanation = "Explanation of dummy Company $index",
+                    email = "dummy$index@example.com",
+                    slogan = "Slogan of dummy$index",
+                    investAmount = (1000..5000).random(),
+                    investCompany = "Company A$index, Company B$index",
+                    series = Series.entries.random(),
+                    imageLink = "https://www.company$index/image",
+                    tags = tags,
                 )
+            companies.add(companyEntity)
 
             Category.entries.shuffled().take((1..3).random()).forEach { category ->
-                val positionEntity =
-                    positionRepository.save(
-                        PositionEntity(
-                            category = category,
-                            detail = "Detail of $category",
-                            headcount = "${(1..3).random()}",
-                            isActive = true,
-                            employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
-                            company = companyEntity,
-                        ),
-                    )
-                companyEntity.positions += positionEntity
+                positions.add(
+                    PositionEntity(
+                        category = category,
+                        detail = "Detail of $category",
+                        headcount = "${(1..3).random()}",
+                        isActive = true,
+                        employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
+                        company = companyEntity,
+                    ),
+                )
             }
         }
+
+        companyRepository.saveAll(companies)
+        positionRepository.saveAll(positions)
     }
 
     /**
@@ -250,7 +238,6 @@ class PostService(
 
     fun getPositionEntityOrThrow(postId: String): PositionEntity =
         positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
-
 
     @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String

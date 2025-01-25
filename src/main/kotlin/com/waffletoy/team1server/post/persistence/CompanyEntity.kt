@@ -21,7 +21,7 @@ class CompanyEntity(
     open var companyName: String,
     @Column(name = "EXPLANATION", columnDefinition = "TEXT")
     open var explanation: String? = null,
-    @Column(name = "EMAIL", nullable = false)
+    @Column(name = "EMAIL", nullable = false, unique = true)
     open var email: String,
     @Column(name = "SLOGAN")
     open var slogan: String? = null,
@@ -65,7 +65,7 @@ class CompanyEntity(
     @PrePersist
     fun onCreate() {
         createdAt = LocalDateTime.now()
-        updatedAt = LocalDateTime.now()
+        updatedAt = createdAt
     }
 
     @PreUpdate

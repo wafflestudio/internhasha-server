@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.post.controller
 
-import com.amazonaws.HttpMethod
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.PostBrief
 import com.waffletoy.team1server.post.service.PostService
@@ -102,7 +101,7 @@ class PostController(
     fun generateUploadPresignedUrl(
         @RequestBody preSignedUploadReq: PreSignedUploadReq,
     ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateUploadPreSignUrl(preSignedUploadReq, bucketName, HttpMethod.PUT)
+        val presignedUrl = s3Service.generateUploadPreSignUrl(preSignedUploadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
     }
 
