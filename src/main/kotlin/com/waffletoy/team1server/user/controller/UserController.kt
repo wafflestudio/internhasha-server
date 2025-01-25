@@ -84,7 +84,7 @@ class UserController(
 
     // Endpoints for snu mail
 
-    @PostMapping("/snu—mail-verification/google-email")
+    @PostMapping("/snu-mail-verification/google-email")
     fun fetchGoogleAccountEmail(
         @RequestBody request: FetchGoogleAccountEmailRequest,
     ): ResponseEntity<GoogleEmail> {
