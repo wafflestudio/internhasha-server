@@ -53,7 +53,7 @@ class PostService(
      * @param status Status filter (e.g., active, inactive).
      * @param series List of series names to filter by.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [PositionEntity].
+     * @return A paginated [Page] of [Post].
      * @throws PostInvalidFiltersException If invalid filters are provided.
      */
     fun getPosts(
@@ -63,7 +63,7 @@ class PostService(
         status: Int?,
         series: List<String>?,
         page: Int = 0,
-    ): Page<PositionEntity> {
+    ): Page<Post> {
         // Example validation: investmentMin should not exceed investmentMax
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
             throw PostInvalidFiltersException(
@@ -85,11 +85,9 @@ class PostService(
             )
 
         val pageable = PageRequest.of(page, pageSize)
-
         val positionIds = positionRepository.findAll(specification).map { it.id }
-
-        // Fetch paginated PositionEntities
-        return positionRepository.findAllByIdIn(positionIds, pageable)
+        val positionPage = positionRepository.findAllByIdIn(positionIds, pageable)
+        return positionPage.map { position -> Post.fromEntity(position) }
     }
 
     /**
@@ -102,7 +100,7 @@ class PostService(
      * @throws PostAlreadyBookmarkedException If the post is already bookmarked by the user.
      */
     @Transactional
-    fun bookmarkPost(
+    fun addBookmark(
         userId: String,
         postId: String,
     ) {
@@ -169,14 +167,14 @@ class PostService(
      *
      * @param userId The unique identifier of the user.
      * @param page The page number to retrieve.
-     * @return A paginated [Page] of [PositionEntity] representing bookmarked posts.
+     * @return A paginated [Page] of [Post] representing bookmarked posts.
      * @throws UserNotFoundException If the user does not exist.
      */
     @Transactional(readOnly = true)
     fun getBookmarks(
         userId: String,
         page: Int,
-    ): Page<PositionEntity> {
+    ): Page<Post> {
         val userEntity =
             userRepository.findByIdOrNull(userId)
                 ?: throw UserNotFoundException(
@@ -184,12 +182,9 @@ class PostService(
                 )
 
         val pageable = PageRequest.of(page, pageSize)
-
-        // Fetch all bookmark Position IDs
         val bookmarkIds = bookmarkRepository.findAllByUser(userEntity).map { it.position.id }
-
-        // Fetch paginated PositionEntities
-        return positionRepository.findAllByIdIn(bookmarkIds, pageable)
+        val positionPage = positionRepository.findAllByIdIn(bookmarkIds, pageable)
+        return positionPage.map { position -> Post.fromEntity(position) }
     }
 
     /**

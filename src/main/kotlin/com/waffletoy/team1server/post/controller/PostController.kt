@@ -51,7 +51,7 @@ class PostController(
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
             PostWithPage(
-                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                posts = posts.content.map { PostBrief.fromPost(it) },
                 paginator = Paginator(totalPages),
             ),
         )
@@ -59,11 +59,11 @@ class PostController(
 
     // 관심 채용 추가하기
     @PostMapping("/{post_id}/bookmark")
-    fun bookmarkPost(
+    fun addBookmark(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Void> {
-        postService.bookmarkPost(user.id, postId)
+        postService.addBookmark(user.id, postId)
         return ResponseEntity.ok().build()
     }
 
@@ -91,32 +91,13 @@ class PostController(
         // PostBrief로 매핑하여 반환
         return ResponseEntity.ok(
             PostWithPage(
-                posts = posts.content.map { PostBrief.fromPost(Post.fromEntity(it)) },
+                posts = posts.content.map { PostBrief.fromPost(it) },
                 paginator = Paginator(totalPages),
             ),
         )
     }
 
-    @PostMapping("/make-dummy")
-    fun makeDummyPost(
-        @RequestBody cnt: Int,
-    ): ResponseEntity<Void> {
-        postService.makeDummyPosts(cnt)
-        return ResponseEntity.ok().build()
-    }
-
-    @PostMapping("/reset-db")
-    fun resetDBPosts(
-        @RequestBody pw: PasswordRequest,
-    ): ResponseEntity<Void> {
-        if (pw.pw == "0000") {
-            postService.resetDB(pw.pw.toString())
-            return ResponseEntity.ok().build()
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        }
-    }
-
+    //s3 bucket
     @PostMapping("/upload/presigned")
     fun generateUploadPresignedUrl(
         @RequestBody preSignedUploadReq: PreSignedUploadReq,
@@ -131,6 +112,28 @@ class PostController(
     ): ResponseEntity<PresignedURL> {
         val presignedUrl = s3Service.generateDownloadPreSignUrl(preSignedDownloadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
+    }
+
+
+    // dev
+    @PostMapping("/dev/make-dummy")
+    fun makeDummyPost(
+        @RequestBody cnt: Int,
+    ): ResponseEntity<Void> {
+        postService.makeDummyPosts(cnt)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/dev/reset-db")
+    fun resetDBPosts(
+        @RequestBody pw: PasswordRequest,
+    ): ResponseEntity<Void> {
+        if (pw.pw == "0000") {
+            postService.resetDB(pw.pw)
+            return ResponseEntity.ok().build()
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
     }
 }
 
