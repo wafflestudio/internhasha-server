@@ -111,9 +111,14 @@ class UserController(
         userService.checkSnuMailVerification(request) // TODO: 뭐라도 Return해야 하지는 않을지
         return ResponseEntity.ok().build()
     }
+
     // TODO
-    // @GetMapping("/me")
-    // fun getUserInfo()
+    @GetMapping("/me")
+    fun getUserInfo(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<User> {
+        return ResponseEntity.ok(user)
+    }
 
     // Endpoint for resetting DB for testing
 

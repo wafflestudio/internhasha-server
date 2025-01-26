@@ -19,7 +19,7 @@ data class Resume(
         ): Resume =
             Resume(
                 id = resumeEntity.id,
-                postId = resumeEntity.role?.id,
+                postId = resumeEntity.position?.id,
                 author = if (includeAuthor) User.fromEntity(resumeEntity.user, includeResumes = false) else null,
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
