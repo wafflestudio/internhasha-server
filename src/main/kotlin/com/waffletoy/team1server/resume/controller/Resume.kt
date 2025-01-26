@@ -6,7 +6,8 @@ import java.time.LocalDateTime
 
 data class Resume(
     val id: String,
-    val postId: String?,
+    val positionTitle: String? = null,
+    val companyName: String? = null,
     val author: User?,
     val content: String,
     val phoneNumber: String,
@@ -19,7 +20,8 @@ data class Resume(
         ): Resume =
             Resume(
                 id = resumeEntity.id,
-                postId = resumeEntity.position?.id,
+                positionTitle = resumeEntity.position?.title,
+                companyName = resumeEntity.position?.company?.companyName,
                 author = if (includeAuthor) User.fromEntity(resumeEntity.user, includeResumes = false) else null,
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
