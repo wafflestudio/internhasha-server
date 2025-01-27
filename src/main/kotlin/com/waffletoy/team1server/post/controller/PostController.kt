@@ -5,6 +5,7 @@ import com.waffletoy.team1server.post.dto.PostBrief
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.post.service.S3Service
 import com.waffletoy.team1server.user.AuthUser
+import com.waffletoy.team1server.user.AuthUserOrNull
 import com.waffletoy.team1server.user.dtos.User
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.Max
@@ -35,6 +36,8 @@ class PostController(
     // 채용 공고 리스트 불러오기
     @GetMapping
     fun getPosts(
+        // User 토큰이 들어올 수도, 아닐 수도 있음
+        @Parameter(hidden = true) @AuthUserOrNull user: User?,
         @RequestParam(required = false) roles: List<String>?,
         @RequestParam(required = false) @Min(0) investmentMax: Int?,
         @RequestParam(required = false) @Min(0) investmentMin: Int?,
