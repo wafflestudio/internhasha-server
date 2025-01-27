@@ -55,5 +55,5 @@ amazon:
     aws:
         accessKey: ${S3ACCESSKEY:""}
         secretKey: ${S3SECRETKEY:""}
-        region: ap-northeast-2
-        bucket: intern-hasha-client
+        region: ${S3REGION:""}
+        bucket: ${S3BUCKET:""}
