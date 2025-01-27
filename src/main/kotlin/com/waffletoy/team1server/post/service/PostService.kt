@@ -7,6 +7,7 @@ import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
+import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
 import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
@@ -30,19 +31,28 @@ class PostService(
     /**
      * Retrieves detailed information of a specific post by its ID.
      *
+     * @param user nullable user field to get bookmark
      * @param postId The unique identifier of the post.
      * @return The detailed [Post] object.
      * @throws PostNotFoundException If the post with the given ID does not exist.
      */
     @Transactional(readOnly = true)
-    fun getPageDetail(postId: String): Post {
+    fun getPageDetail(
+        user: User?,
+        postId: String,
+    ): Post {
         val positionEntity = getPositionEntityOrThrow(postId)
-        return Post.fromEntity(positionEntity)
+        val bookmarkIds = getBookmarkIds(user)
+        return Post.fromEntity(
+            entity = positionEntity,
+            isBookmarked = positionEntity.id in bookmarkIds,
+        )
     }
 
     /**
      * Retrieves a paginated list of posts based on provided filters.
      *
+     * @param user nullable user field to get bookmark
      * @param positions List of position names to filter by.
      * @param investmentMax Maximum investment amount.
      * @param investmentMin Minimum investment amount.
@@ -54,6 +64,7 @@ class PostService(
      */
     @Transactional(readOnly = true)
     fun getPosts(
+        user: User?,
         positions: List<String>?,
         investmentMax: Int?,
         investmentMin: Int?,
@@ -84,7 +95,15 @@ class PostService(
         val validPage = if (page < 0) 0 else page
         val pageable = PageRequest.of(validPage, pageSize)
         val positionPage = positionRepository.findAll(specification, pageable)
-        return positionPage.map { position -> Post.fromEntity(position) }
+
+        val bookmarkIds = getBookmarkIds(user)
+
+        return positionPage.map { position ->
+            Post.fromEntity(
+                entity = position,
+                isBookmarked = position.id in bookmarkIds,
+            )
+        }
     }
 
     /**
@@ -163,7 +182,12 @@ class PostService(
         val validPage = if (page < 0) 0 else page
         val pageable = PageRequest.of(validPage, pageSize)
         val positionPage = bookmarkRepository.findPositionsByUser(userEntity, pageable)
-        return positionPage.map { position -> Post.fromEntity(position) }
+        return positionPage.map { position ->
+            Post.fromEntity(
+                entity = position,
+                isBookmarked = true,
+            )
+        }
     }
 
     /**
@@ -240,6 +264,19 @@ class PostService(
         positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
 
     fun getPositionEntityByPostId(postId: String): PositionEntity? = positionRepository.findByIdOrNull(postId)
+
+    fun getBookmarkIds(user: User?): Set<String> {
+        if (user == null) {
+            return emptySet()
+        }
+
+        val userEntity = userService.getUserEntityByUserId(user.id)
+        return if (userEntity != null) {
+            bookmarkRepository.findByUser(userEntity).map { it.position.id }.toSet()
+        } else {
+            emptySet()
+        }
+    }
 
     @Value("\${custom.SECRET}")
     private lateinit var resetDbSecret: String

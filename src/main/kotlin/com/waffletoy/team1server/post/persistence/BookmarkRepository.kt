@@ -15,6 +15,8 @@ interface BookmarkRepository : JpaRepository<BookmarkEntity, String> {
         position: PositionEntity,
     ): BookmarkEntity?
 
+    fun findByUser(user: UserEntity): List<BookmarkEntity>
+
     @Query("SELECT b.position FROM BookmarkEntity b WHERE b.user = :user")
     fun findPositionsByUser(
         @Param("user") user: UserEntity,

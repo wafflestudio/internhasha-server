@@ -31,9 +31,14 @@ data class Post(
     val category: Category,
     val detail: String,
     val headcount: String,
+    // 북마크 여부
+    val isBookmarked: Boolean = false,
 ) {
     companion object {
-        fun fromEntity(entity: PositionEntity): Post =
+        fun fromEntity(
+            entity: PositionEntity,
+            isBookmarked: Boolean = false,
+        ): Post =
             Post(
                 id = entity.id,
                 author =
@@ -64,6 +69,7 @@ data class Post(
                 category = entity.category,
                 detail = entity.detail ?: "",
                 headcount = entity.headcount,
+                isBookmarked = isBookmarked,
             )
     }
 }

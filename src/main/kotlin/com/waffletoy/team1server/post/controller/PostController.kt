@@ -27,9 +27,11 @@ class PostController(
     // 채용 공고 상세 페이지 불러오기
     @GetMapping("/{post_id}")
     fun getPageDetail(
+        // User 토큰이 들어올 수도, 아닐 수도 있음
+        @Parameter(hidden = true) @AuthUserOrNull user: User?,
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Post> {
-        val post = postService.getPageDetail(postId)
+        val post = postService.getPageDetail(user, postId)
         return ResponseEntity.ok(post)
     }
 
@@ -45,7 +47,7 @@ class PostController(
         @RequestParam(required = false) series: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
     ): ResponseEntity<PostWithPage> {
-        val posts = postService.getPosts(roles, investmentMax, investmentMin, status, series, page ?: 0)
+        val posts = postService.getPosts(user, roles, investmentMax, investmentMin, status, series, page ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages
