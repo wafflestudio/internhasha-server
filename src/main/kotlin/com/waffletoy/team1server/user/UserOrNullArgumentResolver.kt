@@ -18,12 +18,12 @@ import org.springframework.web.method.support.ModelAndViewContainer
 class UserOrNullArgumentResolver(
     private val userService: UserService,
 ) : HandlerMethodArgumentResolver {
-    private val logger: Logger = LoggerFactory.getLogger(UserArgumentResolver::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(UserOrNullArgumentResolver::class.java)
 
     override fun supportsParameter(parameter: MethodParameter): Boolean {
         val isSupported =
             parameter.parameterType == User::class.java &&
-                parameter.hasParameterAnnotation(AuthUser::class.java)
+                parameter.hasParameterAnnotation(AuthUserOrNull::class.java)
         logger.debug("supportsParameter called for parameter '${parameter.parameterName}': $isSupported")
         return isSupported
     }
