@@ -227,6 +227,7 @@ class PostService(
             Category.entries.shuffled().take((1..3).random()).forEach { category ->
                 positions.add(
                     PositionEntity(
+                        title = "Title of $index",
                         category = category,
                         detail = "Detail of $category",
                         headcount = "${(1..3).random()}",
