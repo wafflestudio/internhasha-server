@@ -17,6 +17,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import kotlin.random.Random
 
 @Service
 class PostService(
@@ -214,7 +215,7 @@ class PostService(
                     admin = admin,
                     companyName = "dummy Company $index",
                     explanation = "Explanation of dummy Company $index",
-                    email = "dummy$index@example.com",
+                    email = "dummy${index}_${Random.nextInt(0, 10001)}@example.com",
                     slogan = "Slogan of dummy$index",
                     investAmount = (1000..5000).random(),
                     investCompany = "Company A$index, Company B$index",
