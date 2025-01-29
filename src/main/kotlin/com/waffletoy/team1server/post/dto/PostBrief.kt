@@ -21,6 +21,7 @@ data class PostBrief(
     val isActive: Boolean,
     val category: Category,
     val headcount: String,
+    val isBookmarked: Boolean,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
@@ -41,6 +42,7 @@ data class PostBrief(
                 isActive = post.isActive,
                 category = post.category,
                 headcount = post.headcount,
+                isBookmarked = post.isBookmarked,
             )
     }
 }
