@@ -42,12 +42,17 @@ class UserOrNullArgumentResolver(
 
         // Check if the Authorization header is present and not blank
         if (authorizationHeader.isNullOrBlank()) {
-            logger.warn("Authorization header is missing or blank")
             return null
         }
 
         // Split the header and validate the format (e.g., "Bearer <token>")
         val tokenParts = authorizationHeader.split(" ")
+
+        // 실제 토큰이 없는 "Bearer" 일 때 null 반환
+        if (tokenParts.size == 1 && tokenParts[0] == "Bearer") {
+            return null
+        }
+
         if (tokenParts.size != 2 || tokenParts[0] != "Bearer") {
             logger.warn("Authorization header is malformed: $authorizationHeader")
             throw BadAuthorizationHeaderException(
