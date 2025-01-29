@@ -16,13 +16,14 @@ data class Resume(
     companion object {
         fun fromEntity(
             resumeEntity: ResumeEntity,
-            includeAuthor: Boolean = true,
+//            includeAuthor: Boolean = true,
         ): Resume =
             Resume(
                 id = resumeEntity.id,
                 positionTitle = resumeEntity.position?.title,
                 companyName = resumeEntity.position?.company?.companyName,
-                author = if (includeAuthor) User.fromEntity(resumeEntity.user, includeResumes = false) else null,
+//                author = if (includeAuthor) User.fromEntity(resumeEntity.user, includeResumes = false) else null,
+                author = User.fromEntity(resumeEntity.user),
                 content = resumeEntity.content ?: "",
                 createdAt = resumeEntity.createdAt,
                 phoneNumber = resumeEntity.phoneNumber ?: "",

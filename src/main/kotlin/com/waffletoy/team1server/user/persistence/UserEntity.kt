@@ -1,7 +1,5 @@
 package com.waffletoy.team1server.user.persistence
 
-import com.waffletoy.team1server.post.persistence.CompanyEntity
-import com.waffletoy.team1server.resume.persistence.ResumeEntity
 import com.waffletoy.team1server.user.UserRole
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
@@ -44,11 +42,13 @@ class UserEntity(
     val snuMail: String?,
     @Column(name = "phone_number", nullable = true)
     var phoneNumber: String? = null,
-    @OneToMany(mappedBy = "user")
-    val resumes: MutableList<ResumeEntity> = mutableListOf(),
+    // Resume Repository 에서 조회하기 때문에 필요 없음
+//    @OneToMany(mappedBy = "user")
+//    val resumes: MutableList<ResumeEntity> = mutableListOf(),
     // POST-ADMIN specific field
-    @OneToMany(mappedBy = "admin")
-    var posts: MutableList<CompanyEntity> = mutableListOf(),
+    // 역시 Position Entity에서 조회할 예정
+//    @OneToMany(mappedBy = "admin")
+//    var posts: MutableList<CompanyEntity> = mutableListOf(),
     @Column(name = "profile_image_link", nullable = true)
     val profileImageLink: String? = null,
 ) {

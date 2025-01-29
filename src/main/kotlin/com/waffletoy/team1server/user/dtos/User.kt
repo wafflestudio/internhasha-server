@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.user.dtos
 
-import com.waffletoy.team1server.resume.controller.Resume
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
 import java.time.LocalDateTime
@@ -13,7 +12,7 @@ data class User(
     val userRole: UserRole,
     val snuMail: String?,
     val phoneNumber: String?,
-    val resumes: List<Resume>?,
+//    val resumes: List<Resume>?,
 //    val posts: List<Post>?,
     val profileImageLink: String?,
     val isMerged: Boolean,
@@ -22,7 +21,7 @@ data class User(
         fun fromEntity(
             entity: UserEntity,
             isMerged: Boolean = false,
-            includeResumes: Boolean = false,
+//            includeResumes: Boolean = false,
         ): User =
             User(
                 id = entity.id,
@@ -32,7 +31,7 @@ data class User(
                 userRole = entity.userRole,
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
-                resumes = if (includeResumes) entity.resumes.map { Resume.fromEntity(it, false) } else null,
+//                resumes = if (includeResumes) entity.resumes.map { Resume.fromEntity(it, false) } else null,
 //                posts = entity.posts.map { Post.fromEntity(it.roles) },
                 profileImageLink = entity.profileImageLink,
                 isMerged = isMerged,
