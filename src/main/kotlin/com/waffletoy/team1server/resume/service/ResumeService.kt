@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.format.DateTimeFormatter
 
 @Service
 class ResumeService(
@@ -112,7 +113,8 @@ class ResumeService(
         // 이메일 전송
         try {
             emailService.sendEmail(
-                to = companyEntity.email,
+//                to = companyEntity.email,
+                to = "endermaru@snu.ac.kr",
                 subject = "[인턴하샤] 지원자 커피챗이 도착하였습니다.",
                 text =
                     """
@@ -121,8 +123,10 @@ class ResumeService(
                     - 회사명: ${companyEntity.companyName}
                     - 회사 이메일: ${companyEntity.email}
                     - 직무명: ${positionEntity.title}
-                    - 카테고리: ${positionEntity.category}
-                    - 지원 마감일: ${positionEntity.employmentEndDate ?: "정보 없음"}
+                    - 카테고리: ${positionEntity.category.displayName()}
+                    - 지원 마감일: ${positionEntity.employmentEndDate
+                        ?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                        ?: "정보 없음"}
                     
                     지원자 정보:
                     - 이름: ${validUser.name}

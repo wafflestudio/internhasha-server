@@ -3,6 +3,7 @@ package com.waffletoy.team1server.resume.controller
 import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.dtos.User
+import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
@@ -18,7 +19,7 @@ class ResumeController(
     // 커피챗 상세 페이지 불러오기
     @GetMapping("/{resumeId}")
     fun getResumeDetail(
-        @AuthUser user: User?,
+        @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
     ): ResponseEntity<Resume> {
         return ResponseEntity.ok(
@@ -29,7 +30,7 @@ class ResumeController(
     // 커피챗 목록 불러오기
     @GetMapping
     fun getResumes(
-        @AuthUser user: User?,
+        @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<Resumes> {
         return ResponseEntity.ok(
             Resumes(
@@ -41,7 +42,7 @@ class ResumeController(
     // 커피챗 신청하기
     @PostMapping("/{postId}")
     fun postResume(
-        @AuthUser user: User?,
+        @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable postId: String,
         @RequestBody coffee: Coffee,
     ): ResponseEntity<Resume> {
@@ -57,7 +58,7 @@ class ResumeController(
     // 커피챗 삭제하기
     @DeleteMapping("/{resumeId}")
     fun deleteResume(
-        @AuthUser user: User?,
+        @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
     ): ResponseEntity<Void> {
         resumeService.deleteResume(user, resumeId)
@@ -67,7 +68,7 @@ class ResumeController(
     // 커피챗 수정하기
     @PatchMapping("/{resumeId}")
     fun patchResume(
-        @AuthUser user: User?,
+        @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
         @RequestBody coffee: Coffee,
     ): ResponseEntity<Resume> {
