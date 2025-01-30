@@ -350,6 +350,7 @@ class UserService(
         // @ManyToOne(fetch = FetchType.LAZY, optional = true)
         // @JoinColumn(name = "ADMIN", nullable = true)
         // @OnDelete(action = OnDeleteAction.SET_NULL
+        // TODO: UserRoleConflict 외의 별도의 Exception 정의가 필요
         if (user.userRole != UserRole.NORMAL) {
             throw UserRoleConflictException(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
