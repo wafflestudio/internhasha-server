@@ -57,7 +57,7 @@ data class Post(
                 irDeckLink = entity.company.irDeckLink ?: "",
                 landingPageLink = entity.company.landingPageLink ?: "",
                 imageLink = entity.company.imageLink ?: "",
-                externalDescriptionLink = entity.company.links.map { Link.fromLink(it) },
+                externalDescriptionLink = entity.company.links.map { Link.fromVo(it) },
                 tags = entity.company.tags.map { it.tag },
                 // roles 정보
                 title = entity.title,
