@@ -22,4 +22,6 @@ interface BookmarkRepository : JpaRepository<BookmarkEntity, String> {
         @Param("user") user: UserEntity,
         pageable: Pageable,
     ): Page<PositionEntity>
+
+    fun deleteAllByUser(user: UserEntity)
 }

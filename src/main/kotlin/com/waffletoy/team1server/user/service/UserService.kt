@@ -2,6 +2,8 @@ package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
+import com.waffletoy.team1server.post.service.PostService
+import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.dtos.*
@@ -10,7 +12,7 @@ import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.utils.UserTokenUtil
 import jakarta.transaction.Transactional
 import org.mindrot.jbcrypt.BCrypt
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -20,7 +22,9 @@ class UserService(
     private val userRepository: UserRepository,
     private val userRedisCacheService: UserRedisCacheService,
     private val googleOAuth2Client: GoogleOAuth2Client,
-    private val emailService: EmailService,
+    @Lazy private val emailService: EmailService,
+    @Lazy private val resumeService: ResumeService,
+    @Lazy private val postService: PostService,
 ) {
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
@@ -189,6 +193,10 @@ class UserService(
                     socialSignIn(info)
                 }
             }
+
+        // 기존 refresh token 을 만료합니다.(RTR)
+        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+
         val tokens = UserTokenUtil.generateTokens(user)
         return Pair(user, tokens)
     }
@@ -243,6 +251,13 @@ class UserService(
             )
         }
         // Additional sign-out logic if necessary
+
+        // 로그아웃 시 Refresh Token 삭제
+        // (Access Token 은 클라이언트 측에서 삭제)
+        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+
+        // 추후 유저의 Access Token 을 Access Token 의 남은 유효시간 만큼
+        // Redis 블랙리스트에 추가할 필요성 있음
     }
 
     // Token related functions
@@ -267,6 +282,9 @@ class UserService(
                 ?: throw InvalidRefreshTokenException(
                     details = mapOf("refreshToken" to refreshToken),
                 )
+
+        // 기존 refresh token 을 만료합니다.(RTR)
+        userRedisCacheService.deleteRefreshTokenByUserId(userId)
 
         val userEntity =
             userRepository.findByIdOrNull(userId)
@@ -297,7 +315,7 @@ class UserService(
         try {
             emailService.sendEmail(
                 to = request.snuMail,
-                subject = "이메일 인증 요청",
+                subject = "[인턴하샤] 이메일 인증 요청 메일이 도착했습니다.",
                 text = "이메일 인증 번호: $emailCode",
             )
         } catch (ex: Exception) {
@@ -324,23 +342,157 @@ class UserService(
         }
     }
 
-    @Value("\${custom.SECRET}")
-    private lateinit var resetDbSecret: String
-
-    fun resetDatabase(secret: String) {
-        if (secret != resetDbSecret) {
-            throw InvalidRequestException(
-                details = mapOf("providedSecret" to secret),
+    @Transactional
+    fun withdrawUser(user: User) {
+        // 일반 유저가 아닌 경우 탈퇴 불가
+        // 추후 curator의 탈퇴도 구현 필요할 수 있음
+        // 이 때는 company entity의 author 필드가 null로 변경?
+        // @ManyToOne(fetch = FetchType.LAZY, optional = true)
+        // @JoinColumn(name = "ADMIN", nullable = true)
+        // @OnDelete(action = OnDeleteAction.SET_NULL
+        if (user.userRole != UserRole.NORMAL) {
+            throw UserRoleConflictException(
+                details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }
-        userRepository.deleteAll()
-        userRedisCacheService.deleteAll()
-    }
 
-    fun deleteUser(user: User) {
-        userRepository.deleteUserEntityBySnuMail(user.snuMail!!)
+        val userEntity =
+            userRepository.findByIdOrNull(user.id)
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to user.id),
+                )
+
+        // 외래키 제약이 걸려있는 bookmark, resume 를 삭제
+        postService.deleteBookmarkByUser(userEntity)
+        resumeService.deleteResumeByUser(userEntity)
+
+        userRepository.deleteUserEntityById(user.id)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
     }
+
+    @Transactional
+    fun changePassword(
+        user: User,
+        passwordRequest: ChangePasswordRequest,
+    ) {
+        val userEntity =
+            userRepository.findByIdOrNull(user.id)
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to user.id),
+                )
+
+        // 비밀번호가 없는 유저(로컬이 아닌 유저)를 체크
+        if (!userEntity.isLocalLoginImplemented()) {
+            throw UserMethodConflictException(
+                details = mapOf("userId" to user.id),
+            )
+        }
+
+        // 기존 비밀번호를 비교
+        if (!BCrypt.checkpw(passwordRequest.oldPassword, userEntity.localLoginPasswordHash)) {
+            throw InvalidCredentialsException(
+                details = mapOf("oldPassword" to passwordRequest.oldPassword),
+            )
+        }
+
+        // 새 비밀번호를 저장
+        userEntity.localLoginPasswordHash = BCrypt.hashpw(passwordRequest.newPassword, BCrypt.gensalt())
+        userRepository.save(userEntity)
+    }
+
+    fun findIdAndFetchInfo(findIdRequest: FindIdRequest) {
+        // 스누 메일을 기준으로 유저 찾기
+        var user =
+            userRepository.findBySnuMail(findIdRequest.snuMail)
+                ?: throw UserNotFoundException(
+                    details = mapOf("snuMail" to findIdRequest.snuMail),
+                )
+
+        // 로컬 계정 유저의 정보를 제공 or 소셜 로그인 정보를 제공
+        try {
+            emailService.sendEmail(
+                to = user.snuMail!!,
+                subject = "[인턴하샤] 로그인 아이디 정보를 알려드립니다.",
+                text =
+                    if (user.isLocalLoginImplemented()) {
+                        "로그인 아이디 : ${user.localLoginId}"
+                    } else if (user.isGoogleLoginImplemented()) {
+                        "구글 계정으로 가입된 소셜 계정입니다. 구글 소셜 로그인으로 다시 로그인해주세요."
+                    } else {
+                        "기타 소셜 계정으로 가입된 계정입니다."
+                    },
+            )
+        } catch (ex: Exception) {
+            throw EmailVerificationSendFailureException(
+                details = mapOf("snuMail" to user.snuMail!!),
+            )
+        }
+    }
+
+    fun resetPassword(resetPasswordRequest: ResetPasswordRequest) {
+        // 스누 메일을 기준으로 유저 찾기
+        var user =
+            userRepository.findBySnuMail(resetPasswordRequest.snuMail)
+                ?: throw UserNotFoundException(
+                    details = mapOf("snuMail" to resetPasswordRequest.snuMail),
+                )
+
+        // 비밀번호를 가진 로컬 계정인지 체크
+        if (!user.isLocalLoginImplemented()) {
+            throw UserMethodConflictException(
+                details = mapOf("snuMail" to resetPasswordRequest.snuMail),
+            )
+        }
+
+        // 재설정 비밀번호 생성
+        val uppercase = ('A'..'Z').random()
+        val lowercase = ('a'..'z').random()
+        val digit = ('0'..'9').random()
+        val specialChars = "@#\$%^&+=!*"
+        val special = specialChars.random()
+
+        val allChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val remaining = List(4) { allChars.random() }
+
+        val newPassword =
+            (listOf(uppercase, lowercase, digit, special) + remaining)
+                .shuffled()
+                .joinToString("")
+
+        // 새 비밀번호를 저장
+        user.localLoginPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        userRepository.save(user)
+
+        // 로컬 계정 유저의 정보를 제공 or 소셜 로그인 정보를 제공
+        try {
+            emailService.sendEmail(
+                to = user.snuMail!!,
+                subject = "[인턴하샤] 임시 비밀번호를 알려드립니다.",
+                text =
+                    """
+                    다음 임시 비밀번호를 이용하여 로그인 후 비밀번호를 재설정하세요.
+                    - 임시 비밀번호 : $newPassword
+                    """.trimIndent(),
+            )
+        } catch (ex: Exception) {
+            throw EmailVerificationSendFailureException(
+                details = mapOf("snuMail" to user.snuMail!!),
+            )
+        }
+    }
+
+//    @Value("\${custom.SECRET}")
+//    private lateinit var resetDbSecret: String
+//
+//    fun resetDatabase(secret: String) {
+//        if (secret != resetDbSecret) {
+//            throw InvalidRequestException(
+//                details = mapOf("providedSecret" to secret),
+//            )
+//        }
+//        userRepository.deleteAll()
+//        userRedisCacheService.deleteAll()
+//    }
 
     // 다른 서비스에서 UserId로 User 가져오기
     fun getUserEntityByUserId(userId: String): UserEntity? = userRepository.findByIdOrNull(userId)

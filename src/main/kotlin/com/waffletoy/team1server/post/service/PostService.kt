@@ -11,10 +11,12 @@ import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
 import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -24,7 +26,7 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
-    private val userService: UserService,
+    @Lazy private val userService: UserService,
     private val userRepository: UserRepository,
 ) {
     @Value("\${custom.page.size:12}")
@@ -73,6 +75,7 @@ class PostService(
         status: Int?,
         series: List<String>?,
         page: Int = 0,
+        order: Int = 0,
     ): Page<Post> {
         // Example validation: investmentMin should not exceed investmentMax
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
@@ -92,6 +95,7 @@ class PostService(
                 investmentMin,
                 status ?: 2,
                 series,
+                order,
             )
 
         val validPage = if (page < 0) 0 else page
@@ -365,6 +369,13 @@ class PostService(
 
         // Convert to Position DTO
         return Position.fromEntity(savedPosition)
+    }
+    
+    // normal 유저 탈퇴 시 bookmark 데이터를 삭제
+    // curator 유저가 작성한 company, position 데이터는 유지
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun deleteBookmarkByUser(userEntity: UserEntity) {
+        bookmarkRepository.deleteAllByUser(userEntity)
     }
 
     @Value("\${custom.SECRET}")

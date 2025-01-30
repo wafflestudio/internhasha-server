@@ -15,17 +15,19 @@ import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.UserEntity
 import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.format.DateTimeFormatter
 
 @Service
 class ResumeService(
     private val resumeRepository: ResumeRepository,
-    private val userService: UserService,
-    private val emailService: EmailService,
-    private val postService: PostService,
+    @Lazy private val userService: UserService,
+    @Lazy private val emailService: EmailService,
+    @Lazy private val postService: PostService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -277,5 +279,12 @@ class ResumeService(
                     details = mapOf("resumeId" to resumeId),
                 )
         return resumeEntity
+    }
+
+    // normal 유저 탈퇴 시 bookmark 데이터를 삭제
+    // curator 유저가 작성한 company, position 데이터는 유지
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun deleteResumeByUser(userEntity: UserEntity) {
+        resumeRepository.deleteAllByUser(userEntity)
     }
 }
