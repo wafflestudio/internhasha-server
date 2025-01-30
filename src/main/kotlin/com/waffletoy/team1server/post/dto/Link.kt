@@ -5,6 +5,6 @@ data class Link(
     val link: String,
 ) {
     companion object {
-        fun fromLink(linkVo: LinkVo): Link = Link(linkVo.description, linkVo.link)
+        fun fromVo(linkVo: LinkVo): Link = Link(linkVo.description, linkVo.link)
     }
 }
