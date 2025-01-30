@@ -25,6 +25,7 @@ class PostService(
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
     private val userService: UserService,
+    private val userRepository: UserRepository,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -291,12 +292,13 @@ class PostService(
      */
     @Transactional
     fun createCompany(
-        user: UserEntity,
+        user: User,
         request: CreateCompanyRequest,
     ): Company {
         if (user.userRole != UserRole.CURATOR) {
             throw NotAuthorizedException()
         }
+        val userEntity = userService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
         // Check if a company with the same email already exists
         if (companyRepository.existsByEmail(request.email)) {
             throw PostCompanyExistsException()
@@ -305,7 +307,7 @@ class PostService(
         // Map CreateCompanyRequest to CompanyEntity
         val companyEntity =
             CompanyEntity(
-                admin = user,
+                admin = userEntity,
                 companyName = request.companyName,
                 email = request.email,
                 series = request.series,
@@ -329,7 +331,7 @@ class PostService(
 
     @Transactional
     fun createPosition(
-        user: UserEntity,
+        user: User,
         companyId: String,
         request: CreatePositionRequest,
     ): Position {
