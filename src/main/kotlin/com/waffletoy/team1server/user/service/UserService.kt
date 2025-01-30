@@ -2,6 +2,8 @@ package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
+import com.waffletoy.team1server.post.service.PostService
+import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.dtos.*
@@ -10,7 +12,6 @@ import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.utils.UserTokenUtil
 import jakarta.transaction.Transactional
 import org.mindrot.jbcrypt.BCrypt
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -20,6 +21,8 @@ class UserService(
     private val userRedisCacheService: UserRedisCacheService,
     private val googleOAuth2Client: GoogleOAuth2Client,
     private val emailService: EmailService,
+    private val postService: PostService,
+    private val resumeService: ResumeService,
 ) {
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
@@ -318,21 +321,30 @@ class UserService(
         }
     }
 
-    @Value("\${custom.SECRET}")
-    private lateinit var resetDbSecret: String
+//    @Value("\${custom.SECRET}")
+//    private lateinit var resetDbSecret: String
+//
+//    fun resetDatabase(secret: String) {
+//        if (secret != resetDbSecret) {
+//            throw InvalidRequestException(
+//                details = mapOf("providedSecret" to secret),
+//            )
+//        }
+//        userRepository.deleteAll()
+//        userRedisCacheService.deleteAll()
+//    }
 
-    fun resetDatabase(secret: String) {
-        if (secret != resetDbSecret) {
-            throw InvalidRequestException(
-                details = mapOf("providedSecret" to secret),
+    fun withdrawUser(user: User) {
+        val userEntity = userRepository.findByIdOrNull(user.id)
+            ?: throw UserNotFoundException(
+                details = mapOf("userId" to user.id),
             )
-        }
-        userRepository.deleteAll()
-        userRedisCacheService.deleteAll()
-    }
+        
+        // 외래키 제약이 걸려있는 bookmark, resume 를 삭제
+        postService.deleteBookmarkByUser(userEntity)
+        resumeService.deleteResumeByUser(userEntity)
 
-    fun deleteUser(user: User) {
-        userRepository.deleteUserEntityBySnuMail(user.snuMail!!)
+        userRepository.deleteUserEntityById(user.id)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
     }
 

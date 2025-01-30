@@ -124,24 +124,29 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
-    // Endpoint for resetting DB for testing
-
-    @PostMapping("/resetDB")
-    fun resetDatabase(
-        @RequestHeader("X-Secret") secret: String,
-    ): ResponseEntity<String> {
-        userService.resetDatabase(secret)
-        return ResponseEntity.ok("Database has been reset.")
-    }
-
-    // 계정 탈퇴 기능 임시로 추가
-    @PostMapping("/dev/delete-user")
+    // 회원 탈퇴
+    @PostMapping("/withdraw")
     fun deleteUser(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<Void> {
-        userService.deleteUser(user)
+        userService.withdrawUser(user)
         return ResponseEntity.ok().build()
     }
+
+
+
+    // Endpoint for resetting DB for testing
+    // reset DB는 비활성화
+//    @PostMapping("/resetDB")
+//    fun resetDatabase(
+//        @RequestHeader("X-Secret") secret: String,
+//    ): ResponseEntity<String> {
+//        userService.resetDatabase(secret)
+//        return ResponseEntity.ok("Database has been reset.")
+//    }
+
+    
+
 }
 
 data class CheckDuplicateIdRequest(

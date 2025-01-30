@@ -7,6 +7,7 @@ import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
+import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
 import com.waffletoy.team1server.user.service.UserService
@@ -278,6 +279,12 @@ class PostService(
         } else {
             emptySet()
         }
+    }
+
+    // normal 유저 탈퇴 시 bookmark 데이터를 삭제
+    // curator 유저가 작성한 company, position 데이터는 유지
+    fun deleteBookmarkByUser(userEntity: UserEntity){
+        bookmarkRepository.deleteAllByUser(userEntity)
     }
 
     @Value("\${custom.SECRET}")

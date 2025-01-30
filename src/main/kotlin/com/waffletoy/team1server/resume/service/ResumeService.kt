@@ -278,4 +278,10 @@ class ResumeService(
                 )
         return resumeEntity
     }
+
+    // normal 유저 탈퇴 시 bookmark 데이터를 삭제
+    // curator 유저가 작성한 company, position 데이터는 유지
+    fun deleteResumeByUser(userEntity: UserEntity){
+        resumeRepository.deleteAllByUser(userEntity)
+    }
 }
