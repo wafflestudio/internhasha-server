@@ -46,6 +46,7 @@ enum class ErrorCode(
     POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
     POST_ACCESS_FORBIDDEN("POST_009", "Access to this company forbidden.", HttpStatus.FORBIDDEN),
+
     // Resume-related errors
     RESUME_NOT_FOUND("RESUME_001", "The requested resume was not found.", HttpStatus.NOT_FOUND),
     RESUME_FORBIDDEN("RESUME_002", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),

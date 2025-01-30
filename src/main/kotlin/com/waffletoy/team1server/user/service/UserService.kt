@@ -61,7 +61,6 @@ class UserService(
         return Pair(user, tokens)
     }
 
-
     private fun localNormalSignUp(info: SignUpRequest.LocalNormalInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
