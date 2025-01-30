@@ -335,6 +335,18 @@ class UserService(
 //    }
 
     fun withdrawUser(user: User) {
+        // 일반 유저가 아닌 경우 탈퇴 불가
+        // 추후 curator의 탈퇴도 구현 필요할 수 있음
+        // 이 때는 company entity의 author 필드가 null로 변경?
+        // @ManyToOne(fetch = FetchType.LAZY, optional = true)
+        // @JoinColumn(name = "ADMIN", nullable = true)
+        // @OnDelete(action = OnDeleteAction.SET_NULL
+        if (user.userRole != UserRole.NORMAL) {
+            throw UserRoleConflictException(
+                details = mapOf("userId" to user.id, "userRole" to user.userRole),
+            )
+        }
+
         val userEntity = userRepository.findByIdOrNull(user.id)
             ?: throw UserNotFoundException(
                 details = mapOf("userId" to user.id),
