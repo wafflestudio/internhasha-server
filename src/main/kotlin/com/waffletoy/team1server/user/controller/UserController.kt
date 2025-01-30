@@ -19,6 +19,7 @@ class UserController(
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
     // Endpoints for signups
+    //로컬 아이디 중복 확인
     @PostMapping("/signup/check-id")
     fun checkDuplicateId(
         @Valid @RequestBody request: CheckDuplicateIdRequest,
@@ -27,6 +28,7 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    // 스누메일 중복 확인
     @PostMapping("/signup/check-snu-mail")
     fun checkDuplicateSnuMail(
         @Valid @RequestBody request: CheckDuplicateSnuMailRequest,
@@ -36,6 +38,7 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    // 회원가입(local_normal, social_normal, local_curator)
     @PostMapping("/signup")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
@@ -70,6 +73,7 @@ class UserController(
         return UserTokenResponseUtil.buildDeleteTokenResponse(response)
     }
 
+    // refresh token을 이용한 토큰 갱신
     @PostMapping("/refresh-token")
     fun refreshAccessToken(
         @CookieValue("refresh_token") refreshToken: String?,
@@ -83,7 +87,7 @@ class UserController(
     }
 
     // Endpoints for snu mail
-
+    // 구글 access token 으로 구글 이메일 가져오기
     @PostMapping("/snu-mail-verification/google-email")
     fun fetchGoogleAccountEmail(
         @RequestBody request: FetchGoogleAccountEmailRequest,

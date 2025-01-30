@@ -227,6 +227,13 @@ class UserService(
             )
         }
         // Additional sign-out logic if necessary
+        
+        // 로그아웃 시 Refresh Token 삭제
+        // (Access Token 은 클라이언트 측에서 삭제)
+        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+
+        // 추후 유저의 Access Token 을 Access Token 의 남은 유효시간 만큼
+        // Redis 블랙리스트에 추가할 필요성 있음
     }
 
     // Token related functions
@@ -251,6 +258,9 @@ class UserService(
                 ?: throw InvalidRefreshTokenException(
                     details = mapOf("refreshToken" to refreshToken),
                 )
+
+        // 기존 refresh token 을 만료합니다.(RTR)
+        userRedisCacheService.deleteRefreshTokenByUserId(userId)
 
         val userEntity =
             userRepository.findByIdOrNull(userId)

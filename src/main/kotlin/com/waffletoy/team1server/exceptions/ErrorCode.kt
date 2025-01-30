@@ -10,7 +10,7 @@ enum class ErrorCode(
     // User-related errors
     USER_DUPLICATE_SNUMAIL("USER_001", "A user with the provided SNU mail already exists.", HttpStatus.CONFLICT),
     USER_DUPLICATE_LOCAL_ID("USER_002", "A user with the provided local login ID already exists.", HttpStatus.CONFLICT),
-    USER_DUPLICATE_GOOGLE_ID("USER-003", "A user with the provided google login ID already exists.", HttpStatus.CONFLICT),
+    USER_DUPLICATE_GOOGLE_ID("USER_003", "A user with the provided google login ID already exists.", HttpStatus.CONFLICT),
     USER_NOT_FOUND("USER_004", "User not found.", HttpStatus.NOT_FOUND),
     USER_INVALID_ROLE("USER_005", "Invalid user role.", HttpStatus.FORBIDDEN),
     USER_MERGE_UNKNOWN_FAILURE("USER_006", "User merge unknown failure.", HttpStatus.CONFLICT),
