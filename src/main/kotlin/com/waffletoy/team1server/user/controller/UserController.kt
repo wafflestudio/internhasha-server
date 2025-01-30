@@ -123,9 +123,9 @@ class UserController(
     ): ResponseEntity<User> {
         return ResponseEntity.ok(user)
     }
-    
+
     // User 부가 기능
-    
+
     // 회원 탈퇴
     @PostMapping("/withdraw")
     fun deleteUser(

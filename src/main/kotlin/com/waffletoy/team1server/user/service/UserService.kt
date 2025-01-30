@@ -177,6 +177,10 @@ class UserService(
                     socialSignIn(info)
                 }
             }
+
+        // 기존 refresh token 을 만료합니다.(RTR)
+        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+
         val tokens = UserTokenUtil.generateTokens(user)
         return Pair(user, tokens)
     }
@@ -364,7 +368,10 @@ class UserService(
     }
 
     @Transactional
-    fun changePassword(user: User, passwordRequest: ChangePasswordRequest) {
+    fun changePassword(
+        user: User,
+        passwordRequest: ChangePasswordRequest,
+    ) {
         val userEntity =
             userRepository.findByIdOrNull(user.id)
                 ?: throw UserNotFoundException(
@@ -377,14 +384,14 @@ class UserService(
                 details = mapOf("userId" to user.id),
             )
         }
-        
+
         // 기존 비밀번호를 비교
         if (!BCrypt.checkpw(passwordRequest.oldPassword, userEntity.localLoginPasswordHash)) {
             throw InvalidCredentialsException(
                 details = mapOf("oldPassword" to passwordRequest.oldPassword),
             )
         }
-        
+
         // 새 비밀번호를 저장
         userEntity.localLoginPasswordHash = BCrypt.hashpw(passwordRequest.newPassword, BCrypt.gensalt())
         userRepository.save(userEntity)
