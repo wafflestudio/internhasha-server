@@ -32,3 +32,18 @@ class PostDeletionFailedException(details: Map<String, Any>? = null) : ApiExcept
     errorCode = ErrorCode.POST_DELETION_FAILED,
     details = details,
 )
+
+class PostCompanyExistsException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_COMPANY_EXISTS,
+    details = details,
+)
+
+class PostCompanyNotFoundException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_COMPANY_NOT_FOUND,
+    details = details,
+)
+
+class PostAccessForbiddenException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_ACCESS_FORBIDDEN,
+    details = details,
+)

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
+@Transactional
 @Service
 class UserService(
     private val userRepository: UserRepository,
@@ -60,6 +61,7 @@ class UserService(
         return Pair(user, tokens)
     }
 
+
     private fun localNormalSignUp(info: SignUpRequest.LocalNormalInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
@@ -73,16 +75,11 @@ class UserService(
                 throw UserDuplicateSnuMailException(
                     details = mapOf("snuMail" to info.snuMail),
                 )
-            }
-            if (user.isGoogleLoginImplemented()) {
+            } else {
                 user.localLoginId = info.localLoginId
                 user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
                 user = userRepository.save(user)
                 isMerged = true
-            } else {
-                throw UserMergeUnknownFailureException(
-                    details = mapOf("userId" to user.id),
-                )
             }
         } else {
             if (userRepository.existsByLocalLoginId(info.localLoginId)) {
