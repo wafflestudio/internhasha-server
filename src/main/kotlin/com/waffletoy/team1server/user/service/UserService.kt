@@ -54,7 +54,8 @@ class UserService(
                 }
 
                 SignUpRequest.AuthType.LOCAL_CURATOR -> {
-                    throw NotImplementedException()
+                    val info = request.info as SignUpRequest.LocalCuratorInfo
+                    localCuratorSignUp(info)
                 }
             }
         val tokens = UserTokenUtil.generateTokens(user)
@@ -151,6 +152,25 @@ class UserService(
                 )
         }
         return User.fromEntity(entity = user, isMerged = isMerged)
+    }
+
+    private fun localCuratorSignUp(info: SignUpRequest.LocalCuratorInfo): User {
+        if (userRepository.existsByLocalLoginId(info.localLoginId)) {
+            throw UserDuplicateLocalIdException(
+                details = mapOf("localLoginId" to info.localLoginId),
+            )
+        }
+        val user =
+            userRepository.save(
+                UserEntity(
+                    name = info.name,
+                    localLoginId = info.localLoginId,
+                    localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
+                    userRole = UserRole.CURATOR,
+                    snuMail = null,
+                ),
+            )
+        return User.fromEntity(entity = user)
     }
 
     // Signing in and out
