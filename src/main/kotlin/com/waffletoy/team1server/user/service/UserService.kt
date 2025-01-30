@@ -335,6 +335,7 @@ class UserService(
 //        userRedisCacheService.deleteAll()
 //    }
 
+    @Transactional
     fun withdrawUser(user: User) {
         // 일반 유저가 아닌 경우 탈퇴 불가
         // 추후 curator의 탈퇴도 구현 필요할 수 있음

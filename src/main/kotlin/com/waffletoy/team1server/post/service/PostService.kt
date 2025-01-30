@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -295,6 +296,7 @@ class PostService(
 
     // normal 유저 탈퇴 시 bookmark 데이터를 삭제
     // curator 유저가 작성한 company, position 데이터는 유지
+    @Transactional(propagation = Propagation.REQUIRED)
     fun deleteBookmarkByUser(userEntity: UserEntity) {
         bookmarkRepository.deleteAllByUser(userEntity)
     }
