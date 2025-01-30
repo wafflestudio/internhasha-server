@@ -370,9 +370,24 @@ class UserService(
                 ?: throw UserNotFoundException(
                     details = mapOf("userId" to user.id),
                 )
-        if (!userEntity.isLocalLoginImplemented()) {
 
+        // 비밀번호가 없는 유저(로컬이 아닌 유저)를 체크
+        if (!userEntity.isLocalLoginImplemented()) {
+            throw UserMethodConflictException(
+                details = mapOf("userId" to user.id),
+            )
         }
+        
+        // 기존 비밀번호를 비교
+        if (!BCrypt.checkpw(passwordRequest.oldPassword, userEntity.localLoginPasswordHash)) {
+            throw InvalidCredentialsException(
+                details = mapOf("oldPassword" to passwordRequest.oldPassword),
+            )
+        }
+        
+        // 새 비밀번호를 저장
+        userEntity.localLoginPasswordHash = BCrypt.hashpw(passwordRequest.newPassword, BCrypt.gensalt())
+        userRepository.save(userEntity)
     }
 
     // 다른 서비스에서 UserId로 User 가져오기
