@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -95,20 +94,11 @@ class PostService(
                 investmentMin,
                 status ?: 2,
                 series,
+                order,
             )
 
         val validPage = if (page < 0) 0 else page
-
-        // 정렬 조건 설정
-        val sort =
-            when (order) {
-                // 마감순 (오름차순)
-                1 -> Sort.by(Sort.Direction.ASC, "employmentEndDate")
-                // 최신순 (기본값, 내림차순)
-                else -> Sort.by(Sort.Direction.DESC, "updatedAt")
-            }
-
-        val pageable = PageRequest.of(validPage, pageSize, sort)
+        val pageable = PageRequest.of(validPage, pageSize)
         val positionPage = positionRepository.findAll(specification, pageable)
 
         val bookmarkIds = getBookmarkIds(user)
