@@ -363,6 +363,18 @@ class UserService(
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
     }
 
+    @Transactional
+    fun changePassword(user: User, passwordRequest: ChangePasswordRequest) {
+        val userEntity =
+            userRepository.findByIdOrNull(user.id)
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to user.id),
+                )
+        if (!userEntity.isLocalLoginImplemented()) {
+
+        }
+    }
+
     // 다른 서비스에서 UserId로 User 가져오기
     fun getUserEntityByUserId(userId: String): UserEntity? = userRepository.findByIdOrNull(userId)
 

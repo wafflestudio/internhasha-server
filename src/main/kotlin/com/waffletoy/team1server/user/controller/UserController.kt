@@ -123,13 +123,25 @@ class UserController(
     ): ResponseEntity<User> {
         return ResponseEntity.ok(user)
     }
-
+    
+    // User 부가 기능
+    
     // 회원 탈퇴
     @PostMapping("/withdraw")
     fun deleteUser(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<Void> {
         userService.withdrawUser(user)
+        return ResponseEntity.ok().build()
+    }
+
+    // 비밀 번호 변경
+    @PostMapping("/change-password")
+    fun changePassword(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @Valid @RequestBody request: ChangePasswordRequest,
+    ): ResponseEntity<Void> {
+        userService.changePassword(user, request)
         return ResponseEntity.ok().build()
     }
 
@@ -172,4 +184,17 @@ data class CheckSnuMailVerificationRequest(
     val snuMail: String,
     @field:NotBlank(message = "Verification code is required")
     val code: String,
+)
+
+data class ChangePasswordRequest(
+    @field:Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$",
+        message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
+    )
+    val oldPassword: String,
+    @field:Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$",
+        message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
+    )
+    val newPassword: String,
 )

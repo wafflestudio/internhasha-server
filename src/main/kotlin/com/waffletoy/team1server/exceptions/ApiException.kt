@@ -31,6 +31,11 @@ class UserRoleConflictException(details: Map<String, Any>? = null) : ApiExceptio
     details = details,
 )
 
+class UserMethodConflictException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.USER_INVALID_METHOD,
+    details = details,
+)
+
 class UserMergeUnknownFailureException(details: Map<String, Any>? = null) : ApiException(
     errorCode = ErrorCode.USER_MERGE_UNKNOWN_FAILURE,
     details = details,

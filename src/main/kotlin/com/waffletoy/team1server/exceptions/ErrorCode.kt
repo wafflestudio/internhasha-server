@@ -14,6 +14,7 @@ enum class ErrorCode(
     USER_NOT_FOUND("USER_004", "User not found.", HttpStatus.NOT_FOUND),
     USER_INVALID_ROLE("USER_005", "Invalid user role.", HttpStatus.FORBIDDEN),
     USER_MERGE_UNKNOWN_FAILURE("USER_006", "User merge unknown failure.", HttpStatus.CONFLICT),
+    USER_INVALID_METHOD("USER_007", "Invalid user method.", HttpStatus.FORBIDDEN),
 
     // Authentication-related errors
     AUTH_BAD_HEADER("AUTH_001", "Wrong Authorization header", HttpStatus.BAD_REQUEST),
