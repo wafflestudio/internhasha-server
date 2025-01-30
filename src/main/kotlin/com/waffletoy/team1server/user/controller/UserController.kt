@@ -145,12 +145,21 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-    // 아이디(또는 소셜 로그인 정보)를 찾아 메일로 전송
+    // 아이디(또는 소셜 로그인 정보)를 찾아 스누메일로 전송
     @PostMapping("/help/find-Id")
     fun findId(
         @Valid @RequestBody request: FindIdRequest,
     ): ResponseEntity<Void> {
         userService.findIdAndFetchInfo(request)
+        return ResponseEntity.ok().build()
+    }
+
+    // 임시 비밀번호를 스누메일로 전송
+    @PostMapping("/help/reset-password")
+    fun resetPassword(
+        @Valid @RequestBody request: ResetPasswordRequest,
+    ): ResponseEntity<Void> {
+        userService.resetPassword(request)
         return ResponseEntity.ok().build()
     }
 

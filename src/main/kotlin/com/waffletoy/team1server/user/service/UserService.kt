@@ -413,6 +413,58 @@ class UserService(
         }
     }
 
+    fun resetPassword(resetPasswordRequest: ResetPasswordRequest) {
+        // 스누 메일을 기준으로 유저 찾기
+        var user =
+            userRepository.findBySnuMail(resetPasswordRequest.snuMail)
+                ?: throw UserNotFoundException(
+                    details = mapOf("snuMail" to resetPasswordRequest.snuMail),
+                )
+
+        // 비밀번호를 가진 로컬 계정인지 체크
+        if (!user.isLocalLoginImplemented()) {
+            throw UserMethodConflictException(
+                details = mapOf("snuMail" to resetPasswordRequest.snuMail),
+            )
+        }
+
+        // 재설정 비밀번호 생성
+        val uppercase = ('A'..'Z').random()
+        val lowercase = ('a'..'z').random()
+        val digit = ('0'..'9').random()
+        val specialChars = "@#\$%^&+=!*"
+        val special = specialChars.random()
+
+        val allChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val remaining = List(4) { allChars.random() }
+
+        val newPassword =
+            (listOf(uppercase, lowercase, digit, special) + remaining)
+                .shuffled()
+                .joinToString("")
+
+        // 새 비밀번호를 저장
+        user.localLoginPasswordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        userRepository.save(user)
+
+        // 로컬 계정 유저의 정보를 제공 or 소셜 로그인 정보를 제공
+        try {
+            emailService.sendEmail(
+                to = user.snuMail!!,
+                subject = "[인턴하샤] 임시 비밀번호를 알려드립니다.",
+                text =
+                    """
+                    다음 임시 비밀번호를 이용하여 로그인 후 비밀번호를 재설정하세요.
+                    - 임시 비밀번호 : $newPassword
+                    """.trimIndent(),
+            )
+        } catch (ex: Exception) {
+            throw EmailVerificationSendFailureException(
+                details = mapOf("snuMail" to user.snuMail!!),
+            )
+        }
+    }
+
 //    @Value("\${custom.SECRET}")
 //    private lateinit var resetDbSecret: String
 //
