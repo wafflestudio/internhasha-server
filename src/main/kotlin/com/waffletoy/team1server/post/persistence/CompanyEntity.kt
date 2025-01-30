@@ -5,11 +5,15 @@ import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
 @Table(name = "companies")
+@EntityListeners(AuditingEntityListener::class)
 class CompanyEntity(
     @Id
     @Column(name = "ID", nullable = false)
@@ -38,8 +42,10 @@ class CompanyEntity(
     open var irDeckLink: String? = null,
     @Column(name = "LANDING_PAGE_LINK")
     open var landingPageLink: String? = null,
+    @CreatedDate
     @Column(name = "CREATED_AT", nullable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),
+    @LastModifiedDate
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     // 링크를 value object로 관리 - 자동으로 테이블 생성
@@ -61,15 +67,4 @@ class CompanyEntity(
     // Positions 테이블의 POST 외래 키를 매핑
     @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
     open val positions: MutableList<PositionEntity> = mutableListOf(),
-) {
-    @PrePersist
-    fun onCreate() {
-        createdAt = LocalDateTime.now()
-        updatedAt = createdAt
-    }
-
-    @PreUpdate
-    fun onUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
-}
+)

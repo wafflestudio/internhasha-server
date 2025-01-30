@@ -1,13 +1,13 @@
 package com.waffletoy.team1server.post.controller
 
-import com.waffletoy.team1server.post.dto.Post
-import com.waffletoy.team1server.post.dto.PostBrief
+import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.post.service.S3Service
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.AuthUserOrNull
 import com.waffletoy.team1server.user.dtos.User
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import org.springframework.beans.factory.annotation.Value
@@ -138,6 +138,25 @@ class PostController(
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
+    }
+
+    @PostMapping("/company")
+    fun createCompany(
+        @AuthUser user: User,
+        @Valid @RequestBody request: CreateCompanyRequest,
+    ): ResponseEntity<Company> {
+        val company = postService.createCompany(user, request)
+        return ResponseEntity.ok(company)
+    }
+
+    @PostMapping("/company/{company_id}/position")
+    fun createPosition(
+        @AuthUser user: User,
+        @PathVariable("company_id") companyId: String,
+        @Valid @RequestBody request: CreatePositionRequest,
+    ): ResponseEntity<Position> {
+        val position = postService.createPosition(user, companyId, request)
+        return ResponseEntity.ok(position)
     }
 }
 

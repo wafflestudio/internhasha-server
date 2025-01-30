@@ -71,6 +71,11 @@ class OAuthFailedException(details: Map<String, Any>? = null) : ApiException(
     details = details,
 )
 
+class NotAuthorizedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.AUTH_NOT_AUTHORIZED,
+    details = details,
+)
+
 class EmailVerificationFailedException(details: Map<String, Any>? = null) : ApiException(
     errorCode = ErrorCode.EMAIL_VERIFICATION_FAILED,
     details = details,

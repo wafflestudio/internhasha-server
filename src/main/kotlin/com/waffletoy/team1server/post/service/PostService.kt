@@ -4,9 +4,9 @@ import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.post.dto.Post
-import com.waffletoy.team1server.post.dto.TagVo
+import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.persistence.*
+import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
 import com.waffletoy.team1server.user.service.UserService
@@ -27,6 +27,7 @@ class PostService(
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
     @Lazy private val userService: UserService,
+    private val userRepository: UserRepository,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -284,6 +285,92 @@ class PostService(
         }
     }
 
+    /**
+     * Creates a new company associated with the given user.
+     *
+     * @param user The authenticated user creating the company.
+     * @param request The DTO containing company creation data.
+     * @return The created Company DTO.
+     * @throws NotAuthorizedException If user is not curator.
+     * @throws PostCompanyExistsException If a company with the given email already exists.
+     */
+    @Transactional
+    fun createCompany(
+        user: User,
+        request: CreateCompanyRequest,
+    ): Company {
+        if (user.userRole != UserRole.CURATOR) {
+            throw NotAuthorizedException()
+        }
+        val userEntity = userService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
+        // Check if a company with the same email already exists
+        if (companyRepository.existsByEmail(request.email)) {
+            throw PostCompanyExistsException()
+        }
+
+        // Map CreateCompanyRequest to CompanyEntity
+        val companyEntity =
+            CompanyEntity(
+                admin = userEntity,
+                companyName = request.companyName,
+                email = request.email,
+                series = request.series,
+                explanation = request.explanation,
+                slogan = request.slogan,
+                investAmount = request.investAmount ?: 0,
+                investCompany = request.investCompany,
+                imageLink = request.imageLink,
+                irDeckLink = request.irDeckLink,
+                landingPageLink = request.landingPageLink,
+                links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
+                tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
+            )
+
+        // Save the CompanyEntity
+        val savedCompany = companyRepository.save(companyEntity)
+
+        // Convert to Company DTO
+        return Company.fromEntity(savedCompany)
+    }
+
+    @Transactional
+    fun createPosition(
+        user: User,
+        companyId: String,
+        request: CreatePositionRequest,
+    ): Position {
+        if (user.userRole != UserRole.CURATOR) {
+            throw NotAuthorizedException()
+        }
+        // Retrieve the company by ID
+        val company =
+            companyRepository.findById(companyId)
+                .orElseThrow { PostCompanyNotFoundException(mapOf("companyId" to companyId)) }
+
+        // Check if the user is the admin of the company
+        if (company.admin.id != user.id) {
+            throw PostAccessForbiddenException()
+        }
+
+        // Map CreatePositionRequest to PositionEntity
+        val positionEntity =
+            PositionEntity(
+                title = request.title,
+                category = request.category,
+                detail = request.detail,
+                headcount = request.headcount,
+                employmentEndDate = request.employmentEndDate,
+                isActive = request.isActive ?: false,
+                company = company,
+            )
+
+        // Save the PositionEntity
+        val savedPosition = positionRepository.save(positionEntity)
+
+        // Convert to Position DTO
+        return Position.fromEntity(savedPosition)
+    }
+    
     // normal 유저 탈퇴 시 bookmark 데이터를 삭제
     // curator 유저가 작성한 company, position 데이터는 유지
     @Transactional(propagation = Propagation.REQUIRED)
