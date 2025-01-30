@@ -3,10 +3,7 @@ package com.waffletoy.team1server.post.persistence
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostInvalidFiltersException
 import com.waffletoy.team1server.post.Series
-import jakarta.persistence.criteria.CriteriaBuilder
-import jakarta.persistence.criteria.Join
-import jakarta.persistence.criteria.Predicate
-import jakarta.persistence.criteria.Root
+import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
 
@@ -18,9 +15,11 @@ class PositionSpecification {
             investmentMin: Int?,
             status: Int,
             series: List<String>?,
+            order: Int,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
         ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
+                requireNotNull(query) { "CriteriaQuery should not be null" }
 
                 val endDay = LocalDateTime.of(2099, 12, 31, 23, 59)
 
@@ -35,6 +34,18 @@ class PositionSpecification {
                         buildStatusPredicate(root, criteriaBuilder, status, currentDateTime, endDay),
                     )
 
+                // 중복 방지
+                query.distinct(true)
+
+                // 정렬 추가
+                sortPredicate(root, criteriaBuilder, query, order, currentDateTime)
+
+                // where 조건 설정
+                if (predicates.isNotEmpty()) {
+                    query.where(*predicates.toTypedArray())
+                }
+
+                // `Predicate?` 반환
                 criteriaBuilder.and(*predicates.toTypedArray())
             }
         }
@@ -119,6 +130,37 @@ class PositionSpecification {
                 2 -> null // 조건 없음
                 else -> throw PostInvalidFiltersException(details = mapOf("status" to status))
             }
+        }
+
+        private fun <T> sortPredicate(
+            root: Root<PositionEntity>,
+            criteriaBuilder: CriteriaBuilder,
+            query: CriteriaQuery<T>,
+            order: Int,
+            currentDateTime: LocalDateTime,
+        ) {
+            val employmentEndDate = criteriaBuilder.coalesce(root.get<LocalDateTime>("employmentEndDate"), LocalDateTime.of(2099, 12, 31, 23, 59))
+
+            val orderList = mutableListOf<Order>()
+
+            when (order) {
+                1 -> {
+                    // 마감순 정렬 (CASE WHEN을 Criteria API로 구현)
+                    val caseExpression =
+                        criteriaBuilder.selectCase<Int>()
+                            .`when`(criteriaBuilder.greaterThan(employmentEndDate, currentDateTime), criteriaBuilder.literal(1))
+                            .otherwise(criteriaBuilder.literal(2))
+
+                    orderList.add(criteriaBuilder.asc(caseExpression))
+                    orderList.add(criteriaBuilder.asc(employmentEndDate))
+                }
+                else -> {
+                    // 최신순 정렬 (updatedAt 기준)
+                    orderList.add(criteriaBuilder.desc(root.get<LocalDateTime>("updatedAt")))
+                }
+            }
+
+            query.orderBy(orderList)
         }
     }
 }
