@@ -46,8 +46,9 @@ class PostController(
         @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
         @RequestParam(required = false) series: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
+        @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
     ): ResponseEntity<PostWithPage> {
-        val posts = postService.getPosts(user, roles, investmentMax, investmentMin, status, series, page ?: 0)
+        val posts = postService.getPosts(user, roles, investmentMax, investmentMin, status, series, page ?: 0, order ?: 0)
 
         // 총 페이지
         val totalPages = posts.totalPages

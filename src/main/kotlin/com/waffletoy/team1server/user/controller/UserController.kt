@@ -19,7 +19,7 @@ class UserController(
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
     // Endpoints for signups
-    //로컬 아이디 중복 확인
+    // 로컬 아이디 중복 확인
     @PostMapping("/signup/check-id")
     fun checkDuplicateId(
         @Valid @RequestBody request: CheckDuplicateIdRequest,
@@ -133,8 +133,6 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-
-
     // Endpoint for resetting DB for testing
     // reset DB는 비활성화
 //    @PostMapping("/resetDB")
@@ -144,9 +142,6 @@ class UserController(
 //        userService.resetDatabase(secret)
 //        return ResponseEntity.ok("Database has been reset.")
 //    }
-
-    
-
 }
 
 data class CheckDuplicateIdRequest(

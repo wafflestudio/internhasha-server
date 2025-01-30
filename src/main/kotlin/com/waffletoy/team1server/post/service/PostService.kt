@@ -7,13 +7,14 @@ import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.Post
 import com.waffletoy.team1server.post.dto.TagVo
 import com.waffletoy.team1server.post.persistence.*
-import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
 import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +26,7 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
-    private val userService: UserService,
+    @Lazy private val userService: UserService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -73,6 +74,7 @@ class PostService(
         status: Int?,
         series: List<String>?,
         page: Int = 0,
+        order: Int = 0,
     ): Page<Post> {
         // Example validation: investmentMin should not exceed investmentMax
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
@@ -95,7 +97,17 @@ class PostService(
             )
 
         val validPage = if (page < 0) 0 else page
-        val pageable = PageRequest.of(validPage, pageSize)
+
+        // 정렬 조건 설정
+        val sort =
+            when (order) {
+                // 마감순 (오름차순)
+                1 -> Sort.by(Sort.Direction.ASC, "employmentEndDate")
+                // 최신순 (기본값, 내림차순)
+                else -> Sort.by(Sort.Direction.DESC, "updatedAt")
+            }
+
+        val pageable = PageRequest.of(validPage, pageSize, sort)
         val positionPage = positionRepository.findAll(specification, pageable)
 
         val bookmarkIds = getBookmarkIds(user)
@@ -283,7 +295,7 @@ class PostService(
 
     // normal 유저 탈퇴 시 bookmark 데이터를 삭제
     // curator 유저가 작성한 company, position 데이터는 유지
-    fun deleteBookmarkByUser(userEntity: UserEntity){
+    fun deleteBookmarkByUser(userEntity: UserEntity) {
         bookmarkRepository.deleteAllByUser(userEntity)
     }
 

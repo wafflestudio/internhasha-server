@@ -12,6 +12,7 @@ import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.utils.UserTokenUtil
 import jakarta.transaction.Transactional
 import org.mindrot.jbcrypt.BCrypt
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -20,9 +21,9 @@ class UserService(
     private val userRepository: UserRepository,
     private val userRedisCacheService: UserRedisCacheService,
     private val googleOAuth2Client: GoogleOAuth2Client,
-    private val emailService: EmailService,
-    private val postService: PostService,
-    private val resumeService: ResumeService,
+    @Lazy private val emailService: EmailService,
+    @Lazy private val resumeService: ResumeService,
+    @Lazy private val postService: PostService,
 ) {
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
@@ -230,7 +231,7 @@ class UserService(
             )
         }
         // Additional sign-out logic if necessary
-        
+
         // 로그아웃 시 Refresh Token 삭제
         // (Access Token 은 클라이언트 측에서 삭제)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
@@ -347,11 +348,12 @@ class UserService(
             )
         }
 
-        val userEntity = userRepository.findByIdOrNull(user.id)
-            ?: throw UserNotFoundException(
-                details = mapOf("userId" to user.id),
-            )
-        
+        val userEntity =
+            userRepository.findByIdOrNull(user.id)
+                ?: throw UserNotFoundException(
+                    details = mapOf("userId" to user.id),
+                )
+
         // 외래키 제약이 걸려있는 bookmark, resume 를 삭제
         postService.deleteBookmarkByUser(userEntity)
         resumeService.deleteResumeByUser(userEntity)
