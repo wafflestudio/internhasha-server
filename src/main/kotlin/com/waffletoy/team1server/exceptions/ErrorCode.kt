@@ -22,6 +22,7 @@ enum class ErrorCode(
     AUTH_INVALID_ACCESS_TOKEN("AUTH_004", "Invalid access token.", HttpStatus.UNAUTHORIZED),
     AUTH_TOKEN_MISMATCH("AUTH_005", "Access token does not match the refresh token.", HttpStatus.BAD_REQUEST),
     AUTH_OAUTH_FAILURE("AUTH_006", "OAUTH failure.", HttpStatus.UNAUTHORIZED),
+    AUTH_NOT_AUTHORIZED("AUTH_007", "Not authorized.", HttpStatus.UNAUTHORIZED),
 
     // Email-related errors
     EMAIL_VERIFICATION_FAILED("EMAIL_001", "Email verification failed.", HttpStatus.BAD_REQUEST),
@@ -42,7 +43,9 @@ enum class ErrorCode(
     POST_INVALID_FILTERS("POST_004", "Invalid filters provided for fetching posts.", HttpStatus.BAD_REQUEST),
     POST_CREATION_FAILED("POST_005", "Failed to create the post.", HttpStatus.INTERNAL_SERVER_ERROR),
     POST_DELETION_FAILED("POST_006", "Failed to delete the post.", HttpStatus.INTERNAL_SERVER_ERROR),
-
+    POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
+    POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
+    POST_ACCESS_FORBIDDEN("POST_009", "Access to this company forbidden.", HttpStatus.FORBIDDEN),
     // Resume-related errors
     RESUME_NOT_FOUND("RESUME_001", "The requested resume was not found.", HttpStatus.NOT_FOUND),
     RESUME_FORBIDDEN("RESUME_002", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),
