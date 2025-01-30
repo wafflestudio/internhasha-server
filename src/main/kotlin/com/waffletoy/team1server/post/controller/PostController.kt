@@ -144,7 +144,7 @@ class PostController(
         @AuthUser user: User,
         @Valid @RequestBody request: CreateCompanyRequest,
     ): ResponseEntity<Company> {
-        val company = postService.createCompany(user, request);
+        val company = postService.createCompany(user, request)
         return ResponseEntity.ok(company)
     }
 
@@ -153,7 +153,7 @@ class PostController(
         @AuthUser user: User,
         @PathVariable("company_id") companyId: String,
         @Valid @RequestBody request: CreatePositionRequest,
-    ): ResponseEntity<Position>  {
+    ): ResponseEntity<Position> {
         val position = postService.createPosition(user, companyId, request)
         return ResponseEntity.ok(position)
     }

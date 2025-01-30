@@ -2,22 +2,17 @@ package com.waffletoy.team1server.post.dto
 
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.persistence.CompanyEntity
-import jakarta.validation.Valid
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
-import org.hibernate.validator.constraints.URL
 import java.time.LocalDateTime
 
-class Company (
+class Company(
     val id: String,
     val companyName: String,
     val email: String,
     val series: Series,
-    // Alternatively, consider using an enum type for better type safety
     val explanation: String? = null,
     val slogan: String? = null,
-    val investAmount: Int? = null, // Defaults to 0 if not provided
+    // Defaults to 0 if not provided
+    val investAmount: Int? = null,
     val investCompany: String? = null,
     val imageLink: String? = null,
     val irDeckLink: String? = null,
@@ -26,7 +21,7 @@ class Company (
     val updatedAt: LocalDateTime,
     val links: List<Link> = emptyList(),
     val tags: List<Tag> = emptyList(),
-    val positions: List<Position>
+    val positions: List<Position>,
 ) {
     companion object {
         fun fromEntity(entity: CompanyEntity): Company {
@@ -34,10 +29,11 @@ class Company (
                 id = entity.id,
                 companyName = entity.companyName,
                 email = entity.email,
-                series = entity.series, // Assuming Series is an enum
+                series = entity.series,
                 explanation = entity.explanation,
                 slogan = entity.slogan,
-                investAmount = entity.investAmount.takeIf { it > 0 }, // Optional field
+                // Optional field
+                investAmount = entity.investAmount.takeIf { it > 0 },
                 investCompany = entity.investCompany,
                 imageLink = entity.imageLink,
                 irDeckLink = entity.irDeckLink,
@@ -46,7 +42,7 @@ class Company (
                 updatedAt = entity.updatedAt,
                 links = entity.links.map { Link.fromVo(it) },
                 tags = entity.tags.map { Tag.fromVo(it) },
-                positions = entity.positions.map { Position.fromEntity(it) }
+                positions = entity.positions.map { Position.fromEntity(it) },
             )
         }
     }
