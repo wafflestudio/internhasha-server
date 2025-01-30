@@ -145,6 +145,15 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    // 아이디(또는 소셜 로그인 정보)를 찾아 메일로 전송
+    @PostMapping("/help/find-Id")
+    fun findId(
+        @Valid @RequestBody request: FindIdRequest,
+    ): ResponseEntity<Void> {
+        userService.findIdAndFetchInfo(request)
+        return ResponseEntity.ok().build()
+    }
+
     // Endpoint for resetting DB for testing
     // reset DB는 비활성화
 //    @PostMapping("/resetDB")
@@ -197,4 +206,16 @@ data class ChangePasswordRequest(
         message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
     )
     val newPassword: String,
+)
+
+data class FindIdRequest(
+    @field:NotBlank(message = "Email is required")
+    @field:Pattern(regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$", message = "Email must end with @snu.ac.kr")
+    val snuMail: String,
+)
+
+data class ResetPasswordRequest(
+    @field:NotBlank(message = "Email is required")
+    @field:Pattern(regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$", message = "Email must end with @snu.ac.kr")
+    val snuMail: String,
 )
