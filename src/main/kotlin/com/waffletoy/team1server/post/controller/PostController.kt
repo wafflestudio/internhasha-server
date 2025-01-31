@@ -104,17 +104,19 @@ class PostController(
     // s3 bucket
     @PostMapping("/upload/presigned")
     fun generateUploadPresignedUrl(
+        @Parameter(hidden = true) @AuthUser user: User,
         @RequestBody preSignedUploadReq: PreSignedUploadReq,
     ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateUploadPreSignUrl(preSignedUploadReq, bucketName)
+        val presignedUrl = s3Service.generateUploadPreSignUrl(user, preSignedUploadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
     }
 
     @PostMapping("/download/presigned")
     fun generateDownloadPresignedUrl(
+        @Parameter(hidden = true) @AuthUser user: User,
         @RequestBody preSignedDownloadReq: PreSignedDownloadReq,
     ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateDownloadPreSignUrl(preSignedDownloadReq, bucketName)
+        val presignedUrl = s3Service.generateDownloadPreSignUrl(user, preSignedDownloadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
     }
 

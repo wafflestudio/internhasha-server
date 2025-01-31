@@ -6,8 +6,11 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.waffletoy.team1server.exceptions.S3SDKClientFailedException
 import com.waffletoy.team1server.exceptions.S3UrlGenerationFailedException
+import com.waffletoy.team1server.exceptions.UserRoleConflictException
 import com.waffletoy.team1server.post.controller.PreSignedDownloadReq
 import com.waffletoy.team1server.post.controller.PreSignedUploadReq
+import com.waffletoy.team1server.user.UserRole
+import com.waffletoy.team1server.user.dtos.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -20,10 +23,14 @@ class S3Service(
     private val amazonS3: AmazonS3,
 ) {
     fun generateUploadPreSignUrl(
+        user: User,
         preSignedUploadReq: PreSignedUploadReq,
         bucketName: String,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
+        if (user.userRole != UserRole.CURATOR) {
+            throw UserRoleConflictException()
+        }
         try {
             val filePath = "${preSignedUploadReq.fileName}.${preSignedUploadReq.fileType}"
             val expiration = calculateExpiration(expirationMinutes)
@@ -36,10 +43,14 @@ class S3Service(
     }
 
     fun generateDownloadPreSignUrl(
+        user: User,
         preSignedDownloadReq: PreSignedDownloadReq,
         bucketName: String,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
+        if (user.userRole != UserRole.CURATOR) {
+            throw UserRoleConflictException()
+        }
         try {
             val expiration = calculateExpiration(expirationMinutes)
             return amazonS3.generatePresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET).toString()
