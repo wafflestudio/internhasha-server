@@ -63,10 +63,10 @@ class UserService(
                 }
             }
         val tokens = UserTokenUtil.generateTokens(user)
-        
+
         // 발급 받은 refresh token을 redis에 저장합니다.
         userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
-        
+
         return Pair(user, tokens)
     }
 
@@ -202,10 +202,10 @@ class UserService(
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
 
         val tokens = UserTokenUtil.generateTokens(user)
-        
+
         // 발급 받은 refresh token을 redis에 저장합니다.
         userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
-        
+
         return Pair(user, tokens)
     }
 
@@ -299,11 +299,11 @@ class UserService(
                 ?: throw UserNotFoundException(
                     details = mapOf("userId" to userId),
                 )
-        
+
         val tokens = UserTokenUtil.generateTokens(User.fromEntity(entity = userEntity))
         // 발급 받은 refresh token을 redis에 저장합니다.
-        userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
-        
+        userRedisCacheService.saveRefreshToken(userEntity.id, tokens.refreshToken)
+
         return tokens
     }
 
