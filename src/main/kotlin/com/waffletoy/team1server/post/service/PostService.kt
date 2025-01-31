@@ -62,6 +62,7 @@ class PostService(
      * @param investmentMin Minimum investment amount.
      * @param status Status filter (e.g., active, inactive).
      * @param series List of series names to filter by.
+     * @param order sort posts by newest(0) or employmentEndDate(1)
      * @param page The page number to retrieve.
      * @return A paginated [Page] of [Post].
      * @throws PostInvalidFiltersException If invalid filters are provided.
@@ -202,7 +203,16 @@ class PostService(
      * @param cnt The number of dummy posts to create.
      */
     @Transactional
-    fun makeDummyPosts(cnt: Int) {
+    fun makeDummyPosts(
+        cnt: Int,
+        secret: String,
+    ) {
+        if (secret != devSecret) {
+            throw InvalidRequestException(
+                details = mapOf("providedSecret" to secret),
+            )
+        }
+
         val companies = mutableListOf<CompanyEntity>()
         val positions = mutableListOf<PositionEntity>()
 
@@ -249,20 +259,20 @@ class PostService(
         positionRepository.saveAll(positions)
     }
 
-    /**
-     * Resets the database by deleting all companies, bookmarks, and positions.
-     */
-    @Transactional
-    fun resetDB(secret: String) {
-        if (secret != resetDbSecret) {
-            throw InvalidRequestException(
-                details = mapOf("providedSecret" to secret),
-            )
-        }
-        companyRepository.deleteAll()
-        bookmarkRepository.deleteAll()
-        positionRepository.deleteAll()
-    }
+//    /**
+//     * Resets the database by deleting all companies, bookmarks, and positions.
+//     */
+//    @Transactional
+//    fun resetDB(secret: String) {
+//        if (secret != resetDbSecret) {
+//            throw InvalidRequestException(
+//                details = mapOf("providedSecret" to secret),
+//            )
+//        }
+//        companyRepository.deleteAll()
+//        bookmarkRepository.deleteAll()
+//        positionRepository.deleteAll()
+//    }
 
     fun getUserEntityOrThrow(userId: String): UserEntity =
         userService.getUserEntityByUserId(userId) ?: throw UserNotFoundException(mapOf("userId" to userId))
@@ -379,5 +389,5 @@ class PostService(
     }
 
     @Value("\${custom.SECRET}")
-    private lateinit var resetDbSecret: String
+    private lateinit var devSecret: String
 }

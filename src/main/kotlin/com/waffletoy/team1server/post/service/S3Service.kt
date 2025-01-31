@@ -1,7 +1,11 @@
 package com.waffletoy.team1server.post.service
 
 import com.amazonaws.HttpMethod
+import com.amazonaws.SdkClientException
 import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.waffletoy.team1server.exceptions.S3SDKClientFailedException
+import com.waffletoy.team1server.exceptions.S3UrlGenerationFailedException
 import com.waffletoy.team1server.post.controller.PreSignedDownloadReq
 import com.waffletoy.team1server.post.controller.PreSignedUploadReq
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,9 +24,15 @@ class S3Service(
         bucketName: String,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
-        val filePath = "${preSignedUploadReq.fileName}.${preSignedUploadReq.fileType}"
-        val expiration = calculateExpiration(expirationMinutes)
-        return amazonS3.generatePresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT).toString()
+        try {
+            val filePath = "${preSignedUploadReq.fileName}.${preSignedUploadReq.fileType}"
+            val expiration = calculateExpiration(expirationMinutes)
+            return amazonS3.generatePresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT).toString()
+        } catch (e: AmazonS3Exception) {
+            throw S3UrlGenerationFailedException()
+        } catch (e: SdkClientException) {
+            throw S3SDKClientFailedException()
+        }
     }
 
     fun generateDownloadPreSignUrl(
@@ -30,8 +40,14 @@ class S3Service(
         bucketName: String,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
-        val expiration = calculateExpiration(expirationMinutes)
-        return amazonS3.generatePresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET).toString()
+        try {
+            val expiration = calculateExpiration(expirationMinutes)
+            return amazonS3.generatePresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET).toString()
+        } catch (e: AmazonS3Exception) {
+            throw S3UrlGenerationFailedException()
+        } catch (e: SdkClientException) {
+            throw S3SDKClientFailedException()
+        }
     }
 
     private fun calculateExpiration(expirationMinutes: Long): Date {
