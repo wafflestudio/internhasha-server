@@ -198,6 +198,10 @@ class UserService(
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
 
         val tokens = UserTokenUtil.generateTokens(user)
+        
+        // 새로 발급 받은 refresh token을 redis에 저장합니다.
+        userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
+        
         return Pair(user, tokens)
     }
 
