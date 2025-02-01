@@ -69,7 +69,7 @@ class PostController(
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Void> {
         postService.addBookmark(user.id, postId)
-        return ResponseEntity.status(HttpStatus.CREATED).build()
+        return ResponseEntity.ok().build()
     }
 
     // 관심 채용 삭제하기
@@ -79,7 +79,7 @@ class PostController(
         @PathVariable("post_id") postId: String,
     ): ResponseEntity<Void> {
         postService.deleteBookmark(user.id, postId)
-        return ResponseEntity.noContent().build()
+        return ResponseEntity.ok().build()
     }
 
     // 북마크 가져오기
@@ -149,7 +149,7 @@ class PostController(
         @Valid @RequestBody request: CreateCompanyRequest,
     ): ResponseEntity<Company> {
         val company = postService.createCompany(user, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(company)
+        return ResponseEntity.ok(company)
     }
 
     @PostMapping("/company/{company_id}/position")
@@ -159,7 +159,7 @@ class PostController(
         @Valid @RequestBody request: CreatePositionRequest,
     ): ResponseEntity<Position> {
         val position = postService.createPosition(user, companyId, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(position)
+        return ResponseEntity.ok(position)
     }
 
     @GetMapping("/company/me")
