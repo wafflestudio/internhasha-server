@@ -36,11 +36,11 @@ class CompanyEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "SERIES", nullable = false)
     open var series: Series = Series.SEED,
-    @Column(name = "IMAGE_LINK")
+    @Column(name = "IMAGE_LINK", length = 2048)
     open var imageLink: String? = null,
-    @Column(name = "IR_DECK_LINK")
+    @Column(name = "IR_DECK_LINK", length = 2048)
     open var irDeckLink: String? = null,
-    @Column(name = "LANDING_PAGE_LINK")
+    @Column(name = "LANDING_PAGE_LINK", length = 2048)
     open var landingPageLink: String? = null,
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false)
