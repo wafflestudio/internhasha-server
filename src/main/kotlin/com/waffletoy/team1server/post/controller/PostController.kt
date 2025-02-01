@@ -162,7 +162,7 @@ class PostController(
         return ResponseEntity.status(HttpStatus.CREATED).body(position)
     }
 
-    @GetMapping("/companies/me")
+    @GetMapping("/company/me")
     fun getCompanyByCurator(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<List<Company>> {
@@ -170,7 +170,7 @@ class PostController(
         return ResponseEntity.ok(companies)
     }
 
-    @GetMapping("/positions/me")
+    @GetMapping("/position/me")
     fun getPostByCurator(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<List<Post>> {
