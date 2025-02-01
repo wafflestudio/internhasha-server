@@ -162,12 +162,20 @@ class PostController(
         return ResponseEntity.status(HttpStatus.CREATED).body(position)
     }
 
-    @GetMapping("/company/me")
+    @GetMapping("/companies/me")
     fun getCompanyByCurator(
         @AuthUser user: User,
     ): ResponseEntity<List<Company>> {
         val companies = postService.getCompanyByCurator(user)
         return ResponseEntity.ok(companies)
+    }
+
+    @GetMapping("/positions/me")
+    fun getPostByCurator(
+        @AuthUser user: User,
+    ) : ResponseEntity<List<Post>> {
+        val posts = postService.getPostByCurator(user)
+        return ResponseEntity.ok(posts)
     }
 }
 
