@@ -149,7 +149,7 @@ class PostController(
         @Valid @RequestBody request: CreateCompanyRequest,
     ): ResponseEntity<Company> {
         val company = postService.createCompany(user, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(company)
+        return ResponseEntity.ok(company)
     }
 
     @PostMapping("/company/{company_id}/position")
@@ -159,7 +159,7 @@ class PostController(
         @Valid @RequestBody request: CreatePositionRequest,
     ): ResponseEntity<Position> {
         val position = postService.createPosition(user, companyId, request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(position)
+        return ResponseEntity.ok(position)
     }
 
     @GetMapping("/company/me")
