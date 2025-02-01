@@ -18,7 +18,7 @@ class ResumeEntity(
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "CONTENT", columnDefinition = "TEXT", nullable = true)
     open var content: String? = null,
-    @Column(name = "PHONENUMBER", length = 20, nullable = true)
+    @Column(name = "PHONE_NUMBER", length = 20, nullable = true)
     open var phoneNumber: String? = null,
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "POSITION_ID", nullable = true)
