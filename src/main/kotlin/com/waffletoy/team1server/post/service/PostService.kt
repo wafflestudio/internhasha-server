@@ -346,7 +346,7 @@ class PostService(
     fun updateCompany(
         user: User,
         request: UpdateCompanyRequest,
-        companyId: String
+        companyId: String,
     ): Company {
         var companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
         if (user.userRole != UserRole.CURATOR || companyEntity.admin.id != user.id) {
@@ -356,7 +356,10 @@ class PostService(
         return Company.fromEntity(companyEntity)
     }
 
-    private fun updateCompanyEntityWithRequest(entity: CompanyEntity, request: UpdateCompanyRequest): CompanyEntity {
+    private fun updateCompanyEntityWithRequest(
+        entity: CompanyEntity,
+        request: UpdateCompanyRequest,
+    ): CompanyEntity {
         entity.companyName = request.companyName
         entity.explanation = request.explanation
         entity.email = request.email
@@ -375,7 +378,7 @@ class PostService(
     @Transactional
     fun deleteCompany(
         user: User,
-        companyId: String
+        companyId: String,
     ) {
         val companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
         if (user.userRole != UserRole.CURATOR || companyEntity.admin.id != user.id) {
@@ -447,7 +450,6 @@ class PostService(
     @Transactional
     fun createPosition(
         user: User,
-        companyId: String,
         request: CreatePositionRequest,
     ): Position {
         if (user.userRole != UserRole.CURATOR) {
@@ -455,12 +457,12 @@ class PostService(
         }
         // Retrieve the company by ID
         val company =
-            companyRepository.findById(companyId)
-                .orElseThrow { PostCompanyNotFoundException(mapOf("companyId" to companyId)) }
+            companyRepository.findByIdOrNull(request.companyId)
+                ?: throw PostCompanyNotFoundException(mapOf("companyId" to (request.companyId ?: "null")))
 
         // Check if the user is the admin of the company
         if (company.admin.id != user.id) {
-            throw PostAccessForbiddenException()
+            throw NotAuthorizedException()
         }
 
         // Map CreatePositionRequest to PositionEntity
@@ -480,6 +482,45 @@ class PostService(
 
         // Convert to Position DTO
         return Position.fromEntity(savedPosition)
+    }
+
+    @Transactional
+    fun updatePosition(
+        user: User,
+        positionId: String,
+        request: UpdatePositionRequest,
+    ): Position {
+        var positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
+        if (user.userRole != UserRole.CURATOR || positionEntity.company.admin.id != user.id) {
+            throw NotAuthorizedException()
+        }
+        positionEntity = updatePositionEntityWithRequest(positionEntity, request)
+        return Position.fromEntity(positionEntity)
+    }
+
+    private fun updatePositionEntityWithRequest(
+        positionEntity: PositionEntity,
+        request: UpdatePositionRequest,
+    ): PositionEntity {
+        positionEntity.title = request.title
+        positionEntity.category = request.category
+        positionEntity.detail = request.detail
+        positionEntity.headcount = request.headcount
+        positionEntity.employmentEndDate = request.employmentEndDate
+        positionEntity.isActive = request.isActive ?: false
+        return positionEntity
+    }
+
+    @Transactional
+    fun deletePosition(
+        user: User,
+        positionId: String,
+    ) {
+        val positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
+        if (user.userRole != UserRole.CURATOR || positionEntity.company.admin.id != user.id) {
+            throw NotAuthorizedException()
+        }
+        positionRepository.delete(positionEntity)
     }
 
     // normal 유저 탈퇴 시 bookmark 데이터를 삭제
