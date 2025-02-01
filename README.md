@@ -9,17 +9,17 @@
 [프론트 레포로 이동하기](https://github.com/wafflestudio/22-5-team1-web)
 
 ## 👥 팀원
-
-- **[이종현](https://github.com/lukeqwaszx)**
-  - 백엔드, 기획
-- **[임광섭](https://github.com/endermaru)**
-  - 백엔드
-- **[김연우](https://github.com/Yeonu-Kim)**
-  - 프론트엔드
-- **[최장혁](https://github.com/goranikin)**
-  - 프론트엔드, PM
-- **빈채현**
-  - 디자인
+- **[최장혁](https://github.com/goranikin) - 팀장, 프론트엔드**
+- **[김연우](https://github.com/Yeonu-Kim) - 프론트엔드**
+- **빈채현 - 디자인**
+- **[이종현](https://github.com/lukeqwaszx) - 백엔드**
+  > - User 패키지 리팩토링
+  > - Exception Handler
+  > - Post 패키지 CRUD 등 Curator 관련 서비스 구현
+- **[임광섭](https://github.com/endermaru) - 백엔드**
+  > - 초기 세팅 및 각 패키지 별 기본 서비스 구현
+  > - Post 필터링, SMTP 서비스
+  > - Redis
 
 
 ## 🚀 기술 스택(백엔드)
