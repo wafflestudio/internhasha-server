@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.user.persistence.UserEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -15,4 +16,11 @@ interface PositionRepository : JpaRepository<PositionEntity, String>, JpaSpecifi
         @Param("ids") ids: List<String>,
         pageable: Pageable,
     ): Page<PositionEntity>
+
+    @Query(
+        "SELECT p FROM PositionEntity p " +
+            "JOIN p.company c " +
+            "WHERE c.admin = :admin",
+    )
+    fun findByAdmin(admin: UserEntity): List<PositionEntity>
 }
