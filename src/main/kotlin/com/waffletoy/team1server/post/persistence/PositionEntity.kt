@@ -16,7 +16,7 @@ class PositionEntity(
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @Column(name = "TITLE", nullable = false)
-    open val title: String = "",
+    open var title: String = "",
     @Column(name = "CATEGORY", nullable = false)
     @Enumerated(EnumType.STRING)
     open var category: Category,
@@ -33,7 +33,7 @@ class PositionEntity(
     @Column(name = "EMPLOYMENT_END_DATE", nullable = true)
     open var employmentEndDate: LocalDateTime? = null,
     @Column(name = "IS_ACTIVE", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    open val isActive: Boolean = false,
+    open var isActive: Boolean = false,
     // 특정 Company에 join
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY_ID", nullable = false)
