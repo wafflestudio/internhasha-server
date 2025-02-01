@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.user.persistence.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -12,4 +13,6 @@ interface CompanyRepository : JpaRepository<CompanyEntity, String> {
      * @return True if a company with the email exists, else false.
      */
     fun existsByEmail(email: String): Boolean
+
+    fun findAllByAdmin(admin: UserEntity): List<CompanyEntity>
 }

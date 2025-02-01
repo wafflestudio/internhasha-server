@@ -27,7 +27,6 @@ class PostService(
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
     @Lazy private val userService: UserService,
-    private val userRepository: UserRepository,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -341,6 +340,15 @@ class PostService(
 
         // Convert to Company DTO
         return Company.fromEntity(savedCompany)
+    }
+
+    @Transactional
+    fun getCompanyByCurator(user: User): List<Company> {
+        if (user.userRole != UserRole.CURATOR) {
+            throw NotAuthorizedException()
+        }
+        val userEntity = userService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
+        return companyRepository.findAllByAdmin(userEntity).map { Company.fromEntity(it) }
     }
 
     @Transactional
