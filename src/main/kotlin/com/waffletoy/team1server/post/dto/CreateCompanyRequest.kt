@@ -31,3 +31,5 @@ data class CreateCompanyRequest(
     @field:Valid
     val tags: List<Tag> = emptyList(),
 )
+
+typealias UpdateCompanyRequest = CreateCompanyRequest
