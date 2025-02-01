@@ -3,5 +3,5 @@ package com.waffletoy.team1server.post.dto
 data class AuthorBrief(
     val id: String,
     val name: String,
-    val profileImageLink: String?,
+    val profileImageLink: FileInfo,
 )

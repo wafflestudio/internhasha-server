@@ -45,7 +45,11 @@ data class Post(
                     AuthorBrief(
                         id = entity.company.admin.id,
                         name = entity.company.admin.name,
-                        profileImageLink = entity.company.admin.profileImageLink,
+                        profileImageLink =
+                            FileInfo(
+                                entity.company.admin.profileImageFileName,
+                                entity.company.admin.profileImageFileInfo,
+                            ),
                     ),
                 companyName = entity.company.companyName,
                 explanation = entity.company.explanation ?: "",

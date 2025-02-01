@@ -49,8 +49,10 @@ class UserEntity(
     // 역시 Position Entity에서 조회할 예정
 //    @OneToMany(mappedBy = "admin")
 //    var posts: MutableList<CompanyEntity> = mutableListOf(),
-    @Column(name = "profile_image_link", nullable = true, length = 2048)
-    val profileImageLink: String? = null,
+    @Column(name = "profile_image_file_name", nullable = true)
+    val profileImageFileName: String? = null,
+    @Column(name = "profile_image_file_info", nullable = true)
+    val profileImageFileInfo: String? = null,
 ) {
     // Validates either local or google login is provided
     @PrePersist

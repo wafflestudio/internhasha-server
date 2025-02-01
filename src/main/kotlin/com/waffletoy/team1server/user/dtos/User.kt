@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.user.dtos
 
+import com.waffletoy.team1server.post.dto.FileInfo
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
 import java.time.LocalDateTime
@@ -14,7 +15,7 @@ data class User(
     val phoneNumber: String?,
 //    val resumes: List<Resume>?,
 //    val posts: List<Post>?,
-    val profileImageLink: String?,
+    val profileImageLink: FileInfo,
     val isMerged: Boolean,
 ) {
     companion object {
@@ -33,7 +34,11 @@ data class User(
                 phoneNumber = entity.phoneNumber,
 //                resumes = if (includeResumes) entity.resumes.map { Resume.fromEntity(it, false) } else null,
 //                posts = entity.posts.map { Post.fromEntity(it.roles) },
-                profileImageLink = entity.profileImageLink,
+                profileImageLink =
+                    FileInfo(
+                        entity.profileImageFileName,
+                        entity.profileImageFileInfo,
+                    ),
                 isMerged = isMerged,
             )
     }
