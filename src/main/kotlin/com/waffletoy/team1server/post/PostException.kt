@@ -43,7 +43,7 @@ class PostCompanyNotFoundException(details: Map<String, Any>? = null) : ApiExcep
     details = details,
 )
 
-class PostAccessForbiddenException(details: Map<String, Any>? = null) : ApiException(
-    errorCode = ErrorCode.POST_ACCESS_FORBIDDEN,
+class PostPositionNotFoundException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_POSITION_NOT_FOUND,
     details = details,
 )
