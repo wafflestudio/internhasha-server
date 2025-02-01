@@ -352,6 +352,19 @@ class PostService(
     }
 
     @Transactional
+    fun getPostByCurator(user: User): List<Post> {
+        if (user.userRole != UserRole.CURATOR) {
+            throw NotAuthorizedException()
+        }
+        val userEntity =
+            userService.getUserEntityByUserId(user.id)
+                ?: throw UserNotFoundException(mapOf("userId" to user.id))
+
+        val positions = positionRepository.findByAdmin(userEntity)
+        return positions.map { Post.fromEntity(it) }
+    }
+
+    @Transactional
     fun createPosition(
         user: User,
         companyId: String,

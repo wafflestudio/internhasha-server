@@ -145,7 +145,7 @@ class PostController(
 
     @PostMapping("/company")
     fun createCompany(
-        @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser user: User,
         @Valid @RequestBody request: CreateCompanyRequest,
     ): ResponseEntity<Company> {
         val company = postService.createCompany(user, request)
@@ -154,7 +154,7 @@ class PostController(
 
     @PostMapping("/company/{company_id}/position")
     fun createPosition(
-        @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable("company_id") companyId: String,
         @Valid @RequestBody request: CreatePositionRequest,
     ): ResponseEntity<Position> {
@@ -164,7 +164,7 @@ class PostController(
 
     @GetMapping("/companies/me")
     fun getCompanyByCurator(
-        @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<List<Company>> {
         val companies = postService.getCompanyByCurator(user)
         return ResponseEntity.ok(companies)
@@ -172,8 +172,8 @@ class PostController(
 
     @GetMapping("/positions/me")
     fun getPostByCurator(
-        @AuthUser user: User,
-    ) : ResponseEntity<List<Post>> {
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<List<Post>> {
         val posts = postService.getPostByCurator(user)
         return ResponseEntity.ok(posts)
     }
