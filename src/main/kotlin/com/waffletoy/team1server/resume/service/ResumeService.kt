@@ -115,8 +115,7 @@ class ResumeService(
         // 이메일 전송
         try {
             emailService.sendEmail(
-//                to = companyEntity.email,
-                to = "endermaru@snu.ac.kr",
+                to = companyEntity.email,
                 subject = "[인턴하샤] 지원자 커피챗이 도착하였습니다.",
                 text =
                     """
