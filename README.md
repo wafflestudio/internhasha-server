@@ -33,6 +33,11 @@
 - **배포** : Docker, Docker Compose
 
 ## 🔥 우리 조의 자랑할 거리
+- 자랑1
+- 자랑2
+
+## 🏗️ ERD
+![ERD](https://github.com/user-attachments/assets/a91ffb95-3cc7-4c0d-ad05-5f4bf049b84e)
 
 ## 📜 API 문서
 
