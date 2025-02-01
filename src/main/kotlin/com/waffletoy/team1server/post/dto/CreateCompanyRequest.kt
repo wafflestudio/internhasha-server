@@ -20,9 +20,9 @@ data class CreateCompanyRequest(
     @field:Min(value = 0, message = "Invest amount must be non-negative.")
     val investAmount: Int? = null,
     val investCompany: String? = null,
-    @field:URL(message = "Image link must be a valid URL.")
+    // @field:URL(message = "Image link must be a valid URL.")
     val imageLink: String? = null,
-    @field:URL(message = "IR deck link must be a valid URL.")
+    // @field:URL(message = "IR deck link must be a valid URL.")
     val irDeckLink: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
     val landingPageLink: String? = null,
