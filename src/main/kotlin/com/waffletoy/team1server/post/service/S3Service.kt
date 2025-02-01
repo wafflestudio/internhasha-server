@@ -6,7 +6,7 @@ import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.waffletoy.team1server.exceptions.S3SDKClientFailedException
 import com.waffletoy.team1server.exceptions.S3UrlGenerationFailedException
-import com.waffletoy.team1server.exceptions.UserRoleConflictException
+import com.waffletoy.team1server.exceptions.UserNotAuthorizedException
 import com.waffletoy.team1server.post.controller.PreSignedDownloadReq
 import com.waffletoy.team1server.post.controller.PreSignedUploadReq
 import com.waffletoy.team1server.user.UserRole
@@ -29,7 +29,7 @@ class S3Service(
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         if (user.userRole != UserRole.CURATOR) {
-            throw UserRoleConflictException()
+            throw UserNotAuthorizedException()
         }
         try {
             val filePath = "${preSignedUploadReq.fileName}.${preSignedUploadReq.fileType}"
@@ -49,7 +49,7 @@ class S3Service(
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         if (user.userRole != UserRole.CURATOR) {
-            throw UserRoleConflictException()
+            throw UserNotAuthorizedException()
         }
         try {
             val expiration = calculateExpiration(expirationMinutes)

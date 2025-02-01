@@ -110,3 +110,8 @@ class S3SDKClientFailedException(details: Map<String, Any>? = null) : ApiExcepti
     errorCode = ErrorCode.POST_S3_SDK_FAILED,
     details = details,
 )
+
+class UserNotAuthorizedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.USER_INVALID_ROLE,
+    details = details,
+)
