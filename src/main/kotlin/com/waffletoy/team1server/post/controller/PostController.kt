@@ -173,9 +173,26 @@ class PostController(
     @GetMapping("/position/me")
     fun getPostByCurator(
         @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<List<PostBrief>> {
-        val posts = postService.getPostByCurator(user)
-        return ResponseEntity.ok(posts)
+        @RequestParam(required = false) roles: List<String>?,
+        @RequestParam(required = false) @Min(0) investmentMax: Int?,
+        @RequestParam(required = false) @Min(0) investmentMin: Int?,
+        @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
+        @RequestParam(required = false) series: List<String>?,
+        @RequestParam(required = false) @Min(0) page: Int?,
+        @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
+    ): ResponseEntity<PostWithPage> {
+        val posts = postService.getPostByCurator(user, roles, investmentMax, investmentMin, status, series, page ?: 0, order ?: 0)
+
+        // 총 페이지
+        val totalPages = posts.totalPages
+
+        // PostBrief로 매핑하여 반환
+        return ResponseEntity.ok(
+            PostWithPage(
+                posts = posts.content.map { PostBrief.fromPost(it) },
+                paginator = Paginator(totalPages),
+            ),
+        )
     }
 }
 

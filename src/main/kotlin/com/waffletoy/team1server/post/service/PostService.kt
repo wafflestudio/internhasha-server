@@ -352,16 +352,54 @@ class PostService(
     }
 
     @Transactional
-    fun getPostByCurator(user: User): List<PostBrief> {
+    fun getPostByCurator(
+        user: User,
+        positions: List<String>?,
+        investmentMax: Int?,
+        investmentMin: Int?,
+        status: Int?,
+        series: List<String>?,
+        page: Int = 0,
+        order: Int = 0,
+    ): Page<Post> {
         if (user.userRole != UserRole.CURATOR) {
             throw NotAuthorizedException()
         }
+
         val userEntity =
             userService.getUserEntityByUserId(user.id)
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
-        val positions = positionRepository.findByAdmin(userEntity)
-        return positions.map { PostBrief.fromPost(Post.fromEntity(it)) }
+        if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
+            throw PostInvalidFiltersException(
+                details =
+                    mapOf(
+                        "investmentMin" to investmentMin,
+                        "investmentMax" to investmentMax,
+                    ),
+            )
+        }
+
+        val specification =
+            PositionSpecification.withFilters(
+                positions,
+                investmentMax,
+                investmentMin,
+                status ?: 2,
+                series,
+                order,
+                userEntity,
+            )
+
+        val validPage = if (page < 0) 0 else page
+        val pageable = PageRequest.of(validPage, pageSize)
+        val positionPage = positionRepository.findAll(specification, pageable)
+
+        val bookmarkIds = getBookmarkIds(user)
+
+        return positionPage.map { position ->
+            Post.fromEntity(position, isBookmarked = position.id in bookmarkIds)
+        }
     }
 
     @Transactional

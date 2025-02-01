@@ -3,6 +3,7 @@ package com.waffletoy.team1server.post.persistence
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostInvalidFiltersException
 import com.waffletoy.team1server.post.Series
+import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -16,6 +17,7 @@ class PositionSpecification {
             status: Int,
             series: List<String>?,
             order: Int,
+            admin: UserEntity? = null,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
         ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -32,6 +34,7 @@ class PositionSpecification {
                         buildInvestmentMinPredicate(companyJoin, criteriaBuilder, investmentMin),
                         buildInvestmentMaxPredicate(companyJoin, criteriaBuilder, investmentMax),
                         buildStatusPredicate(root, criteriaBuilder, status, currentDateTime, endDay),
+                        buildAdminPredicate(root, criteriaBuilder, admin),
                     )
 
                 // 중복 방지
@@ -47,6 +50,19 @@ class PositionSpecification {
 
                 // `Predicate?` 반환
                 criteriaBuilder.and(*predicates.toTypedArray())
+            }
+        }
+
+        private fun buildAdminPredicate(
+            root: Root<PositionEntity>,
+            criteriaBuilder: CriteriaBuilder,
+            admin: UserEntity?,
+        ): Predicate? {
+            return admin?.let {
+                val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
+                val adminJoin = companyJoin.join<CompanyEntity, UserEntity>("admin")
+
+                criteriaBuilder.equal(adminJoin.get<Long>("id"), it.id)
             }
         }
 
