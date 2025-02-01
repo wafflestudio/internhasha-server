@@ -14,8 +14,8 @@ class Company(
     // Defaults to 0 if not provided
     val investAmount: Int? = null,
     val investCompany: String? = null,
-    val imageLink: String? = null,
-    val irDeckLink: String? = null,
+    val imageLink: FileInfo,
+    val irDeckLink: FileInfo,
     val landingPageLink: String? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -35,8 +35,16 @@ class Company(
                 // Optional field
                 investAmount = entity.investAmount.takeIf { it > 0 },
                 investCompany = entity.investCompany,
-                imageLink = entity.imageLink,
-                irDeckLink = entity.irDeckLink,
+                imageLink =
+                    FileInfo(
+                        entity.imageFileName ?: "",
+                        entity.imageFileType ?: "",
+                    ),
+                irDeckLink =
+                    FileInfo(
+                        entity.irDeckFileName ?: "",
+                        entity.irDeckFileType ?: "",
+                    ),
                 landingPageLink = entity.landingPageLink,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,

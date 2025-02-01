@@ -235,7 +235,8 @@ class PostService(
                     investAmount = (1000..5000).random(),
                     investCompany = "Company A$index, Company B$index",
                     series = Series.entries.random(),
-                    imageLink = "https://www.company$index/image",
+                    imageFileName = "linkName of dummy $index",
+                    imageFileType = "png",
                     tags = tags,
                 )
             companies.add(companyEntity)
@@ -329,8 +330,10 @@ class PostService(
                 slogan = request.slogan,
                 investAmount = request.investAmount ?: 0,
                 investCompany = request.investCompany,
-                imageLink = request.imageLink,
-                irDeckLink = request.irDeckLink,
+                imageFileName = request.imageLink.fileName,
+                imageFileType = request.imageLink.fileType,
+                irDeckFileName = request.irDeckLink.fileName,
+                irDeckFileType = request.irDeckLink.fileType,
                 landingPageLink = request.landingPageLink,
                 links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
                 tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),

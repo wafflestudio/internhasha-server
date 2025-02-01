@@ -123,10 +123,9 @@ class PostController(
     // dev
     @PostMapping("/dev/make-dummy")
     fun makeDummyPost(
-        @RequestBody cnt: Int,
         @RequestBody pw: PasswordRequest,
     ): ResponseEntity<Void> {
-        postService.makeDummyPosts(cnt, pw.pw)
+        postService.makeDummyPosts(pw.cnt, pw.pw)
         return ResponseEntity.ok().build()
     }
 
@@ -184,4 +183,7 @@ data class PresignedURL(
     val presignedUrl: String,
 )
 
-data class PasswordRequest(val pw: String)
+data class PasswordRequest(
+    val cnt: Int,
+    val pw: String,
+)

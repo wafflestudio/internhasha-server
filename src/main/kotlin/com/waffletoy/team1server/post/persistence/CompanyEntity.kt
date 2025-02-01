@@ -36,10 +36,14 @@ class CompanyEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "SERIES", nullable = false)
     open var series: Series = Series.SEED,
-    @Column(name = "IMAGE_LINK", length = 2048)
-    open var imageLink: String? = null,
-    @Column(name = "IR_DECK_LINK", length = 2048)
-    open var irDeckLink: String? = null,
+    @Column(name = "IMAGE_FILE_NAME")
+    open var imageFileName: String? = null,
+    @Column(name = "IMAGE_FILE_TYPE")
+    open var imageFileType: String? = null,
+    @Column(name = "IR_DECK_FILE_NAME")
+    open var irDeckFileName: String? = null,
+    @Column(name = "IR_DECK_FILE_TYPE")
+    open var irDeckFileType: String? = null,
     @Column(name = "LANDING_PAGE_LINK", length = 2048)
     open var landingPageLink: String? = null,
     @CreatedDate

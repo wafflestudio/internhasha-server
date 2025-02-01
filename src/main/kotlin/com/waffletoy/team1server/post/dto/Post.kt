@@ -17,9 +17,9 @@ data class Post(
     val investAmount: Int,
     val investCompany: String,
     val series: Series,
-    val irDeckLink: String,
+    val irDeckLink: FileInfo,
     val landingPageLink: String,
-    val imageLink: String,
+    val imageLink: FileInfo,
     val externalDescriptionLink: List<Link>,
     val tags: List<String>,
     // 직군 정보
@@ -54,9 +54,17 @@ data class Post(
                 investAmount = entity.company.investAmount,
                 investCompany = entity.company.investCompany ?: "",
                 series = entity.company.series,
-                irDeckLink = entity.company.irDeckLink ?: "",
+                irDeckLink =
+                    FileInfo(
+                        entity.company.irDeckFileName ?: "",
+                        entity.company.irDeckFileType ?: "",
+                    ),
                 landingPageLink = entity.company.landingPageLink ?: "",
-                imageLink = entity.company.imageLink ?: "",
+                imageLink =
+                    FileInfo(
+                        entity.company.imageFileName ?: "",
+                        entity.company.imageFileType ?: "",
+                    ),
                 externalDescriptionLink = entity.company.links.map { Link.fromVo(it) },
                 tags = entity.company.tags.map { it.tag },
                 // roles 정보

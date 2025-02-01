@@ -13,7 +13,7 @@ data class PostBrief(
     val investAmount: Int,
     val investCompany: String,
     val series: Series,
-    val imageLink: String,
+    val imageLink: FileInfo,
     val title: String,
     val employmentEndDate: LocalDateTime?,
     val createdAt: LocalDateTime,
