@@ -14,4 +14,7 @@ data class CreatePositionRequest(
     val headcount: String,
     val employmentEndDate: LocalDateTime? = null,
     val isActive: Boolean? = false,
+    val companyId: String? = null,
 )
+
+typealias UpdatePositionRequest = CreatePositionRequest
