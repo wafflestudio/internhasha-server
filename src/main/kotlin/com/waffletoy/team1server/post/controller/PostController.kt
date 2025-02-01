@@ -151,6 +151,25 @@ class PostController(
         return ResponseEntity.ok(company)
     }
 
+    @PutMapping("/company/{company_id}")
+    fun updateCompany(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @PathVariable("company_id") companyId: String,
+        @Valid @RequestBody request: UpdateCompanyRequest,
+    ): ResponseEntity<Company> {
+        val company = postService.updateCompany(user, request, companyId)
+        return ResponseEntity.ok(company)
+    }
+
+    @DeleteMapping("/company/{company_id}")
+    fun deleteCompany(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @PathVariable("company_id") companyId: String,
+    ): ResponseEntity<Void> {
+        postService.deleteCompany(user, companyId)
+        return ResponseEntity.ok().build()
+    }
+
     @PostMapping("/company/{company_id}/position")
     fun createPosition(
         @Parameter(hidden = true) @AuthUser user: User,

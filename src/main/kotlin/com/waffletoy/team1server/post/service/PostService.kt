@@ -343,6 +343,48 @@ class PostService(
     }
 
     @Transactional
+    fun updateCompany(
+        user: User,
+        request: UpdateCompanyRequest,
+        companyId: String
+    ): Company {
+        var companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
+        if (user.userRole != UserRole.CURATOR || companyEntity.admin.id != user.id) {
+            throw NotAuthorizedException()
+        }
+        companyEntity = updateCompanyEntityWithRequest(companyEntity, request)
+        return Company.fromEntity(companyEntity)
+    }
+
+    private fun updateCompanyEntityWithRequest(entity: CompanyEntity, request: UpdateCompanyRequest): CompanyEntity {
+        entity.companyName = request.companyName
+        entity.explanation = request.explanation
+        entity.email = request.email
+        entity.slogan = request.slogan
+        entity.investAmount = request.investAmount ?: 0
+        entity.investCompany = request.investCompany
+        entity.series = request.series
+        entity.imageLink = request.imageLink
+        entity.irDeckLink = request.irDeckLink
+        entity.landingPageLink = request.landingPageLink
+        entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
+        entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
+        return entity
+    }
+
+    @Transactional
+    fun deleteCompany(
+        user: User,
+        companyId: String
+    ) {
+        val companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
+        if (user.userRole != UserRole.CURATOR || companyEntity.admin.id != user.id) {
+            throw NotAuthorizedException()
+        }
+        companyRepository.delete(companyEntity)
+    }
+
+    @Transactional
     fun getCompanyByCurator(user: User): List<Company> {
         if (user.userRole != UserRole.CURATOR) {
             throw NotAuthorizedException()
