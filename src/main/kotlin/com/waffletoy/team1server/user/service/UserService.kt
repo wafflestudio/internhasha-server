@@ -314,11 +314,12 @@ class UserService(
     }
 
     fun sendSnuMailVerification(request: SendSnuMailVerificationRequest) {
-        if (userRepository.existsBySnuMail(request.snuMail)) {
-            throw UserDuplicateSnuMailException(
-                details = mapOf("snuMail" to request.snuMail),
-            )
-        }
+        // 이메일 인증 시 409 에러 불필요
+//        if (userRepository.existsBySnuMail(request.snuMail)) {
+//            throw UserDuplicateSnuMailException(
+//                details = mapOf("snuMail" to request.snuMail),
+//            )
+//        }
 
         val emailCode = (100000..999999).random().toString()
         val encryptedEmailCode = BCrypt.hashpw(emailCode, BCrypt.gensalt())
@@ -415,7 +416,7 @@ class UserService(
 
     fun findIdAndFetchInfo(findIdRequest: FindIdRequest) {
         // 스누 메일을 기준으로 유저 찾기
-        var user =
+        val user =
             userRepository.findBySnuMail(findIdRequest.snuMail)
                 ?: throw UserNotFoundException(
                     details = mapOf("snuMail" to findIdRequest.snuMail),
@@ -444,7 +445,7 @@ class UserService(
 
     fun resetPassword(resetPasswordRequest: ResetPasswordRequest) {
         // 스누 메일을 기준으로 유저 찾기
-        var user =
+        val user =
             userRepository.findBySnuMail(resetPasswordRequest.snuMail)
                 ?: throw UserNotFoundException(
                     details = mapOf("snuMail" to resetPasswordRequest.snuMail),
