@@ -352,7 +352,7 @@ class PostService(
     }
 
     @Transactional
-    fun getPostByCurator(user: User): List<Post> {
+    fun getPostByCurator(user: User): List<PostBrief> {
         if (user.userRole != UserRole.CURATOR) {
             throw NotAuthorizedException()
         }
@@ -361,7 +361,7 @@ class PostService(
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
         val positions = positionRepository.findByAdmin(userEntity)
-        return positions.map { Post.fromEntity(it) }
+        return positions.map { PostBrief.fromPost(Post.fromEntity(it)) }
     }
 
     @Transactional

@@ -173,7 +173,7 @@ class PostController(
     @GetMapping("/position/me")
     fun getPostByCurator(
         @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<List<Post>> {
+    ): ResponseEntity<List<PostBrief>> {
         val posts = postService.getPostByCurator(user)
         return ResponseEntity.ok(posts)
     }
