@@ -21,7 +21,7 @@ class Company(
     val updatedAt: LocalDateTime,
     val links: List<Link> = emptyList(),
     val tags: List<Tag> = emptyList(),
-    val positions: List<Position>,
+//    val positions: List<Position>,
 ) {
     companion object {
         fun fromEntity(entity: CompanyEntity): Company {
@@ -42,7 +42,7 @@ class Company(
                 updatedAt = entity.updatedAt,
                 links = entity.links.map { Link.fromVo(it) },
                 tags = entity.tags.map { Tag.fromVo(it) },
-                positions = entity.positions.map { Position.fromEntity(it) },
+//                positions = entity.positions.map { Position.fromEntity(it) },
             )
         }
     }
