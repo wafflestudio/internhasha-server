@@ -8,7 +8,7 @@ data class Resume(
     val id: String,
     val positionTitle: String? = null,
     val companyName: String? = null,
-    val author: User?,
+    val author: User,
     val content: String,
     val phoneNumber: String,
     val createdAt: LocalDateTime,

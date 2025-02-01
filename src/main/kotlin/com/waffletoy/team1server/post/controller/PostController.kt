@@ -11,7 +11,6 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -105,17 +104,19 @@ class PostController(
     // s3 bucket
     @PostMapping("/upload/presigned")
     fun generateUploadPresignedUrl(
+        @Parameter(hidden = true) @AuthUser user: User,
         @RequestBody preSignedUploadReq: PreSignedUploadReq,
     ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateUploadPreSignUrl(preSignedUploadReq, bucketName)
+        val presignedUrl = s3Service.generateUploadPreSignUrl(user, preSignedUploadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
     }
 
     @PostMapping("/download/presigned")
     fun generateDownloadPresignedUrl(
+        @Parameter(hidden = true) @AuthUser user: User,
         @RequestBody preSignedDownloadReq: PreSignedDownloadReq,
     ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateDownloadPreSignUrl(preSignedDownloadReq, bucketName)
+        val presignedUrl = s3Service.generateDownloadPreSignUrl(user, preSignedDownloadReq, bucketName)
         return ResponseEntity.ok(PresignedURL(presignedUrl))
     }
 
@@ -123,22 +124,23 @@ class PostController(
     @PostMapping("/dev/make-dummy")
     fun makeDummyPost(
         @RequestBody cnt: Int,
+        @RequestBody pw: PasswordRequest,
     ): ResponseEntity<Void> {
-        postService.makeDummyPosts(cnt)
+        postService.makeDummyPosts(cnt, pw.pw)
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/dev/reset-db")
-    fun resetDBPosts(
-        @RequestBody pw: PasswordRequest,
-    ): ResponseEntity<Void> {
-        if (pw.pw == "0000") {
-            postService.resetDB(pw.pw)
-            return ResponseEntity.ok().build()
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        }
-    }
+//    @PostMapping("/dev/reset-db")
+//    fun resetDBPosts(
+//        @RequestBody pw: PasswordRequest,
+//    ): ResponseEntity<Void> {
+//        if (pw.pw == "0000") {
+//            postService.resetDB(pw.pw)
+//            return ResponseEntity.ok().build()
+//        } else {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+//        }
+//    }
 
     @PostMapping("/company")
     fun createCompany(

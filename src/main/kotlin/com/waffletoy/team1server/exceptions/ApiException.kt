@@ -100,3 +100,18 @@ class InvalidRequestException(details: Map<String, Any>? = null) : ApiException(
     errorCode = ErrorCode.INVALID_REQUEST,
     details = details,
 )
+
+class S3UrlGenerationFailedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_S3_URL_GENERATION_FAILED,
+    details = details,
+)
+
+class S3SDKClientFailedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_S3_SDK_FAILED,
+    details = details,
+)
+
+class UserNotAuthorizedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.USER_INVALID_ROLE,
+    details = details,
+)

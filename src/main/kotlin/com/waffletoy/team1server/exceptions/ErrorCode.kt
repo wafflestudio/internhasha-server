@@ -47,6 +47,8 @@ enum class ErrorCode(
     POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
     POST_ACCESS_FORBIDDEN("POST_009", "Access to this company forbidden.", HttpStatus.FORBIDDEN),
+    POST_S3_URL_GENERATION_FAILED("POST_010", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+    POST_S3_SDK_FAILED("POST_011", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // Resume-related errors
     RESUME_NOT_FOUND("RESUME_001", "The requested resume was not found.", HttpStatus.NOT_FOUND),
