@@ -46,7 +46,7 @@ enum class ErrorCode(
     POST_DELETION_FAILED("POST_006", "Failed to delete the post.", HttpStatus.INTERNAL_SERVER_ERROR),
     POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
-    POST_ACCESS_FORBIDDEN("POST_009", "Access to this company forbidden.", HttpStatus.FORBIDDEN),
+    POST_POSITION_NOT_FOUND("POST_009", "Position not found", HttpStatus.NOT_FOUND),
     POST_S3_URL_GENERATION_FAILED("POST_010", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     POST_S3_SDK_FAILED("POST_011", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
 
