@@ -20,7 +20,7 @@ data class Post(
     val irDeckLink: String,
     val landingPageLink: String,
     val imageLink: String,
-    val externalDescriptionLink: List<Link>,
+    val links: List<Link>,
     val tags: List<String>,
     // 직군 정보
     val title: String,
@@ -58,7 +58,7 @@ data class Post(
                 irDeckLink = if (isLoggedIn) entity.company.irDeckLink ?: "" else "Please Log in.",
                 landingPageLink = entity.company.landingPageLink ?: "",
                 imageLink = entity.company.imageLink ?: "",
-                externalDescriptionLink = entity.company.links.map { Link.fromVo(it) },
+                links = entity.company.links.map { Link.fromVo(it) },
                 tags = entity.company.tags.map { it.tag },
                 // roles 정보
                 title = entity.title,
