@@ -38,6 +38,7 @@ data class Post(
         fun fromEntity(
             entity: PositionEntity,
             isBookmarked: Boolean = false,
+            isLoggedIn: Boolean,
         ): Post =
             Post(
                 id = entity.id,
@@ -54,7 +55,7 @@ data class Post(
                 investAmount = entity.company.investAmount,
                 investCompany = entity.company.investCompany ?: "",
                 series = entity.company.series,
-                irDeckLink = entity.company.irDeckLink ?: "",
+                irDeckLink = if (isLoggedIn) entity.company.irDeckLink ?: "" else "Please Log in.",
                 landingPageLink = entity.company.landingPageLink ?: "",
                 imageLink = entity.company.imageLink ?: "",
                 externalDescriptionLink = entity.company.links.map { Link.fromVo(it) },

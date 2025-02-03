@@ -49,6 +49,7 @@ class PostService(
         return Post.fromEntity(
             entity = positionEntity,
             isBookmarked = positionEntity.id in bookmarkIds,
+            isLoggedIn = user != null,
         )
     }
 
@@ -103,11 +104,12 @@ class PostService(
         val positionPage = positionRepository.findAll(specification, pageable)
 
         val bookmarkIds = getBookmarkIds(user)
-
+        val isLoggedIn = user != null
         return positionPage.map { position ->
             Post.fromEntity(
                 entity = position,
                 isBookmarked = position.id in bookmarkIds,
+                isLoggedIn = user != null,
             )
         }
     }
@@ -192,6 +194,7 @@ class PostService(
             Post.fromEntity(
                 entity = position,
                 isBookmarked = true,
+                isLoggedIn = true,
             )
         }
     }
@@ -443,7 +446,7 @@ class PostService(
         val bookmarkIds = getBookmarkIds(user)
 
         return positionPage.map { position ->
-            Post.fromEntity(position, isBookmarked = position.id in bookmarkIds)
+            Post.fromEntity(position, isBookmarked = position.id in bookmarkIds, isLoggedIn = true)
         }
     }
 
