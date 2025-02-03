@@ -212,14 +212,10 @@ class UserService(
     private fun localSignIn(info: SignInRequest.LocalInfo): User {
         val user =
             userRepository.findByLocalLoginId(info.localLoginId)
-                ?: throw UserNotFoundException(
-                    details = mapOf("localLoginId" to info.localLoginId),
-                )
+                ?: throw InvalidCredentialsException()
 
         if (!BCrypt.checkpw(info.password, user.localLoginPasswordHash)) {
-            throw InvalidCredentialsException(
-                details = mapOf("localLoginId" to info.localLoginId),
-            )
+            throw InvalidCredentialsException()
         }
 
         return User.fromEntity(entity = user)
