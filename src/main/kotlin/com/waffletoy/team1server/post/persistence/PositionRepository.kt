@@ -22,5 +22,7 @@ interface PositionRepository : JpaRepository<PositionEntity, String>, JpaSpecifi
             "JOIN p.company c " +
             "WHERE c.admin = :admin",
     )
-    fun findByAdmin(@Param("admin") admin: UserEntity): List<PositionEntity>
+    fun findByAdmin(
+        @Param("admin") admin: UserEntity,
+    ): List<PositionEntity>
 }

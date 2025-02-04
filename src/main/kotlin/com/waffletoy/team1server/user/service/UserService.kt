@@ -26,7 +26,6 @@ class UserService(
     @Lazy private val emailService: EmailService,
     @Lazy private val resumeService: ResumeService,
     @Lazy private val postService: PostService,
-
 ) {
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
