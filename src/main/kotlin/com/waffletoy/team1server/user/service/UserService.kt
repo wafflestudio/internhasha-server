@@ -121,7 +121,7 @@ class UserService(
 
     private fun googleNormalSignUp(info: SignUpRequest.SocialNormalInfo): User {
         val googleInfo = googleOAuth2Client.getUserInfo(info.token)
-        var user = userRepository.findBySnuMail(googleInfo.email)
+        var user = userRepository.findBySnuMail(info.snuMail)
         var isMerged = false
         if (user != null) {
             if (user.userRole != UserRole.NORMAL) {
