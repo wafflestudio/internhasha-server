@@ -12,6 +12,7 @@ import com.waffletoy.team1server.user.persistence.UserRepository
 import com.waffletoy.team1server.user.utils.UserTokenUtil
 import jakarta.transaction.Transactional
 import org.mindrot.jbcrypt.BCrypt
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -25,6 +26,7 @@ class UserService(
     @Lazy private val emailService: EmailService,
     @Lazy private val resumeService: ResumeService,
     @Lazy private val postService: PostService,
+
 ) {
     // Sign up functions
     fun checkDuplicateId(request: CheckDuplicateIdRequest) {
@@ -163,6 +165,12 @@ class UserService(
     }
 
     private fun localCuratorSignUp(info: SignUpRequest.LocalCuratorInfo): User {
+        if (info.secretPassword != devSecret) {
+            throw InvalidCredentialsException(
+                details = mapOf("secretPassword" to info.secretPassword),
+            )
+        }
+
         if (userRepository.existsByLocalLoginId(info.localLoginId)) {
             throw UserDuplicateLocalIdException(
                 details = mapOf("localLoginId" to info.localLoginId),
@@ -519,4 +527,7 @@ class UserService(
                 ),
             )
     }
+
+    @Value("\${custom.SECRET}")
+    private lateinit var devSecret: String
 }
