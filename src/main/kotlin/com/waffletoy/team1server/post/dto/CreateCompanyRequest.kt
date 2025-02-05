@@ -18,6 +18,7 @@ data class CreateCompanyRequest(
     val slogan: String? = null,
     // Defaults to 0 if not provided
     @field:Min(value = 0, message = "Invest amount must be non-negative.")
+    @field:Max(value = 100000, message = "Invest amount must not exceed 100000")
     val investAmount: Int? = null,
     val investCompany: String? = null,
     // @field:URL(message = "Image link must be a valid URL.")
