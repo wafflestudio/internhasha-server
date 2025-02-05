@@ -11,6 +11,7 @@ data class CreatePositionRequest(
     val category: Category,
     val detail: String? = null,
     @field:NotBlank(message = "Headcount is required.")
+    @field:Size(max = 4, message = "Headcount must not exceed 9999.")
     val headcount: String,
     val employmentEndDate: LocalDateTime? = null,
     val isActive: Boolean? = false,
