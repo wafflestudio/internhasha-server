@@ -42,13 +42,6 @@ class UserEntity(
     val snuMail: String?,
     @Column(name = "phone_number", nullable = true)
     var phoneNumber: String? = null,
-    // Resume Repository 에서 조회하기 때문에 필요 없음
-//    @OneToMany(mappedBy = "user")
-//    val resumes: MutableList<ResumeEntity> = mutableListOf(),
-    // POST-ADMIN specific field
-    // 역시 Position Entity에서 조회할 예정
-//    @OneToMany(mappedBy = "admin")
-//    var posts: MutableList<CompanyEntity> = mutableListOf(),
     @Column(name = "profile_image_link", nullable = true, length = 2048)
     val profileImageLink: String? = null,
 ) {

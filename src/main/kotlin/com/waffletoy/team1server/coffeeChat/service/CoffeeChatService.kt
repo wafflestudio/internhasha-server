@@ -1,15 +1,14 @@
-package com.waffletoy.team1server.resume.service
+package com.waffletoy.team1server.coffeeChat.service
 
+import com.waffletoy.team1server.coffeeChat.*
+import com.waffletoy.team1server.coffeeChat.controller.*
+import com.waffletoy.team1server.coffeeChat.controller.CoffeeChat
+import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
+import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatRepository
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
-import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.resume.*
-import com.waffletoy.team1server.resume.controller.*
-import com.waffletoy.team1server.resume.controller.Resume
-import com.waffletoy.team1server.resume.persistence.ResumeEntity
-import com.waffletoy.team1server.resume.persistence.ResumeRepository
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.UserEntity
@@ -23,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.format.DateTimeFormatter
 
 @Service
-class ResumeService(
-    private val resumeRepository: ResumeRepository,
+class CoffeeChatService(
+    private val coffeeChatRepository: CoffeeChatRepository,
     @Lazy private val userService: UserService,
     @Lazy private val emailService: EmailService,
     @Lazy private val postService: PostService,
@@ -33,66 +32,66 @@ class ResumeService(
     private val pageSize: Int = 12
 
     /**
-     * Retrieves detailed information of a specific resume by its ID.
+     * Retrieves detailed information of a specific coffeeChat by its ID.
      *
      * @param user The authenticated user.
-     * @param resumeId The unique identifier of the resume.
-     * @return The detailed [Resume] object.
-     * @throws ResumeNotFoundException If the resume with the given ID does not exist.
-     * @throws ResumeForbiddenException If the user is not the owner of the resume.
+     * @param coffeeChatId The unique identifier of the coffeeChat.
+     * @return The detailed [CoffeeChat] object.
+     * @throws CoffeeChatNotFoundException If the coffeeChat with the given ID does not exist.
+     * @throws CoffeeChatForbiddenException If the user is not the owner of the coffeeChat.
      * @throws InvalidAccessTokenException If the user is not authenticated.
      */
-    fun getResumeDetail(
+    fun getCoffeeChatDetail(
         user: User?,
-        resumeId: String,
-    ): Resume {
+        coffeeChatId: String,
+    ): CoffeeChat {
         val validUser = getValidUser(user)
-        val resumeEntity = getValidatedResume(validUser, resumeId)
-        validateResumeOwnership(validUser, resumeEntity)
-        return Resume.fromEntity(resumeEntity)
+        val coffeeChatEntity = getValidatedCoffeeChat(validUser, coffeeChatId)
+        validateCoffeeChatOwnership(validUser, coffeeChatEntity)
+        return CoffeeChat.fromEntity(coffeeChatEntity)
     }
 
     /**
-     * Retrieves a list of resumes belonging to the authenticated user.
+     * Retrieves a list of coffeeChats belonging to the authenticated user.
      *
      * @param user The authenticated user.
-     * @return A list of [Resume] objects.
-     * @throws ResumeNotFoundException If the user does not exist.
+     * @return A list of [CoffeeChat] objects.
+     * @throws CoffeeChatNotFoundException If the user does not exist.
      * @throws InvalidAccessTokenException If the user is not authenticated.
      */
-    fun getResumes(
+    fun getCoffeeChats(
         user: User?,
-    ): List<Resume> {
+    ): List<CoffeeChat> {
         val validUser = getValidUser(user)
-        val resumes = resumeRepository.findAllByUserId(validUser.id)
-        return resumes.map { Resume.fromEntity(it) }
+        val coffeeChats = coffeeChatRepository.findAllByUserId(validUser.id)
+        return coffeeChats.map { CoffeeChat.fromEntity(it) }
     }
 
     /**
-     * Creates a new resume associated with a specific post.
+     * Creates a new coffeeChat associated with a specific post.
      *
      * @param user The authenticated user.
      * @param postId The unique identifier of the post.
-     * @param coffee The [Coffee] data containing resume details.
-     * @return The created [Resume] object.
-     * @throws ResumeNotFoundException If the post does not exist.
-     * @throws ResumeCreationFailedException If there is an issue creating the resume.
-     * @throws ResumeNotFoundException If the user does not exist.
-     * @throws ResumeForbiddenException If the user is not authenticated or has an invalid role.
+     * @param coffee The [Coffee] data containing coffeeChat details.
+     * @return The created [CoffeeChat] object.
+     * @throws CoffeeChatNotFoundException If the post does not exist.
+     * @throws CoffeeChatCreationFailedException If there is an issue creating the coffeeChat.
+     * @throws CoffeeChatNotFoundException If the user does not exist.
+     * @throws CoffeeChatForbiddenException If the user is not authenticated or has an invalid role.
      */
     @Transactional
-    fun postResume(
+    fun postCoffeeChat(
         user: User?,
         postId: String,
         coffee: Coffee,
-    ): Resume {
+    ): CoffeeChat {
         val validUser = getValidUser(user)
         val userEntity = getUserEntityOrThrow(validUser.id)
         val positionEntity = getPositionEntityOrThrow(postId)
-        val resumeEntity =
+        val coffeeChatEntity =
             try {
-                resumeRepository.save(
-                    ResumeEntity(
+                coffeeChatRepository.save(
+                    CoffeeChatEntity(
                         content = coffee.content,
                         phoneNumber = coffee.phoneNumber,
                         position = positionEntity,
@@ -100,7 +99,7 @@ class ResumeService(
                     ),
                 )
             } catch (ex: Exception) {
-                throw ResumeCreationFailedException(
+                throw CoffeeChatCreationFailedException(
                     details =
                         mapOf(
                             "userId" to validUser.id,
@@ -132,11 +131,11 @@ class ResumeService(
                     지원자 정보:
                     - 이름: ${validUser.name}
                     - 이메일: ${validUser.snuMail ?: "이메일 정보 없음"}
-                    - 전화번호: ${resumeEntity.phoneNumber ?: "전화번호 정보 없음"}
+                    - 전화번호: ${coffeeChatEntity.phoneNumber ?: "전화번호 정보 없음"}
                     
                     커피챗 내용:
                     --------------------------------------------
-                    ${resumeEntity.content ?: "커피챗 내용이 없습니다."}
+                    ${coffeeChatEntity.content ?: "커피챗 내용이 없습니다."}
                     --------------------------------------------
                     
                     인턴하샤 지원 시스템을 통해 지원자가 회사에 커피챗을 제출하였습니다.
@@ -152,34 +151,34 @@ class ResumeService(
             )
         }
 
-        return Resume.fromEntity(resumeEntity)
+        return CoffeeChat.fromEntity(coffeeChatEntity)
     }
 
     /**
-     * Deletes a specific resume.
+     * Deletes a specific coffeeChat.
      *
      * @param user The authenticated user.
-     * @param resumeId The unique identifier of the resume.
-     * @throws ResumeNotFoundException If the resume does not exist.
-     * @throws ResumeForbiddenException If the user is not the owner of the resume.
-     * @throws ResumeDeletionFailedException If there is an issue deleting the resume.
+     * @param coffeeChatId The unique identifier of the coffeeChat.
+     * @throws CoffeeChatNotFoundException If the coffeeChat does not exist.
+     * @throws CoffeeChatForbiddenException If the user is not the owner of the coffeeChat.
+     * @throws CoffeeChatDeletionFailedException If there is an issue deleting the coffeeChat.
      * @throws InvalidAccessTokenException If the user is not authenticated.
      */
     @Transactional
-    fun deleteResume(
+    fun deleteCoffeeChat(
         user: User?,
-        resumeId: String,
+        coffeeChatId: String,
     ) {
         val validUser = getValidUser(user)
-        val resumeEntity = getValidatedResume(validUser, resumeId)
-        validateResumeOwnership(validUser, resumeEntity)
+        val coffeeChatEntity = getValidatedCoffeeChat(validUser, coffeeChatId)
+        validateCoffeeChatOwnership(validUser, coffeeChatEntity)
         try {
-            resumeRepository.delete(resumeEntity)
+            coffeeChatRepository.delete(coffeeChatEntity)
         } catch (ex: Exception) {
-            throw ResumeDeletionFailedException(
+            throw CoffeeChatDeletionFailedException(
                 details =
                     mapOf(
-                        "resumeId" to resumeId,
+                        "coffeeChatId" to coffeeChatId,
                         "error" to ex.message.orEmpty(),
                     ),
             )
@@ -187,38 +186,38 @@ class ResumeService(
     }
 
     /**
-     * Updates an existing resume.
+     * Updates an existing coffeeChat.
      *
      * @param user The authenticated user.
-     * @param resumeId The unique identifier of the resume.
-     * @param coffee The [Coffee] data containing updated resume details.
-     * @return The updated [Resume] object.
-     * @throws ResumeNotFoundException If the resume does not exist.
-     * @throws ResumeForbiddenException If the user is not the owner of the resume.
-     * @throws ResumeUpdateFailedException If there is an issue updating the resume.
+     * @param coffeeChatId The unique identifier of the coffeeChat.
+     * @param coffee The [Coffee] data containing updated coffeeChat details.
+     * @return The updated [CoffeeChat] object.
+     * @throws CoffeeChatNotFoundException If the coffeeChat does not exist.
+     * @throws CoffeeChatForbiddenException If the user is not the owner of the coffeeChat.
+     * @throws CoffeeChatUpdateFailedException If there is an issue updating the coffeeChat.
      * @throws InvalidAccessTokenException If the user is not authenticated.
      */
     @Transactional
-    fun patchResume(
+    fun patchCoffeeChat(
         user: User?,
-        resumeId: String,
+        coffeeChatId: String,
         coffee: Coffee,
-    ): Resume {
+    ): CoffeeChat {
         val validUser = getValidUser(user)
-        val resumeEntity = getValidatedResume(validUser, resumeId)
-        validateResumeOwnership(validUser, resumeEntity)
+        val coffeeChatEntity = getValidatedCoffeeChat(validUser, coffeeChatId)
+        validateCoffeeChatOwnership(validUser, coffeeChatEntity)
 
         // 전달된 데이터로 업데이트
-        resumeEntity.phoneNumber = coffee.phoneNumber
-        resumeEntity.content = coffee.content
+        coffeeChatEntity.phoneNumber = coffee.phoneNumber
+        coffeeChatEntity.content = coffee.content
 
         return try {
-            Resume.fromEntity(resumeRepository.save(resumeEntity))
+            CoffeeChat.fromEntity(coffeeChatRepository.save(coffeeChatEntity))
         } catch (ex: Exception) {
-            throw ResumeUpdateFailedException(
+            throw CoffeeChatUpdateFailedException(
                 details =
                     mapOf(
-                        "resumeId" to resumeId,
+                        "coffeeChatId" to coffeeChatId,
                         "error" to ex.message.orEmpty(),
                     ),
             )
@@ -231,7 +230,7 @@ class ResumeService(
      * @param user The authenticated user.
      * @return The validated [User] object.
      * @throws InvalidAccessTokenException If the user is not authenticated.
-     * @throws ResumeForbiddenException If the user does not have the NORMAL role.
+     * @throws CoffeeChatForbiddenException If the user does not have the NORMAL role.
      */
     fun getValidUser(user: User?): User {
         if (user == null) {
@@ -240,7 +239,7 @@ class ResumeService(
             )
         }
         if (user.userRole != UserRole.NORMAL) {
-            throw ResumeForbiddenException(
+            throw CoffeeChatForbiddenException(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }
@@ -248,42 +247,42 @@ class ResumeService(
     }
 
     fun getPositionEntityOrThrow(postId: String): PositionEntity =
-        postService.getPositionEntityByPostId(postId) ?: throw ResumeNotFoundException(
+        postService.getPositionEntityByPostId(postId) ?: throw CoffeeChatNotFoundException(
             details = mapOf("postId" to postId),
         )
 
     fun getUserEntityOrThrow(userId: String): UserEntity =
-        userService.getUserEntityByUserId(userId) ?: throw ResumeNotFoundException(
+        userService.getUserEntityByUserId(userId) ?: throw CoffeeChatNotFoundException(
             details = mapOf("userId" to userId),
         )
 
-    fun validateResumeOwnership(
+    fun validateCoffeeChatOwnership(
         user: User,
-        resume: ResumeEntity,
+        coffeeChat: CoffeeChatEntity,
     ) {
-        if (resume.user.id != user.id) {
-            throw ResumeForbiddenException(
-                details = mapOf("userId" to user.id, "resumeId" to resume.id),
+        if (coffeeChat.user.id != user.id) {
+            throw CoffeeChatForbiddenException(
+                details = mapOf("userId" to user.id, "coffeeChatId" to coffeeChat.id),
             )
         }
     }
 
-    fun getValidatedResume(
+    fun getValidatedCoffeeChat(
         validUser: User,
-        resumeId: String,
-    ): ResumeEntity {
-        val resumeEntity =
-            resumeRepository.findByIdOrNull(resumeId)
-                ?: throw ResumeNotFoundException(
-                    details = mapOf("resumeId" to resumeId),
+        coffeeChatId: String,
+    ): CoffeeChatEntity {
+        val coffeeChatEntity =
+            coffeeChatRepository.findByIdOrNull(coffeeChatId)
+                ?: throw CoffeeChatNotFoundException(
+                    details = mapOf("coffeeChatId" to coffeeChatId),
                 )
-        return resumeEntity
+        return coffeeChatEntity
     }
 
     // normal 유저 탈퇴 시 bookmark 데이터를 삭제
     // curator 유저가 작성한 company, position 데이터는 유지
     @Transactional(propagation = Propagation.REQUIRED)
-    fun deleteResumeByUser(userEntity: UserEntity) {
-        resumeRepository.deleteAllByUser(userEntity)
+    fun deleteCoffeeChatByUser(userEntity: UserEntity) {
+        coffeeChatRepository.deleteAllByUser(userEntity)
     }
 }

@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.resume.persistence
+package com.waffletoy.team1server.coffeeChat.persistence
 
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.user.persistence.UserEntity
@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "resumes")
-class ResumeEntity(
+@Table(name = "coffeeChats")
+class CoffeeChatEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),

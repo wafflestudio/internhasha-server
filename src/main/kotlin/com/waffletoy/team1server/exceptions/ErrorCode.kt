@@ -50,11 +50,11 @@ enum class ErrorCode(
     POST_S3_URL_GENERATION_FAILED("POST_010", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     POST_S3_SDK_FAILED("POST_011", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
 
-    // Resume-related errors
-    RESUME_NOT_FOUND("RESUME_001", "The requested resume was not found.", HttpStatus.NOT_FOUND),
-    RESUME_FORBIDDEN("RESUME_002", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),
-    RESUME_CREATION_FAILED("RESUME_003", "Failed to create the resume.", HttpStatus.INTERNAL_SERVER_ERROR),
-    RESUME_DELETION_FAILED("RESUME_004", "Failed to delete the resume.", HttpStatus.INTERNAL_SERVER_ERROR),
-    RESUME_UPDATE_FAILED("RESUME_005", "Failed to update the resume.", HttpStatus.INTERNAL_SERVER_ERROR),
-    RESUME_INVALID_USER_ROLE("RESUME_006", "Invalid user role for resume operations.", HttpStatus.FORBIDDEN),
+    // COFFEECHAT-related errors
+    COFFEECHAT_NOT_FOUND("COFFEECHAT_001", "The requested coffeeChat was not found.", HttpStatus.NOT_FOUND),
+    COFFEECHAT_FORBIDDEN("COFFEECHAT_002", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),
+    COFFEECHAT_CREATION_FAILED("COFFEECHAT_003", "Failed to create the coffeeChat.", HttpStatus.INTERNAL_SERVER_ERROR),
+    COFFEECHAT_DELETION_FAILED("COFFEECHAT_004", "Failed to delete the coffeeChat.", HttpStatus.INTERNAL_SERVER_ERROR),
+    COFFEECHAT_UPDATE_FAILED("COFFEECHAT_005", "Failed to update the coffeeChat.", HttpStatus.INTERNAL_SERVER_ERROR),
+    COFFEECHAT_INVALID_USER_ROLE("COFFEECHAT_006", "Invalid user role for coffeeChat operations.", HttpStatus.FORBIDDEN),
 }

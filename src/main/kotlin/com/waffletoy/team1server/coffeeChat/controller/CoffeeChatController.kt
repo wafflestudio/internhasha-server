@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.resume.controller
+package com.waffletoy.team1server.coffeeChat.controller
 
-import com.waffletoy.team1server.resume.service.ResumeService
+import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.dtos.User
 import io.swagger.v3.oas.annotations.Parameter
@@ -13,72 +13,72 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/resume")
 @Validated
-class ResumeController(
-    private val resumeService: ResumeService,
+class CoffeeChatController(
+    private val coffeeChatService: CoffeeChatService,
 ) {
     // 커피챗 상세 페이지 불러오기
     @GetMapping("/{resumeId}")
-    fun getResumeDetail(
+    fun getCoffeeChatDetail(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
-    ): ResponseEntity<Resume> {
+    ): ResponseEntity<CoffeeChat> {
         return ResponseEntity.ok(
-            resumeService.getResumeDetail(user, resumeId),
+            coffeeChatService.getCoffeeChatDetail(user, resumeId),
         )
     }
 
     // 커피챗 목록 불러오기
     @GetMapping
-    fun getResumes(
+    fun getCoffeeChats(
         @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<Resumes> {
+    ): ResponseEntity<CoffeeChats> {
         return ResponseEntity.ok(
-            Resumes(
-                resumeList = resumeService.getResumes(user),
+            CoffeeChats(
+                coffeeChatList = coffeeChatService.getCoffeeChats(user),
             ),
         )
     }
 
     // 커피챗 신청하기
     @PostMapping("/{postId}")
-    fun postResume(
+    fun postCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable postId: String,
         @RequestBody coffee: Coffee,
-    ): ResponseEntity<Resume> {
-        val resume =
-            resumeService.postResume(
+    ): ResponseEntity<CoffeeChat> {
+        val coffeeChat =
+            coffeeChatService.postCoffeeChat(
                 user,
                 postId,
                 coffee,
             )
-        return ResponseEntity.ok(resume)
+        return ResponseEntity.ok(coffeeChat)
     }
 
     // 커피챗 삭제하기
     @DeleteMapping("/{resumeId}")
-    fun deleteResume(
+    fun deleteCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
     ): ResponseEntity<Void> {
-        resumeService.deleteResume(user, resumeId)
+        coffeeChatService.deleteCoffeeChat(user, resumeId)
         return ResponseEntity.ok().build()
     }
 
     // 커피챗 수정하기
     @PatchMapping("/{resumeId}")
-    fun patchResume(
+    fun patchCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable resumeId: String,
         @RequestBody coffee: Coffee,
-    ): ResponseEntity<Resume> {
-        val updatedResume = resumeService.patchResume(user, resumeId, coffee)
-        return ResponseEntity.ok(updatedResume)
+    ): ResponseEntity<CoffeeChat> {
+        val updatedCoffeeChat = coffeeChatService.patchCoffeeChat(user, resumeId, coffee)
+        return ResponseEntity.ok(updatedCoffeeChat)
     }
 }
 
-data class Resumes(
-    val resumeList: List<Resume>,
+data class CoffeeChats(
+    val coffeeChatList: List<CoffeeChat>,
 )
 
 data class Coffee(

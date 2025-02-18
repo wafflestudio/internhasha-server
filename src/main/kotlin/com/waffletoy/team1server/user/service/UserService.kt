@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.user.service
 
+import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.dtos.*
@@ -24,7 +24,7 @@ class UserService(
     private val userRedisCacheService: UserRedisCacheService,
     private val googleOAuth2Client: GoogleOAuth2Client,
     @Lazy private val emailService: EmailService,
-    @Lazy private val resumeService: ResumeService,
+    @Lazy private val coffeeChatService: CoffeeChatService,
     @Lazy private val postService: PostService,
 ) {
     // Sign up functions
@@ -387,9 +387,9 @@ class UserService(
                     details = mapOf("userId" to user.id),
                 )
 
-        // 외래키 제약이 걸려있는 bookmark, resume 를 삭제
+        // 외래키 제약이 걸려있는 bookmark, coffeeChat 를 삭제
         postService.deleteBookmarkByUser(userEntity)
-        resumeService.deleteResumeByUser(userEntity)
+        coffeeChatService.deleteCoffeeChatByUser(userEntity)
 
         userRepository.deleteUserEntityById(user.id)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)

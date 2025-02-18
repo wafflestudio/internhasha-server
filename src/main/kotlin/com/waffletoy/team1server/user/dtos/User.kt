@@ -12,8 +12,6 @@ data class User(
     val userRole: UserRole,
     val snuMail: String?,
     val phoneNumber: String?,
-//    val resumes: List<Resume>?,
-//    val posts: List<Post>?,
     val profileImageLink: String?,
     val isMerged: Boolean,
 ) {
@@ -31,8 +29,6 @@ data class User(
                 userRole = entity.userRole,
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
-//                resumes = if (includeResumes) entity.resumes.map { Resume.fromEntity(it, false) } else null,
-//                posts = entity.posts.map { Post.fromEntity(it.roles) },
                 profileImageLink = entity.profileImageLink,
                 isMerged = isMerged,
             )
