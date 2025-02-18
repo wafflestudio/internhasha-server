@@ -83,7 +83,7 @@ class CoffeeChatService(
     fun postCoffeeChat(
         user: User?,
         postId: String,
-        coffee: Coffee,
+        coffeeChatRequest: CoffeeChatRequest,
     ): CoffeeChat {
         val validUser = getValidUser(user)
         val userEntity = getUserEntityOrThrow(validUser.id)
@@ -92,8 +92,8 @@ class CoffeeChatService(
             try {
                 coffeeChatRepository.save(
                     CoffeeChatEntity(
-                        content = coffee.content,
-                        phoneNumber = coffee.phoneNumber,
+                        content = coffeeChatRequest.content,
+                        phoneNumber = coffeeChatRequest.phoneNumber,
                         position = positionEntity,
                         user = userEntity,
                     ),
@@ -201,15 +201,15 @@ class CoffeeChatService(
     fun patchCoffeeChat(
         user: User?,
         coffeeChatId: String,
-        coffee: Coffee,
+        coffeeChatRequest: CoffeeChatRequest,
     ): CoffeeChat {
         val validUser = getValidUser(user)
         val coffeeChatEntity = getValidatedCoffeeChat(validUser, coffeeChatId)
         validateCoffeeChatOwnership(validUser, coffeeChatEntity)
 
         // 전달된 데이터로 업데이트
-        coffeeChatEntity.phoneNumber = coffee.phoneNumber
-        coffeeChatEntity.content = coffee.content
+        coffeeChatEntity.phoneNumber = coffeeChatRequest.phoneNumber
+        coffeeChatEntity.content = coffeeChatRequest.content
 
         return try {
             CoffeeChat.fromEntity(coffeeChatRepository.save(coffeeChatEntity))

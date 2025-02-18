@@ -11,19 +11,19 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/resume")
+@RequestMapping("/api/coffeeChat")
 @Validated
 class CoffeeChatController(
     private val coffeeChatService: CoffeeChatService,
 ) {
     // 커피챗 상세 페이지 불러오기
-    @GetMapping("/{resumeId}")
+    @GetMapping("/{coffeeChatId}")
     fun getCoffeeChatDetail(
         @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable resumeId: String,
+        @PathVariable coffeeChatId: String,
     ): ResponseEntity<CoffeeChat> {
         return ResponseEntity.ok(
-            coffeeChatService.getCoffeeChatDetail(user, resumeId),
+            coffeeChatService.getCoffeeChatDetail(user, coffeeChatId),
         )
     }
 
@@ -44,35 +44,35 @@ class CoffeeChatController(
     fun postCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable postId: String,
-        @RequestBody coffee: Coffee,
+        @RequestBody coffeeChatRequest: CoffeeChatRequest,
     ): ResponseEntity<CoffeeChat> {
         val coffeeChat =
             coffeeChatService.postCoffeeChat(
                 user,
                 postId,
-                coffee,
+                coffeeChatRequest,
             )
         return ResponseEntity.ok(coffeeChat)
     }
 
     // 커피챗 삭제하기
-    @DeleteMapping("/{resumeId}")
+    @DeleteMapping("/{coffeeChatId}")
     fun deleteCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable resumeId: String,
+        @PathVariable coffeeChatId: String,
     ): ResponseEntity<Void> {
-        coffeeChatService.deleteCoffeeChat(user, resumeId)
+        coffeeChatService.deleteCoffeeChat(user, coffeeChatId)
         return ResponseEntity.ok().build()
     }
 
     // 커피챗 수정하기
-    @PatchMapping("/{resumeId}")
+    @PatchMapping("/{coffeeChatId}")
     fun patchCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable resumeId: String,
-        @RequestBody coffee: Coffee,
+        @PathVariable coffeeChatId: String,
+        @RequestBody coffeeChatRequest: CoffeeChatRequest,
     ): ResponseEntity<CoffeeChat> {
-        val updatedCoffeeChat = coffeeChatService.patchCoffeeChat(user, resumeId, coffee)
+        val updatedCoffeeChat = coffeeChatService.patchCoffeeChat(user, coffeeChatId, coffeeChatRequest)
         return ResponseEntity.ok(updatedCoffeeChat)
     }
 }
@@ -81,7 +81,7 @@ data class CoffeeChats(
     val coffeeChatList: List<CoffeeChat>,
 )
 
-data class Coffee(
+data class CoffeeChatRequest(
     @field:NotBlank(message = "Phone number cannot be blank.")
     @field:Size(max = 20, message = "Phone number cannot exceed 20 characters.")
     val phoneNumber: String,
