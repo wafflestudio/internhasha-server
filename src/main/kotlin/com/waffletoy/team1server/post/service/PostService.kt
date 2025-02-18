@@ -248,7 +248,7 @@ class PostService(
                         title = "Title of $index",
                         category = category,
                         detail = "Detail of $category",
-                        headcount = "${(1..3).random()}",
+                        headcount = (1..3).random(),
                         isActive = true,
                         employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                         company = companyEntity,

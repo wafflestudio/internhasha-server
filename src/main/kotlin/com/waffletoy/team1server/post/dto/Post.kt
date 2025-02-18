@@ -30,7 +30,7 @@ data class Post(
     val isActive: Boolean,
     val category: Category,
     val detail: String,
-    val headcount: String,
+    val headcount: Int,
     // 북마크 여부
     val isBookmarked: Boolean = false,
 ) {
