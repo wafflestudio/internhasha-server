@@ -54,8 +54,11 @@ class UserService(
                 }
 
                 SignUpRequest.AuthType.SOCIAL_NORMAL -> {
-                    val info = request.info as SignUpRequest.SocialNormalInfo
-                    socialNormalSignUp(info)
+//                    val info = request.info as SignUpRequest.SocialNormalInfo
+//                    socialNormalSignUp(info)
+                    throw UserSocialLoginInvalidException(
+                        details = mapOf("authType" to request.authType),
+                    )
                 }
 
                 SignUpRequest.AuthType.LOCAL_CURATOR -> {
@@ -79,17 +82,22 @@ class UserService(
                 throw UserRoleConflictException(
                     details = mapOf("userId" to user.id, "userRole" to user.userRole),
                 )
-            }
-            if (user.isLocalLoginImplemented()) {
+            } else {
                 throw UserDuplicateSnuMailException(
                     details = mapOf("snuMail" to info.snuMail),
                 )
-            } else {
-                user.localLoginId = info.localLoginId
-                user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
-                user = userRepository.save(user)
-                isMerged = true
             }
+//            if (user.isLocalLoginImplemented()) {
+//                throw UserDuplicateSnuMailException(
+//                    details = mapOf("snuMail" to info.snuMail),
+//                )
+//            }
+//            else {
+//                user.localLoginId = info.localLoginId
+//                user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
+//                user = userRepository.save(user)
+//                isMerged = true
+//            }
         } else {
             if (userRepository.existsByLocalLoginId(info.localLoginId)) {
                 throw UserDuplicateLocalIdException(
