@@ -115,3 +115,8 @@ class UserNotAuthorizedException(details: Map<String, Any>? = null) : ApiExcepti
     errorCode = ErrorCode.USER_INVALID_ROLE,
     details = details,
 )
+
+class UserSocialLoginInvalidException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.INVALID_REQUEST,
+    details = details,
+)

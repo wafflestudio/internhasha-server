@@ -23,7 +23,7 @@ class PositionEntity(
     @Column(name = "DETAIL", nullable = true, columnDefinition = "TEXT")
     open var detail: String? = null,
     @Column(name = "HEADCOUNT", nullable = false)
-    open var headcount: String,
+    open var headcount: Int = 0,
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),

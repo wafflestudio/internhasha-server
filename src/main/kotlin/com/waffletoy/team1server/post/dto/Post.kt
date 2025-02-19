@@ -30,7 +30,7 @@ data class Post(
     val isActive: Boolean,
     val category: Category,
     val detail: String,
-    val headcount: String,
+    val headcount: Int,
     // 북마크 여부
     val isBookmarked: Boolean = false,
 ) {
@@ -44,9 +44,9 @@ data class Post(
                 id = entity.id,
                 author =
                     AuthorBrief(
-                        id = entity.company.admin.id,
-                        name = entity.company.admin.name,
-                        profileImageLink = entity.company.admin.profileImageLink,
+                        id = entity.company.curator.id,
+                        name = entity.company.curator.name,
+                        profileImageLink = entity.company.curator.profileImageLink,
                     ),
                 companyName = entity.company.companyName,
                 explanation = entity.company.explanation ?: "",
