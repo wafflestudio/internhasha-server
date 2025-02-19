@@ -20,7 +20,7 @@ data class PostBrief(
     val updatedAt: LocalDateTime,
     val isActive: Boolean,
     val category: Category,
-    val headcount: String,
+    val headcount: Int,
     val isBookmarked: Boolean,
 ) {
     companion object {

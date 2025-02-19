@@ -8,7 +8,7 @@ data class Position(
     val title: String,
     val category: String,
     val detail: String? = null,
-    val headcount: String,
+    val headcount: Int,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val employmentEndDate: LocalDateTime? = null,

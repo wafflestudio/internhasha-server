@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.user.service
 
+import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.resume.service.ResumeService
 import com.waffletoy.team1server.user.*
 import com.waffletoy.team1server.user.controller.*
 import com.waffletoy.team1server.user.dtos.*
@@ -24,7 +24,7 @@ class UserService(
     private val userRedisCacheService: UserRedisCacheService,
     private val googleOAuth2Client: GoogleOAuth2Client,
     @Lazy private val emailService: EmailService,
-    @Lazy private val resumeService: ResumeService,
+    @Lazy private val coffeeChatService: CoffeeChatService,
     @Lazy private val postService: PostService,
 ) {
     // Sign up functions
@@ -54,8 +54,11 @@ class UserService(
                 }
 
                 SignUpRequest.AuthType.SOCIAL_NORMAL -> {
-                    val info = request.info as SignUpRequest.SocialNormalInfo
-                    socialNormalSignUp(info)
+//                    val info = request.info as SignUpRequest.SocialNormalInfo
+//                    socialNormalSignUp(info)
+                    throw UserSocialLoginInvalidException(
+                        details = mapOf("authType" to request.authType),
+                    )
                 }
 
                 SignUpRequest.AuthType.LOCAL_CURATOR -> {
@@ -79,17 +82,22 @@ class UserService(
                 throw UserRoleConflictException(
                     details = mapOf("userId" to user.id, "userRole" to user.userRole),
                 )
-            }
-            if (user.isLocalLoginImplemented()) {
+            } else {
                 throw UserDuplicateSnuMailException(
                     details = mapOf("snuMail" to info.snuMail),
                 )
-            } else {
-                user.localLoginId = info.localLoginId
-                user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
-                user = userRepository.save(user)
-                isMerged = true
             }
+//            if (user.isLocalLoginImplemented()) {
+//                throw UserDuplicateSnuMailException(
+//                    details = mapOf("snuMail" to info.snuMail),
+//                )
+//            }
+//            else {
+//                user.localLoginId = info.localLoginId
+//                user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
+//                user = userRepository.save(user)
+//                isMerged = true
+//            }
         } else {
             if (userRepository.existsByLocalLoginId(info.localLoginId)) {
                 throw UserDuplicateLocalIdException(
@@ -379,9 +387,9 @@ class UserService(
                     details = mapOf("userId" to user.id),
                 )
 
-        // 외래키 제약이 걸려있는 bookmark, resume 를 삭제
+        // 외래키 제약이 걸려있는 bookmark, coffeeChat 를 삭제
         postService.deleteBookmarkByUser(userEntity)
-        resumeService.deleteResumeByUser(userEntity)
+        coffeeChatService.deleteCoffeeChatByUser(userEntity)
 
         userRepository.deleteUserEntityById(user.id)
         userRedisCacheService.deleteRefreshTokenByUserId(user.id)
