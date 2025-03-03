@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.user.service
 
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
+import com.waffletoy.team1server.email.EmailSendFailureException
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
@@ -53,14 +54,6 @@ class UserService(
                     localNormalSignUp(info)
                 }
 
-                SignUpRequest.AuthType.SOCIAL_NORMAL -> {
-//                    val info = request.info as SignUpRequest.SocialNormalInfo
-//                    socialNormalSignUp(info)
-                    throw UserSocialLoginInvalidException(
-                        details = mapOf("authType" to request.authType),
-                    )
-                }
-
                 SignUpRequest.AuthType.LOCAL_CURATOR -> {
                     val info = request.info as SignUpRequest.LocalCuratorInfo
                     localCuratorSignUp(info)
@@ -76,10 +69,9 @@ class UserService(
 
     private fun localNormalSignUp(info: SignUpRequest.LocalNormalInfo): User {
         var user = userRepository.findBySnuMail(info.snuMail)
-        var isMerged = false
         if (user != null) {
             if (user.userRole != UserRole.NORMAL) {
-                throw UserRoleConflictException(
+                throw UserInvalidRoleException(
                     details = mapOf("userId" to user.id, "userRole" to user.userRole),
                 )
             } else {
@@ -87,17 +79,6 @@ class UserService(
                     details = mapOf("snuMail" to info.snuMail),
                 )
             }
-//            if (user.isLocalLoginImplemented()) {
-//                throw UserDuplicateSnuMailException(
-//                    details = mapOf("snuMail" to info.snuMail),
-//                )
-//            }
-//            else {
-//                user.localLoginId = info.localLoginId
-//                user.localLoginPasswordHash = BCrypt.hashpw(info.password, BCrypt.gensalt())
-//                user = userRepository.save(user)
-//                isMerged = true
-//            }
         } else {
             if (userRepository.existsByLocalLoginId(info.localLoginId)) {
                 throw UserDuplicateLocalIdException(
@@ -115,60 +96,7 @@ class UserService(
                     ),
                 )
         }
-
-        return User.fromEntity(entity = user, isMerged = isMerged)
-    }
-
-    private fun socialNormalSignUp(info: SignUpRequest.SocialNormalInfo): User {
-        return when (info.provider.lowercase()) {
-            "google" -> googleNormalSignUp(info)
-            else -> throw InvalidRequestException(
-                details = mapOf("provider" to info.provider),
-            )
-        }
-    }
-
-    private fun googleNormalSignUp(info: SignUpRequest.SocialNormalInfo): User {
-        val googleInfo = googleOAuth2Client.getUserInfo(info.token)
-        var user = userRepository.findBySnuMail(info.snuMail)
-        var isMerged = false
-        if (user != null) {
-            if (user.userRole != UserRole.NORMAL) {
-                throw UserRoleConflictException(
-                    details = mapOf("userId" to user.id, "userRole" to user.userRole),
-                )
-            }
-            if (user.isGoogleLoginImplemented()) {
-                throw UserDuplicateGoogleIdException(
-                    details = mapOf("googleLoginId" to googleInfo.sub),
-                )
-            }
-            if (user.isLocalLoginImplemented()) {
-                user.googleLoginId = googleInfo.sub
-                user = userRepository.save(user)
-                isMerged = true
-            } else {
-                throw UserMergeUnknownFailureException(
-                    details = mapOf("userId" to user.id),
-                )
-            }
-        } else {
-            if (userRepository.existsByGoogleLoginId(googleInfo.sub)) {
-                throw UserDuplicateGoogleIdException(
-                    details = mapOf("googleLoginId" to googleInfo.sub),
-                )
-            }
-            user =
-                userRepository.save(
-                    UserEntity(
-                        snuMail = info.snuMail,
-                        name = googleInfo.name,
-                        googleLoginId = googleInfo.sub,
-                        userRole = UserRole.NORMAL,
-                    ),
-                )
-        }
-        return User.fromEntity(entity = user, isMerged = isMerged)
+        return User.fromEntity(entity = user)
     }
 
     private fun localCuratorSignUp(info: SignUpRequest.LocalCuratorInfo): User {
@@ -206,11 +134,6 @@ class UserService(
                     val info = request.info as SignInRequest.LocalInfo
                     localSignIn(info)
                 }
-
-                SignInRequest.AuthType.SOCIAL -> {
-                    val info = request.info as SignInRequest.SocialInfo
-                    socialSignIn(info)
-                }
             }
 
         // 기존 refresh token 을 만료합니다.(RTR)
@@ -233,25 +156,6 @@ class UserService(
             throw InvalidCredentialsException()
         }
 
-        return User.fromEntity(entity = user)
-    }
-
-    private fun socialSignIn(info: SignInRequest.SocialInfo): User {
-        return when (info.provider.lowercase()) {
-            "google" -> googleSignIn(info)
-            else -> throw InvalidRequestException(
-                details = mapOf("provider" to info.provider),
-            )
-        }
-    }
-
-    private fun googleSignIn(info: SignInRequest.SocialInfo): User {
-        val googleInfo = googleOAuth2Client.getUserInfo(info.token)
-        val user =
-            userRepository.findByGoogleLoginId(googleInfo.sub)
-                ?: throw UserNotFoundException(
-                    details = mapOf("googleLoginId" to googleInfo.sub),
-                )
         return User.fromEntity(entity = user)
     }
 
@@ -280,7 +184,6 @@ class UserService(
     }
 
     // Token related functions
-
     fun authenticate(accessToken: String): User {
         val userId =
             UserTokenUtil.validateAccessTokenGetUserId(accessToken)
@@ -343,7 +246,7 @@ class UserService(
                 text = "이메일 인증 번호: $emailCode",
             )
         } catch (ex: Exception) {
-            throw EmailVerificationSendFailureException(
+            throw EmailSendFailureException(
                 details = mapOf("snuMail" to request.snuMail),
             )
         }
@@ -352,13 +255,13 @@ class UserService(
     fun checkSnuMailVerification(request: CheckSnuMailVerificationRequest) {
         val encryptedCode =
             userRedisCacheService.getEmailCode(request.snuMail)
-                ?: throw EmailVerificationInvalidException(
+                ?: throw UserEmailVerificationInvalidException(
                     details = mapOf("snuMail" to request.snuMail),
                 )
 
         // 입력된 인증 코드와 Redis에 저장된 암호화된 코드 비교
         if (!BCrypt.checkpw(request.code, encryptedCode)) {
-            throw EmailVerificationInvalidException(
+            throw UserEmailVerificationInvalidException(
                 details = mapOf("snuMail" to request.snuMail),
             )
         } else {
@@ -374,9 +277,8 @@ class UserService(
         // @ManyToOne(fetch = FetchType.LAZY, optional = true)
         // @JoinColumn(name = "ADMIN", nullable = true)
         // @OnDelete(action = OnDeleteAction.SET_NULL
-        // TODO: UserRoleConflict 외의 별도의 Exception 정의가 필요
         if (user.userRole != UserRole.NORMAL) {
-            throw UserRoleConflictException(
+            throw UserInvalidRoleException(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }
@@ -406,13 +308,6 @@ class UserService(
                     details = mapOf("userId" to user.id),
                 )
 
-        // 비밀번호가 없는 유저(로컬이 아닌 유저)를 체크
-        if (!userEntity.isLocalLoginImplemented()) {
-            throw UserMethodConflictException(
-                details = mapOf("userId" to user.id),
-            )
-        }
-
         // 기존 비밀번호를 비교
         if (!BCrypt.checkpw(passwordRequest.oldPassword, userEntity.localLoginPasswordHash)) {
             throw InvalidCredentialsException(
@@ -438,17 +333,10 @@ class UserService(
             emailService.sendEmail(
                 to = user.snuMail!!,
                 subject = "[인턴하샤] 로그인 아이디 정보를 알려드립니다.",
-                text =
-                    if (user.isLocalLoginImplemented()) {
-                        "로그인 아이디 : ${user.localLoginId}"
-                    } else if (user.isGoogleLoginImplemented()) {
-                        "구글 계정으로 가입된 소셜 계정입니다. 구글 소셜 로그인으로 다시 로그인해주세요."
-                    } else {
-                        "기타 소셜 계정으로 가입된 계정입니다."
-                    },
+                text = "로그인 아이디 : ${user.localLoginId}",
             )
         } catch (ex: Exception) {
-            throw EmailVerificationSendFailureException(
+            throw EmailSendFailureException(
                 details = mapOf("snuMail" to user.snuMail!!),
             )
         }
@@ -461,13 +349,6 @@ class UserService(
                 ?: throw UserNotFoundException(
                     details = mapOf("snuMail" to resetPasswordRequest.snuMail),
                 )
-
-        // 비밀번호를 가진 로컬 계정인지 체크
-        if (!user.isLocalLoginImplemented()) {
-            throw UserMethodConflictException(
-                details = mapOf("snuMail" to resetPasswordRequest.snuMail),
-            )
-        }
 
         // 재설정 비밀번호 생성
         val uppercase = ('A'..'Z').random()
@@ -500,24 +381,11 @@ class UserService(
                     """.trimIndent(),
             )
         } catch (ex: Exception) {
-            throw EmailVerificationSendFailureException(
+            throw EmailSendFailureException(
                 details = mapOf("snuMail" to user.snuMail!!),
             )
         }
     }
-
-//    @Value("\${custom.SECRET}")
-//    private lateinit var resetDbSecret: String
-//
-//    fun resetDatabase(secret: String) {
-//        if (secret != resetDbSecret) {
-//            throw InvalidRequestException(
-//                details = mapOf("providedSecret" to secret),
-//            )
-//        }
-//        userRepository.deleteAll()
-//        userRedisCacheService.deleteAll()
-//    }
 
     // 다른 서비스에서 UserId로 User 가져오기
     fun getUserEntityByUserId(userId: String): UserEntity? = userRepository.findByIdOrNull(userId)

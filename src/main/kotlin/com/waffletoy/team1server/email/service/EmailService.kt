@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.email.service
 
-import com.waffletoy.team1server.exceptions.EmailVerificationSendFailureException
+import com.waffletoy.team1server.email.EmailSendFailureException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.scheduling.annotation.Async
@@ -23,7 +23,7 @@ class EmailService(
             message.setText(text)
             mailSender.send(message)
         } catch (ex: Exception) {
-            throw EmailVerificationSendFailureException()
+            throw EmailSendFailureException()
         }
     }
 }

@@ -47,3 +47,13 @@ class PostPositionNotFoundException(details: Map<String, Any>? = null) : ApiExce
     errorCode = ErrorCode.POST_POSITION_NOT_FOUND,
     details = details,
 )
+
+class PostS3UrlGenerationFailedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_S3_URL_GENERATION_FAILED,
+    details = details,
+)
+
+class PostS3SDKClientFailedException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.POST_S3_SDK_FAILED,
+    details = details,
+)

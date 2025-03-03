@@ -17,7 +17,6 @@ data class SignUpRequest(
 ) {
     enum class AuthType {
         LOCAL_NORMAL,
-        SOCIAL_NORMAL,
         LOCAL_CURATOR,
     }
 
@@ -29,7 +28,6 @@ data class SignUpRequest(
     )
     @JsonSubTypes(
         JsonSubTypes.Type(value = LocalNormalInfo::class, name = "LOCAL_NORMAL"),
-        JsonSubTypes.Type(value = SocialNormalInfo::class, name = "SOCIAL_NORMAL"),
         JsonSubTypes.Type(value = LocalCuratorInfo::class, name = "LOCAL_CURATOR"),
     )
     sealed class Info
@@ -56,20 +54,6 @@ data class SignUpRequest(
             message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
         )
         val password: String,
-    ) : Info()
-
-    @JsonTypeName("SOCIAL_NORMAL")
-    data class SocialNormalInfo(
-        @field:NotBlank(message = "provider is required")
-        val provider: String,
-        @field:NotBlank(message = "snuMail is required")
-        @field:Pattern(
-            regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$",
-            message = "snuMail must be a valid SNU email address.",
-        )
-        val snuMail: String,
-        @field:NotBlank(message = "token is required")
-        val token: String,
     ) : Info()
 
     @JsonTypeName("LOCAL_CURATOR")

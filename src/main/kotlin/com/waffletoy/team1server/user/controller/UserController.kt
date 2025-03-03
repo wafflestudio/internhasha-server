@@ -38,7 +38,7 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-    // 회원가입(local_normal, social_normal, local_curator)
+    // 회원가입(local_normal, local_curator)
     @PostMapping("/signup")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
