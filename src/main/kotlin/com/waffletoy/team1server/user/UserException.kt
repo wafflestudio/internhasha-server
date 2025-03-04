@@ -17,6 +17,7 @@ class UserNotFoundException(details: Map<String, Any>? = null) : ApiException(
     errorCode = ErrorCode.USER_NOT_FOUND,
     details = details,
 )
+
 class UserEmailVerificationInvalidException(details: Map<String, Any>? = null) : ApiException(
     errorCode = ErrorCode.USER_EMAIL_VERIFICATION_INVALID,
     details = details,
