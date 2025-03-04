@@ -6,6 +6,7 @@ import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.persistence.*
+import com.waffletoy.team1server.user.UserNotFoundException
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
 import com.waffletoy.team1server.user.persistence.*
