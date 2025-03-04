@@ -10,11 +10,9 @@ enum class ErrorCode(
     // User-related errors
     USER_DUPLICATE_SNUMAIL("USER_001", "A user with the provided SNU mail already exists.", HttpStatus.CONFLICT),
     USER_DUPLICATE_LOCAL_ID("USER_002", "A user with the provided local login ID already exists.", HttpStatus.CONFLICT),
-    USER_DUPLICATE_GOOGLE_ID("USER_003", "A user with the provided google login ID already exists.", HttpStatus.CONFLICT),
     USER_NOT_FOUND("USER_004", "User not found.", HttpStatus.NOT_FOUND),
     USER_INVALID_ROLE("USER_005", "Invalid user role.", HttpStatus.FORBIDDEN),
-    USER_MERGE_UNKNOWN_FAILURE("USER_006", "User merge unknown failure.", HttpStatus.CONFLICT),
-    USER_INVALID_METHOD("USER_007", "Invalid user method.", HttpStatus.FORBIDDEN),
+    USER_EMAIL_VERIFICATION_INVALID("USER_006", "Invalid email verification code.", HttpStatus.BAD_REQUEST),
 
     // Authentication-related errors
     AUTH_BAD_HEADER("AUTH_001", "Wrong Authorization header", HttpStatus.BAD_REQUEST),
@@ -26,9 +24,7 @@ enum class ErrorCode(
     AUTH_NOT_AUTHORIZED("AUTH_007", "Not authorized.", HttpStatus.UNAUTHORIZED),
 
     // Email-related errors
-    EMAIL_VERIFICATION_FAILED("EMAIL_001", "Email verification failed.", HttpStatus.BAD_REQUEST),
-    EMAIL_VERIFICATION_INVALID("EMAIL_002", "Invalid email verification code.", HttpStatus.BAD_REQUEST),
-    EMAIL_VERIFICATION_SEND_FAILURE("EMAIL_003", "Failed to send verification email.", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_SEND_FAILURE("EMAIL_001", "Failed to send verification email.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // General errors
     INTERNAL_SERVER_ERROR("GEN_001", "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR),

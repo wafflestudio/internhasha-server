@@ -13,13 +13,10 @@ data class User(
     val snuMail: String?,
     val phoneNumber: String?,
     val profileImageLink: String?,
-    val isMerged: Boolean,
 ) {
     companion object {
         fun fromEntity(
             entity: UserEntity,
-            isMerged: Boolean = false,
-//            includeResumes: Boolean = false,
         ): User =
             User(
                 id = entity.id,
@@ -30,7 +27,6 @@ data class User(
                 snuMail = entity.snuMail,
                 phoneNumber = entity.phoneNumber,
                 profileImageLink = entity.profileImageLink,
-                isMerged = isMerged,
             )
     }
 }

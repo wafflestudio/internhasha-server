@@ -5,6 +5,7 @@ import com.waffletoy.team1server.coffeeChat.controller.*
 import com.waffletoy.team1server.coffeeChat.controller.CoffeeChat
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatRepository
+import com.waffletoy.team1server.email.EmailSendFailureException
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.persistence.PositionEntity

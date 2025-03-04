@@ -24,8 +24,6 @@ class UserEntity(
     var localLoginId: String? = null,
     @Column(name = "local_login_password_hash", nullable = true)
     open var localLoginPasswordHash: String? = null,
-    @Column(name = "google_login_id", unique = true, nullable = true)
-    var googleLoginId: String? = null,
     // Date info
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -49,23 +47,11 @@ class UserEntity(
     @PrePersist
     @PreUpdate
     fun validate() {
-        if ((localLoginId == null || localLoginPasswordHash == null) && googleLoginId == null) {
+        if ((localLoginId == null || localLoginPasswordHash == null)) {
             throw ValidationException("Either localLoginId and passwordHash must both be non-null or googleLoginId must be non-null.")
         }
         if ((userRole == UserRole.NORMAL) && snuMail == null) {
             throw ValidationException("snuMail must not be null for APPLICANT.")
         }
-    }
-
-    fun isLocalLoginImplemented(): Boolean {
-        return !localLoginId.isNullOrBlank() && !localLoginPasswordHash.isNullOrBlank()
-    }
-
-    fun isGoogleLoginImplemented(): Boolean {
-        return !googleLoginId.isNullOrBlank()
-    }
-
-    fun isLoginImplemented(): Boolean {
-        return isLocalLoginImplemented() || isGoogleLoginImplemented()
     }
 }

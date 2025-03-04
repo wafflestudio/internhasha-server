@@ -16,7 +16,6 @@ data class SignInRequest(
 ) {
     enum class AuthType {
         LOCAL,
-        SOCIAL,
     }
 
     @JsonTypeInfo(
@@ -27,7 +26,6 @@ data class SignInRequest(
     )
     @JsonSubTypes(
         JsonSubTypes.Type(value = LocalInfo::class, name = "LOCAL"),
-        JsonSubTypes.Type(value = SocialInfo::class, name = "SOCIAL"),
     )
     sealed class Info
 
@@ -45,13 +43,5 @@ data class SignInRequest(
             message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
         )
         val password: String,
-    ) : Info()
-
-    @JsonTypeName("SOCIAL")
-    data class SocialInfo(
-        @field:NotBlank(message = "provider is required")
-        val provider: String,
-        @field:NotBlank(message = "token is required")
-        val token: String,
     ) : Info()
 }

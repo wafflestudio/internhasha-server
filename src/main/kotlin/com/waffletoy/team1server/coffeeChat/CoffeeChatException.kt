@@ -62,13 +62,3 @@ class CoffeeChatInvalidUserRoleException(details: Map<String, Any>? = null) : Ap
     errorCode = ErrorCode.COFFEECHAT_INVALID_USER_ROLE,
     details = details,
 )
-
-/**
- * Thrown when sending an email fails.
- *
- * @param details Additional context about the error, such as the recipient and error message.
- */
-class EmailSendFailureException(details: Map<String, Any>? = null) : ApiException(
-    errorCode = ErrorCode.EMAIL_VERIFICATION_SEND_FAILURE,
-    details = details,
-)
