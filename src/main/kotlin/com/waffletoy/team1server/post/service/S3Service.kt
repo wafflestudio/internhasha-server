@@ -4,10 +4,10 @@ import com.amazonaws.HttpMethod
 import com.amazonaws.SdkClientException
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.waffletoy.team1server.exceptions.NotAuthorizedException
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.controller.PreSignedDownloadReq
 import com.waffletoy.team1server.post.controller.PreSignedUploadReq
-import com.waffletoy.team1server.user.UserInvalidRoleException
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.dtos.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +28,7 @@ class S3Service(
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         if (user.userRole != UserRole.CURATOR) {
-            throw UserInvalidRoleException()
+            throw NotAuthorizedException()
         }
         try {
             val filePath = "${preSignedUploadReq.fileName}.${preSignedUploadReq.fileType}"
@@ -48,7 +48,7 @@ class S3Service(
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         if (user.userRole != UserRole.CURATOR) {
-            throw UserInvalidRoleException()
+            throw NotAuthorizedException()
         }
         try {
             val expiration = calculateExpiration(expirationMinutes)

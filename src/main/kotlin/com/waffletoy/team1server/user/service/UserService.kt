@@ -71,7 +71,7 @@ class UserService(
         var user = userRepository.findBySnuMail(info.snuMail)
         if (user != null) {
             if (user.userRole != UserRole.NORMAL) {
-                throw UserInvalidRoleException(
+                throw NotAuthorizedException(
                     details = mapOf("userId" to user.id, "userRole" to user.userRole),
                 )
             } else {
@@ -278,7 +278,7 @@ class UserService(
         // @JoinColumn(name = "ADMIN", nullable = true)
         // @OnDelete(action = OnDeleteAction.SET_NULL
         if (user.userRole != UserRole.NORMAL) {
-            throw UserInvalidRoleException(
+            throw NotAuthorizedException(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }

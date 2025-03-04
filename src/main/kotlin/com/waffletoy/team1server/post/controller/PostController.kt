@@ -161,14 +161,14 @@ class PostController(
         return ResponseEntity.ok(company)
     }
 
-    @DeleteMapping("/company/{company_id}")
-    fun deleteCompany(
-        @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable("company_id") companyId: String,
-    ): ResponseEntity<Void> {
-        postService.deleteCompany(user, companyId)
-        return ResponseEntity.ok().build()
-    }
+//    @DeleteMapping("/company/{company_id}")
+//    fun deleteCompany(
+//        @Parameter(hidden = true) @AuthUser user: User,
+//        @PathVariable("company_id") companyId: String,
+//    ): ResponseEntity<Void> {
+//        postService.deleteCompany(user, companyId)
+//        return ResponseEntity.ok().build()
+//    }
 
     @PostMapping("/position")
     fun createPosition(
