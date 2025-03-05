@@ -21,7 +21,7 @@ data class CoffeeChatCompany (
     val company: UserBrief,
 
     // 내용
-    val content: String?,
+    val content: String,
 
     // 커피챗 생성, 수정 시간
     val createdAt: LocalDateTime,
