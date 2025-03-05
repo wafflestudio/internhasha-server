@@ -18,8 +18,8 @@ class CoffeeChatEntity(
     open var createdAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "CONTENT", columnDefinition = "TEXT", nullable = true)
-    open var content: String? = null,
+    @Column(name = "CONTENT", columnDefinition = "TEXT", nullable = false)
+    open var content: String,
     @Column(name = "COFFEE_CHAT_STATUS", nullable = false)
     open var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING,
     @Column(name = "IS_CHANGED", nullable = false)
