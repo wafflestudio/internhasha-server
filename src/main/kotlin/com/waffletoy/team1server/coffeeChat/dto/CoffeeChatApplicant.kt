@@ -2,7 +2,6 @@ package com.waffletoy.team1server.coffeeChat.dto
 
 import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
-import com.waffletoy.team1server.user.dtos.UserBrief
 import java.time.LocalDateTime
 
 data class CoffeeChatApplicant(
@@ -12,7 +11,7 @@ data class CoffeeChatApplicant(
     // 공고 제목
     val title: String?,
     // 회사명, 회사 이미지 url(imageLink)
-    val company: UserBrief,
+    val company: UserBriefTmp,
     // 내용
     val content: String,
     // 커피챗 생성, 수정 시간
@@ -29,7 +28,7 @@ data class CoffeeChatApplicant(
             id = entity.id,
             postId = entity.position.id,
             title = entity.position.title,
-            company = entity.position.company.curator.let { UserBrief.fromEntity(it) },
+            company = entity.position.company.curator.let { UserBriefTmp.fromEntity(it) },
             content = entity.content,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
