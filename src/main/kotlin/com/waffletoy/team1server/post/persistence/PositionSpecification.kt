@@ -17,7 +17,7 @@ class PositionSpecification {
             status: Int,
             series: List<String>?,
             order: Int,
-            admin: UserEntity? = null,
+            curator: UserEntity? = null,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
         ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -34,7 +34,7 @@ class PositionSpecification {
                         buildInvestmentMinPredicate(companyJoin, criteriaBuilder, investmentMin),
                         buildInvestmentMaxPredicate(companyJoin, criteriaBuilder, investmentMax),
                         buildStatusPredicate(root, criteriaBuilder, status, currentDateTime, endDay),
-                        buildAdminPredicate(root, criteriaBuilder, admin),
+                        buildCuratorPredicate(root, criteriaBuilder, curator),
                     )
 
                 // 중복 방지
@@ -53,16 +53,16 @@ class PositionSpecification {
             }
         }
 
-        private fun buildAdminPredicate(
+        private fun buildCuratorPredicate(
             root: Root<PositionEntity>,
             criteriaBuilder: CriteriaBuilder,
-            admin: UserEntity?,
+            curator: UserEntity?,
         ): Predicate? {
-            return admin?.let {
+            return curator?.let {
                 val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
-                val adminJoin = companyJoin.join<CompanyEntity, UserEntity>("admin")
+                val curatorJoin = companyJoin.join<CompanyEntity, UserEntity>("curator")
 
-                criteriaBuilder.equal(adminJoin.get<Long>("id"), it.id)
+                criteriaBuilder.equal(curatorJoin.get<Long>("id"), it.id)
             }
         }
 
