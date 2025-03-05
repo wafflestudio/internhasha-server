@@ -22,10 +22,10 @@ class CoffeeChatEntity(
     open var content: String? = null,
     @Column(name = "COFFEE_CHAT_STATUS", nullable = false)
     open var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING,
-    @Column(name = "isChanged", nullable = false)
+    @Column(name = "IS_CHANGED", nullable = false)
     open var isChanged: Boolean = false,
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "POSITION_ID", nullable = false)
     open var position: PositionEntity,
 
