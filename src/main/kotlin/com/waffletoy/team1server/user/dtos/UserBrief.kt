@@ -2,7 +2,6 @@ package com.waffletoy.team1server.user.dtos
 
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
-import java.time.LocalDateTime
 
 data class UserBrief(
     val id: String,
