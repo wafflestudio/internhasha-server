@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.coffeeChat.persistence
 
 import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
-import com.waffletoy.team1server.coffeeChat.controller.CoffeeChat
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
@@ -22,13 +21,11 @@ class CoffeeChatEntity(
     open var content: String,
     @Column(name = "COFFEE_CHAT_STATUS", nullable = false)
     open var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING,
-    @Column(name = "IS_CHANGED", nullable = false)
-    open var isChanged: Boolean = false,
-
+    @Column(name = "CHANGED", nullable = false)
+    open var changed: Boolean = false,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "POSITION_ID", nullable = false)
     open var position: PositionEntity,
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "APPLICANT_ID", nullable = false)
     open val applicant: UserEntity,

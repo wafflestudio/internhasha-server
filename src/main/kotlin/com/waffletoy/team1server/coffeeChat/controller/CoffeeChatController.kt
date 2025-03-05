@@ -1,13 +1,13 @@
 package com.waffletoy.team1server.coffeeChat.controller
 
 import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatApplicant
+import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatBrief
 import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatCompany
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.dtos.User
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -46,7 +46,7 @@ class CoffeeChatController(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable postId: String,
         @RequestBody coffeeChatRequest: CoffeeChatRequest,
-    ): ResponseEntity<CoffeeChat> {
+    ): ResponseEntity<CoffeeChatApplicant> {
         val coffeeChat =
             coffeeChatService.applyCoffeeChat(
                 user,
@@ -62,7 +62,7 @@ class CoffeeChatController(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable coffeeChatId: String,
         @RequestBody coffeeChatRequest: CoffeeChatRequest,
-    ): ResponseEntity<CoffeeChat> {
+    ): ResponseEntity<CoffeeChatApplicant> {
         val updatedCoffeeChat = coffeeChatService.editCoffeeChat(user, coffeeChatId, coffeeChatRequest)
         return ResponseEntity.ok(updatedCoffeeChat)
     }
@@ -72,59 +72,78 @@ class CoffeeChatController(
     fun cancelCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable coffeeChatId: String,
-        @RequestBody coffeeChatRequest: CoffeeChatRequest,
-    ): ResponseEntity<CoffeeChat> {
-        val updatedCoffeeChat = coffeeChatService.cancelCoffeeChat(user, coffeeChatId, coffeeChatRequest)
+    ): ResponseEntity<CoffeeChatApplicant> {
+        val updatedCoffeeChat = coffeeChatService.cancelCoffeeChat(user, coffeeChatId)
         return ResponseEntity.ok(updatedCoffeeChat)
     }
 
     // 회사 - 커피챗 수락하기
-    @PatchMapping("/{coffeeChatId}/applicant/confirm")
+    @PatchMapping("/{coffeeChatId}/company/confirm")
     fun confirmCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable coffeeChatId: String,
-        @RequestBody coffeeChatRequest: CoffeeChatRequest,
-    ): ResponseEntity<CoffeeChat> {
-        val updatedCoffeeChat = coffeeChatService.confirmCoffeeChat(user, coffeeChatId, coffeeChatRequest)
+    ): ResponseEntity<CoffeeChatCompany> {
+        val updatedCoffeeChat = coffeeChatService.confirmCoffeeChat(user, coffeeChatId)
         return ResponseEntity.ok(updatedCoffeeChat)
     }
 
     // 회사 - 커피챗 거절하기
-    @PatchMapping("/{coffeeChatId}/applicant/reject")
+    @PatchMapping("/{coffeeChatId}/company/reject")
     fun rejectCoffeeChat(
         @Parameter(hidden = true) @AuthUser user: User,
         @PathVariable coffeeChatId: String,
-        @RequestBody coffeeChatRequest: CoffeeChatRequest,
-    ): ResponseEntity<CoffeeChat> {
-        val updatedCoffeeChat = coffeeChatService.rejectCoffeeChat(user, coffeeChatId, coffeeChatRequest)
+    ): ResponseEntity<CoffeeChatCompany> {
+        val updatedCoffeeChat = coffeeChatService.rejectCoffeeChat(user, coffeeChatId)
         return ResponseEntity.ok(updatedCoffeeChat)
     }
 
     // 지원자 - 커피챗 목록 불러오기
-    @GetMapping
+    @GetMapping("/applicant")
     fun getCoffeeChatListApplicant(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<CoffeeChatList> {
         return ResponseEntity.ok(
             CoffeeChatList(
-                coffeeChatList = coffeeChatService.getCoffeeChatList(user),
+                coffeeChatList = coffeeChatService.getCoffeeChatListApplicant(user),
             ),
         )
     }
 
     // 회사 - 커피챗 목록 불러오기
-    @GetMapping
+    @GetMapping("/company")
     fun getCoffeeChatListCompany(
         @Parameter(hidden = true) @AuthUser user: User,
     ): ResponseEntity<CoffeeChatList> {
         return ResponseEntity.ok(
             CoffeeChatList(
-                coffeeChatList = coffeeChatService.getCoffeeChatCompany(user),
+                coffeeChatList = coffeeChatService.getCoffeeChatListCompany(user),
             ),
         )
     }
 
+    // 지원자 - 새로 업데이트된 커피챗 개수 가져오기
+    @GetMapping("/changed")
+    fun countChangedCoffeeChatApplicant(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<CoffeeChatChanged> {
+        return ResponseEntity.ok(
+            CoffeeChatChanged(
+                numChanged = coffeeChatService.countChangedCoffeeChatApplicant(user),
+            ),
+        )
+    }
 
+    // 지원자 - 새로 업데이트된 커피챗 개수 가져오기
+    @GetMapping("/waiting")
+    fun countWaitingCoffeeChatsCompany(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<CoffeeChatWaiting> {
+        return ResponseEntity.ok(
+            CoffeeChatWaiting(
+                numWaiting = coffeeChatService.countWaitingCoffeeChatsCompany(user),
+            ),
+        )
+    }
 }
 
 data class CoffeeChatRequest(
@@ -132,9 +151,14 @@ data class CoffeeChatRequest(
     val content: String,
 )
 
-
 data class CoffeeChatList(
-    val coffeeChatList: List<CoffeeChat>,
+    val coffeeChatList: List<CoffeeChatBrief>,
 )
 
+data class CoffeeChatChanged(
+    val numChanged: Int,
+)
 
+data class CoffeeChatWaiting(
+    val numWaiting: Int,
+)

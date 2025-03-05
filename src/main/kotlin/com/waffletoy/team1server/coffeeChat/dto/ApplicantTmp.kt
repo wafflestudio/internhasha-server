@@ -4,7 +4,7 @@ import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
 import java.time.LocalDateTime
 
-data class Applicant_tmp(
+data class ApplicantTmp(
     val id: String,
     val name: String,
     val createdAt: LocalDateTime? = null,
@@ -17,8 +17,8 @@ data class Applicant_tmp(
     companion object {
         fun fromEntity(
             entity: UserEntity,
-        ): Applicant_tmp =
-            Applicant_tmp(
+        ): ApplicantTmp =
+            ApplicantTmp(
                 id = entity.id,
                 name = entity.name,
                 createdAt = entity.createdAt,
