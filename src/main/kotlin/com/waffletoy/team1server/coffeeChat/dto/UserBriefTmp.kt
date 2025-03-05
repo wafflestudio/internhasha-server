@@ -1,9 +1,9 @@
-package com.waffletoy.team1server.user.dtos
+package com.waffletoy.team1server.coffeeChat.dto
 
 import com.waffletoy.team1server.user.UserRole
 import com.waffletoy.team1server.user.persistence.UserEntity
 
-data class UserBrief(
+data class UserBriefTmp(
     val id: String,
     val name: String,
     val userRole: UserRole,
@@ -12,8 +12,8 @@ data class UserBrief(
     companion object {
         fun fromEntity(
             entity: UserEntity,
-        ): UserBrief =
-            UserBrief(
+        ): UserBriefTmp =
+            UserBriefTmp(
                 id = entity.id,
                 name = entity.name,
                 userRole = entity.userRole,
