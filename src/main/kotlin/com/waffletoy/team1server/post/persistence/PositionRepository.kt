@@ -22,7 +22,7 @@ interface PositionRepository : JpaRepository<PositionEntity, String>, JpaSpecifi
             "JOIN p.company c " +
             "WHERE c.curator = :curator",
     )
-    fun findByAdmin(
-        @Param("curator") admin: UserEntity,
+    fun findByCurator(
+        @Param("curator") curator: UserEntity,
     ): List<PositionEntity>
 }
