@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
     fun findAllByUserId(userId: String): List<CoffeeChatEntity>
-
     fun deleteAllByUser(userEntity: UserEntity)
 }
