@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.coffeeChat.persistence
 
+import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
+import com.waffletoy.team1server.coffeeChat.controller.CoffeeChat
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
@@ -18,15 +20,18 @@ class CoffeeChatEntity(
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "CONTENT", columnDefinition = "TEXT", nullable = true)
     open var content: String? = null,
-    @Column(name = "PHONE_NUMBER", length = 20, nullable = true)
-    open var phoneNumber: String? = null,
+    @Column(name = "COFFEE_CHAT_STATUS", nullable = false)
+    open var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING,
+    @Column(name = "isChanged", nullable = false)
+    open var isChanged: Boolean = false,
+
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "POSITION_ID", nullable = true)
-    // `PositionEntity`가 삭제되더라도 `null`로 처리
-    open var position: PositionEntity? = null,
+    @JoinColumn(name = "POSITION_ID", nullable = false)
+    open var position: PositionEntity,
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "USER_ID", nullable = false)
-    open val user: UserEntity,
+    @JoinColumn(name = "APPLICANT_ID", nullable = false)
+    open val applicant: UserEntity,
 ) {
     @PrePersist
     fun onCreate() {
