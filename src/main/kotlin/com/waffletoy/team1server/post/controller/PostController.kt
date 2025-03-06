@@ -2,7 +2,6 @@ package com.waffletoy.team1server.post.controller
 
 import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.s3.service.S3Service
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.AuthUserOrNull
 import com.waffletoy.team1server.user.dtos.User
@@ -10,7 +9,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -98,8 +96,6 @@ class PostController(
             ),
         )
     }
-
-
 
     // dev
     @PostMapping("/dev/make-dummy")
