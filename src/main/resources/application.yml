@@ -56,4 +56,5 @@ amazon:
         accessKey: ${S3ACCESSKEY:""}
         secretKey: ${S3SECRETKEY:""}
         region: ${S3REGION:""}
-        bucket: ${S3BUCKET:""}
+        bucketPublic: ${S3BUCKETPUBLIC:""}
+        bucketSecret: ${S3BUCKETSECRET:""}

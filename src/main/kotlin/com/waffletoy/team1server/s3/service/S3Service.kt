@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.post.service
+package com.waffletoy.team1server.s3.service
 
 import com.amazonaws.HttpMethod
 import com.amazonaws.SdkClientException
