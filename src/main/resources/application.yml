@@ -57,4 +57,5 @@ amazon:
         secretKey: ${S3SECRETKEY:""}
         region: ${S3REGION:""}
         bucketPublic: ${S3BUCKETPUBLIC:""}
-        bucketSecret: ${S3BUCKETSECRET:""}
+        bucketPrivate: ${S3BUCKETPRIVATE:""}
+        bucketPrivateKey: ${S3_BUCKET_PRIVATE_KEY:""}
