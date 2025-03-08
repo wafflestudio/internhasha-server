@@ -4,8 +4,6 @@ import com.amazonaws.HttpMethod
 import com.amazonaws.SdkClientException
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
-import com.amazonaws.services.s3.model.SSECustomerKey
 import com.waffletoy.team1server.s3.S3FileType
 import com.waffletoy.team1server.s3.S3SDKClientFailedException
 import com.waffletoy.team1server.s3.S3UrlGenerationFailedException
@@ -15,6 +13,11 @@ import com.waffletoy.team1server.user.dtos.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.net.URLEncoder
+import java.security.KeyFactory
+import java.security.PrivateKey
+import java.security.Signature
+import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -27,25 +30,26 @@ class S3Service(
     private val amazonS3: AmazonS3,
     @Value("\${amazon.aws.bucketPublic}") private val bucketPublic: String,
     @Value("\${amazon.aws.bucketPrivate}") private val bucketPrivate: String,
-    @Value("\${amazon.aws.bucketPrivateKey}") private val bucketPrivateKeyBase64: String,
+    @Value("\${cloudfront.keyPairId}") private val keyPairId: String,
+    @Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
+    @Value("\${custom.domain-name}") private val domainName: String,
 ) {
     // Lazy - 한 번만 파싱하고 이후 재사용하는 구조
-    private val sseCustomerKey: SSECustomerKey by lazy {
-        // Base64 디코딩, ByteArray를 String으로 변환
-        val decodedKey = Base64.getDecoder().decode(bucketPrivateKeyBase64)
-        val pemString = String(decodedKey).trim()
-        // 실제 키 부분만 추출
-        val rawKey =
-            pemString
-                .replace("-----BEGIN RSA PRIVATE KEY-----", "")
-                .replace("-----END RSA PRIVATE KEY-----", "")
-                .replace("\n", "")
-                .trim()
-                .let { Base64.getDecoder().decode(it) }
-        // S3 SSE-C용 Base64 키로 변환(인코딩)
-        SSECustomerKey(Base64.getEncoder().encodeToString(rawKey))
+    private val privateKey: PrivateKey by lazy {
+        val keyFactory = KeyFactory.getInstance("RSA")
+        val keyContent =
+            privateKeyText
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replace("\\s".toRegex(), "")
+
+        val keyBytes = Base64.getDecoder().decode(keyContent)
+        val keySpec = PKCS8EncodedKeySpec(keyBytes)
+
+        keyFactory.generatePrivate(keySpec)
     }
 
+    // 업로드는 presigned url 사용
     fun generateUploadPreSignUrl(
         user: User,
         preSignedUploadReq: PreSignedUploadReq,
@@ -60,25 +64,12 @@ class S3Service(
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
         val filePath = "static/${if (isPrivate) "private" else "public"}/${preSignedUploadReq.fileType}/${randomString}_$today/${preSignedUploadReq.fileName}"
+        val expiration = calculateExpiration(expirationMinutes)
 
-        return try {
-            val expiration = calculateExpiration(expirationMinutes)
-
-            val presignedRequest =
-                if (isPrivate) {
-                    generateSseCPresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT)
-                } else {
-                    amazonS3.generatePresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT).toString()
-                }
-
-            presignedRequest
-        } catch (e: AmazonS3Exception) {
-            throw S3UrlGenerationFailedException()
-        } catch (e: SdkClientException) {
-            throw S3SDKClientFailedException()
-        }
+        return generateS3PresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT)
     }
 
+    // 다운로드는 공개 url & signed url
     fun generateDownloadPreSignUrl(
         user: User,
         preSignedDownloadReq: PreSignedDownloadReq,
@@ -89,15 +80,23 @@ class S3Service(
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> bucketPrivate to true
                 S3FileType.COMPANY_THUMBNAIL -> bucketPublic to false
             }
+        val expiration = calculateExpiration(expirationMinutes)
 
-        return try {
-            val expiration = calculateExpiration(expirationMinutes)
+        return if (isPrivate) {
+            generateCloudfrontSignedUrl(preSignedDownloadReq.fileName, expiration)
+        } else {
+            generateS3PresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET)
+        }
+    }
 
-            if (isPrivate) {
-                generateSseCPresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET)
-            } else {
-                amazonS3.generatePresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET).toString()
-            }
+    private fun generateS3PresignedUrl(
+        bucketName: String,
+        filePath: String,
+        expiration: Date,
+        httpMethod: HttpMethod,
+    ): String {
+        try {
+            return amazonS3.generatePresignedUrl(bucketName, filePath, expiration, httpMethod).toString()
         } catch (e: AmazonS3Exception) {
             throw S3UrlGenerationFailedException()
         } catch (e: SdkClientException) {
@@ -105,19 +104,32 @@ class S3Service(
         }
     }
 
-    private fun generateSseCPresignedUrl(
-        bucket: String,
-        key: String,
+    private fun generateCloudfrontSignedUrl(
+        filePath: String,
         expiration: Date,
-        method: HttpMethod,
     ): String {
-        val request =
-            GeneratePresignedUrlRequest(bucket, key)
-                .withMethod(method)
-                .withExpiration(expiration)
-                .withSSECustomerKey(sseCustomerKey)
+        val resourcePath = "$domainName/$filePath"
+        val expiresAt = expiration.toInstant().epochSecond
 
-        return amazonS3.generatePresignedUrl(request).toString()
+        // 서명할 문자열은 "<resource>?Expires=<expiration>" 형식
+        val stringToSign = "$resourcePath?Expires=$expiresAt&Key-Pair-Id=$keyPairId"
+
+        // RSA 서명 생성
+        val signatureInstance =
+            Signature.getInstance("SHA256withRSA").apply {
+                initSign(privateKey)
+                update(stringToSign.toByteArray())
+            }
+        val signedBytes = signatureInstance.sign()
+
+        // Base64 URL-safe 인코딩
+        val encodedSignature = Base64.getUrlEncoder().encodeToString(signedBytes)
+
+        return "$stringToSign&Signature=$encodedSignature"
+    }
+
+    private fun urlEncode(value: String): String {
+        return URLEncoder.encode(value, "UTF-8")
     }
 
     private fun calculateExpiration(expirationMinutes: Long): Date {
