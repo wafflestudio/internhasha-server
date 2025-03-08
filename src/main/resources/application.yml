@@ -62,3 +62,4 @@ amazon:
 cloudfront:
     keyPairId: ${CLOUDFRONT_KEYPAIR_ID:""}
     privateKeyText: ${CLOUDFRONT_PRIVATE_KEY:""}
+    privateKeyPath: intern-hasha-private.pem
