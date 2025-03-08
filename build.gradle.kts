@@ -65,6 +65,8 @@ dependencies {
 
     // jsoup
     implementation("org.jsoup:jsoup:1.18.3")
+
+    implementation("com.amazonaws:aws-java-sdk:1.12.779")
 }
 
 allOpen {
