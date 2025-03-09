@@ -47,6 +47,7 @@ enum class ErrorCode(
     // S3
     S3_URL_GENERATION_FAILED("S3_001", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     S3_SDK_FAILED("S3_002", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
+    S3_CLOUDFRONT_KEY_FAILED("S3_003", "Key for signed url failed", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // COFFEECHAT-related errors
     COFFEECHAT_NOT_FOUND("COFFEECHAT_001", "The requested coffeeChat was not found.", HttpStatus.NOT_FOUND),

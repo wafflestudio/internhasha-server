@@ -5,12 +5,12 @@ import com.waffletoy.team1server.s3.service.S3Service
 import com.waffletoy.team1server.user.AuthUser
 import com.waffletoy.team1server.user.dtos.User
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/s3")
@@ -18,36 +18,46 @@ import org.springframework.web.bind.annotation.RestController
 class S3Controller(
     private val s3Service: S3Service,
 ) {
-    // s3 bucket
-    @PostMapping("/upload/presigned")
-    fun generateUploadPresignedUrl(
+    @PostMapping
+    fun generateUploadUrl(
         @Parameter(hidden = true) @AuthUser user: User,
-        @RequestBody preSignedUploadReq: PreSignedUploadReq,
-    ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateUploadPreSignUrl(user, preSignedUploadReq)
-        return ResponseEntity.ok(PresignedURL(presignedUrl))
+        @Valid @RequestBody s3UploadReq: S3UploadReq,
+    ): ResponseEntity<S3UploadResp> {
+        val (url, filepath) = s3Service.generateUploadUrl(user, s3UploadReq)
+        return ResponseEntity.ok(S3UploadResp(url, filepath))
     }
 
-    @PostMapping("/download/presigned")
-    fun generateDownloadPresignedUrl(
+    @GetMapping
+    fun generateDownloadUrl(
         @Parameter(hidden = true) @AuthUser user: User,
-        @RequestBody preSignedDownloadReq: PreSignedDownloadReq,
-    ): ResponseEntity<PresignedURL> {
-        val presignedUrl = s3Service.generateDownloadPreSignUrl(user, preSignedDownloadReq)
-        return ResponseEntity.ok(PresignedURL(presignedUrl))
+        @RequestParam(required = true) filePath: String,
+        @RequestParam(required = true) fileType: S3FileType,
+    ): ResponseEntity<S3DownloadResp> {
+        val s3DownloadReq = S3DownloadReq(fileType, filePath)
+        val url = s3Service.generateDownloadUrl(user, s3DownloadReq)
+        return ResponseEntity.ok(S3DownloadResp(url))
     }
 }
 
-data class PreSignedUploadReq(
+data class S3UploadReq(
+    @field:NotBlank(message = "파일 이름은 필수입니다.")
     val fileName: String,
+    @field:NotNull(message = "파일 타입은 필수입니다.")
     val fileType: S3FileType,
 )
 
-data class PreSignedDownloadReq(
-    val fileType: S3FileType,
-    val fileName: String,
+data class S3UploadResp(
+    val url: String,
+    val filePath: String,
 )
 
-data class PresignedURL(
-    val presignedUrl: String,
+data class S3DownloadReq(
+    @field:NotNull(message = "파일 타입은 필수입니다.")
+    val fileType: S3FileType,
+    @field:NotBlank(message = "파일 경로는 필수입니다.")
+    val filePath: String,
+)
+
+data class S3DownloadResp(
+    val url: String,
 )
