@@ -43,8 +43,11 @@ enum class ErrorCode(
     POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
     POST_POSITION_NOT_FOUND("POST_009", "Position not found", HttpStatus.NOT_FOUND),
-    POST_S3_URL_GENERATION_FAILED("POST_010", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
-    POST_S3_SDK_FAILED("POST_011", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // S3
+    S3_URL_GENERATION_FAILED("S3_001", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+    S3_SDK_FAILED("S3_002", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
+    S3_CLOUDFRONT_KEY_FAILED("S3_003", "Key for signed url failed", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // COFFEECHAT-related errors
     COFFEECHAT_NOT_FOUND("COFFEECHAT_001", "The requested coffeeChat was not found.", HttpStatus.NOT_FOUND),

@@ -38,6 +38,7 @@ spring:
             host: ${SPRING_REDIS_HOST:localhost}
             port: ${SPRING_REDIS_PORT:6379}
 custom:
+    domain-name: www.survey-josha.site
     domain-url: api.survey-josha.site
     is-secure: ${IS_SECURE:false}
     SECRET: ${SECRET:Helloworld}
@@ -56,4 +57,8 @@ amazon:
         accessKey: ${S3ACCESSKEY:""}
         secretKey: ${S3SECRETKEY:""}
         region: ${S3REGION:""}
-        bucket: ${S3BUCKET:""}
+        bucketPublic: ${S3_BUCKET_PUBLIC:""}
+        bucketPrivate: ${S3_BUCKET_PRIVATE:""}
+cloudfront:
+    keyPairId: ${CLOUDFRONT_KEYPAIR_ID:""}
+    privateKeyText: ${CLOUDFRONT_PRIVATE_KEY:""}
