@@ -6,17 +6,19 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.waffletoy.team1server.s3.S3CloudFrontKeyFailedException
 import com.waffletoy.team1server.s3.S3FileType
 import com.waffletoy.team1server.s3.S3SDKClientFailedException
 import com.waffletoy.team1server.s3.S3UrlGenerationFailedException
-import com.waffletoy.team1server.s3.controller.PreSignedDownloadReq
-import com.waffletoy.team1server.s3.controller.PreSignedUploadReq
+import com.waffletoy.team1server.s3.controller.S3DownloadReq
+import com.waffletoy.team1server.s3.controller.S3UploadReq
 import com.waffletoy.team1server.user.dtos.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
-import java.net.URLEncoder
+import java.io.IOException
+import java.security.spec.InvalidKeySpecException
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -32,7 +34,6 @@ class S3Service(
     @Value("\${cloudfront.keyPairId}") private val keyPairId: String,
     @Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
     @Value("\${custom.domain-name}") private val domainName: String,
-    @Value("\${cloudfront.privateKeyPath}") private val privateKeyPath: String,
 ) {
     // Lazy - 한 번만 파싱하고 이후 재사용하는 구조
     private val tempPrivateKeyFile: File by lazy {
@@ -49,42 +50,44 @@ class S3Service(
     }
 
     // 업로드는 presigned url 사용
-    fun generateUploadPreSignUrl(
+    fun generateUploadUrl(
         user: User,
-        preSignedUploadReq: PreSignedUploadReq,
+        s3UploadReq: S3UploadReq,
         expirationMinutes: Long = EXPIRATION_MINUTES,
-    ): String {
+    ): Pair<String, String> {
         val (bucketName, isPrivate) =
-            when (preSignedUploadReq.fileType) {
+            when (s3UploadReq.fileType) {
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> bucketPrivate to true
                 S3FileType.COMPANY_THUMBNAIL -> bucketPublic to false
             }
 
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
-        val filePath = "static/${if (isPrivate) "private" else "public"}/${preSignedUploadReq.fileType}/${randomString}_$today/${preSignedUploadReq.fileName}"
+        val filePath = "static/${if (isPrivate) "private" else "public"}/${s3UploadReq.fileType}/${randomString}_$today/${s3UploadReq.fileName}"
         val expiration = calculateExpiration(expirationMinutes)
 
-        return generateS3PresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT)
+        return Pair(
+            generateS3PresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT),
+            filePath,
+        )
     }
 
     // 다운로드는 공개 url & signed url
-    fun generateDownloadPreSignUrl(
+    fun generateDownloadUrl(
         user: User,
-        preSignedDownloadReq: PreSignedDownloadReq,
+        s3DownloadReq: S3DownloadReq,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
-        val (bucketName, isPrivate) =
-            when (preSignedDownloadReq.fileType) {
-                S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> bucketPrivate to true
-                S3FileType.COMPANY_THUMBNAIL -> bucketPublic to false
+        val isPrivate =
+            when (s3DownloadReq.fileType) {
+                S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> true
+                S3FileType.COMPANY_THUMBNAIL -> false
             }
-        val expiration = calculateExpiration(expirationMinutes)
-
         return if (isPrivate) {
-            generateCloudfrontSignedUrl(preSignedDownloadReq.fileName, expiration)
+            val expiration = calculateExpiration(expirationMinutes)
+            generateCloudfrontSignedUrl(s3DownloadReq.filePath, expiration)
         } else {
-            generateS3PresignedUrl(bucketName, preSignedDownloadReq.fileName, expiration, HttpMethod.GET)
+            "$domainName/${s3DownloadReq.filePath}"
         }
     }
 
@@ -107,24 +110,23 @@ class S3Service(
         filePath: String,
         expiration: Date,
     ): String {
-//        val privateKeyStream = ClassPathResource(privateKeyPath).inputStream
-//        val tempFile =
-//            File.createTempFile("temp-key", ".pem").apply {
-//                writeText(privateKeyStream.bufferedReader().use { it.readText() })
-//            }
-
-        return CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
-            SignerUtils.Protocol.https,
-            domainName,
-            tempPrivateKeyFile,
-            filePath,
-            keyPairId,
-            expiration,
-        )
-    }
-
-    private fun urlEncode(value: String): String {
-        return URLEncoder.encode(value, "UTF-8")
+        try {
+            return CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
+                SignerUtils.Protocol.https,
+                domainName,
+                tempPrivateKeyFile,
+                filePath,
+                keyPairId,
+                expiration,
+            )
+        } catch (e: Exception) {
+            when (e) {
+                is InvalidKeySpecException, is IOException -> {
+                    throw S3CloudFrontKeyFailedException()
+                }
+                else -> throw e
+            }
+        }
     }
 
     private fun calculateExpiration(expirationMinutes: Long): Date {
