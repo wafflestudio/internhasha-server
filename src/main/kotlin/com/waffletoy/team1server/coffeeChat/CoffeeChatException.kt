@@ -72,3 +72,8 @@ class CoffeeChatStatusForbiddenException(details: Map<String, Any>? = null) : Ap
     errorCode = ErrorCode.COFFEECHAT_STATUS_FORBIDDEN,
     details = details,
 )
+
+class CoffeeChatDuplicationException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.COFFEECHAT_DUPLICATION_FORBIDDEN,
+    details = details,
+)

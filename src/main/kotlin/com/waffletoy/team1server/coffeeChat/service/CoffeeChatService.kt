@@ -5,6 +5,7 @@ import com.waffletoy.team1server.coffeeChat.controller.*
 import com.waffletoy.team1server.coffeeChat.dto.*
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatRepository
+import com.waffletoy.team1server.post.PostNotFoundException
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.post.service.PostService
 import com.waffletoy.team1server.user.UserRole
@@ -28,7 +29,17 @@ class CoffeeChatService(
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
 
-    fun getCoffeeChatDetailApplicant(
+    fun getCoffeeChatDetail(
+        user: User,
+        coffeeChatId: String,
+    ): CoffeeChatDetail {
+        return when (user.userRole) {
+            UserRole.NORMAL -> getCoffeeChatDetailApplicant(user, coffeeChatId)
+            UserRole.CURATOR -> getCoffeeChatDetailCompany(user, coffeeChatId)
+        }
+    }
+
+    private fun getCoffeeChatDetailApplicant(
         user: User,
         coffeeChatId: String,
     ): CoffeeChatApplicant {
@@ -39,7 +50,7 @@ class CoffeeChatService(
         return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
     }
 
-    fun getCoffeeChatDetailCompany(
+    private fun getCoffeeChatDetailCompany(
         user: User,
         coffeeChatId: String,
     ): CoffeeChatCompany {
@@ -54,7 +65,7 @@ class CoffeeChatService(
     fun applyCoffeeChat(
         user: User,
         postId: String,
-        coffeeChatRequest: CoffeeChatRequest,
+        coffeeChatContent: CoffeeChatContent,
     ): CoffeeChatApplicant {
         if (user.userRole != UserRole.NORMAL) {
             throw CoffeeChatUserForbiddenException(
@@ -63,6 +74,19 @@ class CoffeeChatService(
         }
         val userEntity = getUserEntityOrThrow(user.id)
         val positionEntity = getPositionEntityOrThrow(postId)
+
+        // 이미 대기 중인 커피챗이 있는지 확인
+        val existingCoffeeChat =
+            coffeeChatRepository.findByApplicantIdAndPositionIdAndCoffeeChatStatus(
+                userEntity.id,
+                positionEntity.id,
+                CoffeeChatStatus.WAITING,
+            )
+        if (existingCoffeeChat != null) {
+            throw CoffeeChatDuplicationException(
+                details = mapOf("coffeeChatId" to existingCoffeeChat.id, "coffeeChatStatus" to CoffeeChatStatus.WAITING),
+            )
+        }
 
         // 지원 가능한지 마감시간을 확인
         if (positionEntity.employmentEndDate != null && LocalDateTime.now().isAfter(positionEntity.employmentEndDate!!)) {
@@ -75,7 +99,7 @@ class CoffeeChatService(
             try {
                 coffeeChatRepository.save(
                     CoffeeChatEntity(
-                        content = coffeeChatRequest.content,
+                        content = coffeeChatContent.content,
                         position = positionEntity,
                         applicant = userEntity,
                     ),
@@ -98,7 +122,7 @@ class CoffeeChatService(
     fun editCoffeeChat(
         user: User,
         coffeeChatId: String,
-        coffeeChatRequest: CoffeeChatRequest,
+        coffeeChatContent: CoffeeChatContent,
     ): CoffeeChatApplicant {
         // 커피챗 찾기
         val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
@@ -117,13 +141,31 @@ class CoffeeChatService(
         }
 
         // 업데이트
-        coffeeChatEntity.content = coffeeChatRequest.content
+        coffeeChatEntity.content = coffeeChatContent.content
 
         return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
     }
 
     @Transactional
-    fun cancelCoffeeChat(
+    fun changeCoffeeChatStatus(
+        user: User,
+        coffeeChatId: String,
+        coffeeChatStatusReq: CoffeeChatStatusReq,
+    ): CoffeeChatDetail {
+        return when (val newStatus = coffeeChatStatusReq.coffeeChatStatus) {
+            CoffeeChatStatus.WAITING -> throw CoffeeChatStatusForbiddenException(
+                details =
+                    mapOf(
+                        "status" to newStatus.toString(),
+                    ),
+            )
+            CoffeeChatStatus.CANCELED -> cancelCoffeeChat(user, coffeeChatId)
+            CoffeeChatStatus.REJECTED -> rejectCoffeeChat(user, coffeeChatId)
+            CoffeeChatStatus.ACCEPTED -> acceptCoffeeChat(user, coffeeChatId)
+        }
+    }
+
+    private fun cancelCoffeeChat(
         user: User,
         coffeeChatId: String,
     ): CoffeeChatApplicant {
@@ -146,8 +188,7 @@ class CoffeeChatService(
         return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
     }
 
-    @Transactional
-    fun confirmCoffeeChat(
+    private fun acceptCoffeeChat(
         user: User,
         coffeeChatId: String,
     ): CoffeeChatCompany {
@@ -157,7 +198,7 @@ class CoffeeChatService(
         checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.CURATOR)
         // 업데이트
         if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.CONFIRMED
+            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.ACCEPTED
             coffeeChatEntity.changed = true
         } else {
             throw CoffeeChatStatusForbiddenException(
@@ -171,8 +212,7 @@ class CoffeeChatService(
         return CoffeeChatCompany.fromEntity(coffeeChatEntity)
     }
 
-    @Transactional
-    fun rejectCoffeeChat(
+    private fun rejectCoffeeChat(
         user: User,
         coffeeChatId: String,
     ): CoffeeChatCompany {
@@ -206,14 +246,18 @@ class CoffeeChatService(
             )
         }
         val coffeeChatEntityList = coffeeChatRepository.findAllByApplicantId(user.id)
+
         // 커피챗 DTO를 준비(changed 반영)
         val ret = coffeeChatEntityList.map { CoffeeChatBrief.fromEntity(it) }
-        // changed를 false로 수정
-        coffeeChatEntityList.forEach { it.changed = false }
+
+        // changed 값을 false로 변경, 저장
+        coffeeChatEntityList.filter { it.changed }.forEach {
+            it.changed = false
+            coffeeChatRepository.save(it)
+        }
         return ret
     }
 
-    @Transactional
     fun getCoffeeChatListCompany(
         user: User,
     ): List<CoffeeChatBrief> {
@@ -226,42 +270,30 @@ class CoffeeChatService(
             .map { CoffeeChatBrief.fromEntity(it) }
     }
 
-    fun countChangedCoffeeChatApplicant(
+    fun countCoffeeChatBadges(
         user: User,
     ): Int {
-        if (user.userRole != UserRole.NORMAL) {
-            throw CoffeeChatUserForbiddenException(
-                details = mapOf("userId" to user.id, "userRole" to user.userRole),
-            )
+        return when (user.userRole) {
+            UserRole.NORMAL ->
+                coffeeChatRepository.countByApplicantIdAndChangedTrue(
+                    applicantId = user.id,
+                ).toInt()
+            UserRole.CURATOR ->
+                coffeeChatRepository.countByCuratorIdAndStatus(
+                    curatorId = user.id,
+                    status = CoffeeChatStatus.WAITING,
+                ).toInt()
         }
-
-        return coffeeChatRepository.countByApplicantIdAndChangedTrue(
-            user.id,
-        ).toInt()
     }
 
-    fun countWaitingCoffeeChatsCompany(
-        user: User,
-    ): Int {
-        if (user.userRole != UserRole.CURATOR) {
-            throw CoffeeChatUserForbiddenException(
-                details = mapOf("userId" to user.id, "userRole" to user.userRole),
-            )
-        }
-
-        return coffeeChatRepository.countByCuratorIdAndStatus(
-            curatorId = user.id,
-            status = CoffeeChatStatus.WAITING,
-        ).toInt()
-    }
-
+    // 커피챗 엔티티 가져오기(외부 사용 가능)
     fun getCoffeeChatEntity(coffeeChatId: String): CoffeeChatEntity =
         coffeeChatRepository.findByIdOrNull(coffeeChatId)
             ?: throw CoffeeChatNotFoundException(
                 details = mapOf("coffeeChatId" to coffeeChatId),
             )
 
-    fun checkCoffeeChatAuthority(
+    private fun checkCoffeeChatAuthority(
         coffeeChatEntity: CoffeeChatEntity,
         user: User,
         userRole: UserRole,
@@ -289,18 +321,17 @@ class CoffeeChatService(
         }
     }
 
-    fun getPositionEntityOrThrow(postId: String): PositionEntity =
-        postService.getPositionEntityByPostId(postId) ?: throw CoffeeChatNotFoundException(
+    private fun getPositionEntityOrThrow(postId: String): PositionEntity =
+        postService.getPositionEntityByPostId(postId) ?: throw PostNotFoundException(
             details = mapOf("postId" to postId),
         )
 
-    fun getUserEntityOrThrow(userId: String): UserEntity =
+    private fun getUserEntityOrThrow(userId: String): UserEntity =
         userService.getUserEntityByUserId(userId) ?: throw CoffeeChatNotFoundException(
             details = mapOf("userId" to userId),
         )
 
-    // normal 유저 탈퇴 시 bookmark 데이터를 삭제
-    // curator 유저가 작성한 company, position 데이터는 유지
+    // normal 유저 탈퇴 시 coffeeChat 데이터를 삭제
     @Transactional(propagation = Propagation.REQUIRED)
     fun deleteCoffeeChatByUser(userEntity: UserEntity) {
         coffeeChatRepository.deleteAllByApplicantId(userEntity.id)

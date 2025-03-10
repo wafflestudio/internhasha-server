@@ -31,6 +31,13 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
     // 지원자 - isChanged 개수 가져오기
     fun countByApplicantIdAndChangedTrue(applicantId: String): Long
 
+    // 지원자 - 해당 공고에 이미 신청한 커피챗 가져오기
+    fun findByApplicantIdAndPositionIdAndCoffeeChatStatus(
+        userId: String,
+        positionId: String,
+        coffeeChatStatus: CoffeeChatStatus,
+    ): CoffeeChatEntity?
+
     // 회사 - 대기 중 개수 가져오기
     @Query(
         """

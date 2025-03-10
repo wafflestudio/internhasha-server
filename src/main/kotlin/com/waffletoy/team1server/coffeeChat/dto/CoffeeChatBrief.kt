@@ -10,16 +10,16 @@ data class CoffeeChatBrief(
     val postId: String,
     // 공고 제목
     val title: String,
-    // 지원자 정보
-    val applicant: UserBriefTmp,
     // 회사 정보
-    val company: UserBriefTmp,
+    val company: CoffeeChatUserInfo,
     // 커피챗 생성, 수정 시간
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     // 커피챗 상태
     val coffeeChatStatus: CoffeeChatStatus,
     val changed: Boolean,
+    // 지원자 정보
+    val applicant: CoffeeChatUserInfo,
 ) {
     companion object {
         fun fromEntity(
@@ -28,12 +28,12 @@ data class CoffeeChatBrief(
             id = entity.id,
             postId = entity.position.id,
             title = entity.position.title,
-            applicant = entity.applicant.let { UserBriefTmp.fromEntity(it) },
-            company = entity.position.company.curator.let { UserBriefTmp.fromEntity(it) },
+            company = entity.position.company.curator.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             coffeeChatStatus = entity.coffeeChatStatus,
             changed = entity.changed,
+            applicant = entity.applicant.let { CoffeeChatUserInfo.fromEntity(it) },
         )
     }
 }

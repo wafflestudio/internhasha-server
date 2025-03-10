@@ -58,4 +58,5 @@ enum class ErrorCode(
     COFFEECHAT_INVALID_USER_ROLE("COFFEECHAT_006", "Invalid user role for coffeeChat operations.", HttpStatus.FORBIDDEN),
     COFFEECHAT_POST_EXPIRED("COFFEECHAT_007", "The application for Coffee Chat is now closed.(Post deadline)", HttpStatus.FORBIDDEN),
     COFFEECHAT_STATUS_FORBIDDEN("COFFEECHAT_008", "You cannot change the status of the coffeeChat", HttpStatus.FORBIDDEN),
+    COFFEECHAT_DUPLICATION_FORBIDDEN("COFFEECHAT_009", "A Coffee Chat already exists that is waiting.", HttpStatus.FORBIDDEN),
 }
