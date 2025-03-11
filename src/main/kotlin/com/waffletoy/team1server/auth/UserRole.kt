@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.user
+package com.waffletoy.team1server.auth
 
 enum class UserRole {
     APPLICANT,

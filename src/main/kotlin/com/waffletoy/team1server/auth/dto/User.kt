@@ -1,7 +1,7 @@
-package com.waffletoy.team1server.user.dto
+package com.waffletoy.team1server.auth.dto
 
-import com.waffletoy.team1server.user.UserRole
-import com.waffletoy.team1server.user.persistence.UserEntity
+import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import java.time.LocalDateTime
 
 data class User(

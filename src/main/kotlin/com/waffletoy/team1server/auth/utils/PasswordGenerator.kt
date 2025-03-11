@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.user.utils
+package com.waffletoy.team1server.auth.utils
 
 import java.security.SecureRandom
 import kotlin.random.asKotlinRandom

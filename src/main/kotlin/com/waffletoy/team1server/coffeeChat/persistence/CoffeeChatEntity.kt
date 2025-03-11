@@ -1,8 +1,8 @@
 package com.waffletoy.team1server.coffeeChat.persistence
 
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
 import com.waffletoy.team1server.post.persistence.PositionEntity
-import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.*

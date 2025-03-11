@@ -1,16 +1,16 @@
 package com.waffletoy.team1server.post.service
 
+import com.waffletoy.team1server.auth.UserNotFoundException
+import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.auth.dto.User
+import com.waffletoy.team1server.auth.persistence.*
+import com.waffletoy.team1server.auth.service.AuthService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.persistence.*
-import com.waffletoy.team1server.user.UserNotFoundException
-import com.waffletoy.team1server.user.UserRole
-import com.waffletoy.team1server.user.dto.User
-import com.waffletoy.team1server.user.persistence.*
-import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.domain.Page
@@ -27,7 +27,7 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
-    @Lazy private val userService: UserService,
+    @Lazy private val authService: AuthService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -220,7 +220,7 @@ class PostService(
         val positions = mutableListOf<PositionEntity>()
 
         (1..cnt).forEach { index ->
-            val company = userService.makeDummyUser(index)
+            val company = authService.makeDummyUser(index)
             val tags =
                 listOf("Tech", "Finance", "Health")
                     .shuffled()
@@ -278,7 +278,7 @@ class PostService(
 //    }
 
     fun getUserEntityOrThrow(userId: String): UserEntity =
-        userService.getUserEntityByUserId(userId) ?: throw UserNotFoundException(mapOf("userId" to userId))
+        authService.getUserEntityByUserId(userId) ?: throw UserNotFoundException(mapOf("userId" to userId))
 
     fun getPositionEntityOrThrow(postId: String): PositionEntity =
         positionRepository.findByIdOrNull(postId) ?: throw PostNotFoundException(mapOf("postId" to postId))
@@ -290,7 +290,7 @@ class PostService(
             return emptySet()
         }
 
-        val userEntity = userService.getUserEntityByUserId(user.id)
+        val userEntity = authService.getUserEntityByUserId(user.id)
         return if (userEntity != null) {
             bookmarkRepository.findByUser(userEntity).map { it.position.id }.toSet()
         } else {
@@ -315,7 +315,7 @@ class PostService(
         if (user.userRole != UserRole.COMPANY) {
             throw NotAuthorizedException()
         }
-        val userEntity = userService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
+        val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
         // Check if a company with the same email already exists
         if (companyRepository.existsByEmail(request.email)) {
             throw PostCompanyExistsException()
@@ -396,7 +396,7 @@ class PostService(
         if (user.userRole != UserRole.COMPANY) {
             throw NotAuthorizedException()
         }
-        val userEntity = userService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
+        val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
         return companyRepository.findAllByCompany(userEntity).map { Company.fromEntity(it) }
     }
 
@@ -416,7 +416,7 @@ class PostService(
         }
 
         val userEntity =
-            userService.getUserEntityByUserId(user.id)
+            authService.getUserEntityByUserId(user.id)
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
         if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {

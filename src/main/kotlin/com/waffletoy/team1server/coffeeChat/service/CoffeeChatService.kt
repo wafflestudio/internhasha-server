@@ -1,5 +1,9 @@
 package com.waffletoy.team1server.coffeeChat.service
 
+import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.auth.dto.User
+import com.waffletoy.team1server.auth.persistence.UserEntity
+import com.waffletoy.team1server.auth.service.AuthService
 import com.waffletoy.team1server.coffeeChat.*
 import com.waffletoy.team1server.coffeeChat.controller.*
 import com.waffletoy.team1server.coffeeChat.dto.*
@@ -8,10 +12,6 @@ import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatRepository
 import com.waffletoy.team1server.post.PostNotFoundException
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.user.UserRole
-import com.waffletoy.team1server.user.dto.User
-import com.waffletoy.team1server.user.persistence.UserEntity
-import com.waffletoy.team1server.user.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 @Service
 class CoffeeChatService(
     private val coffeeChatRepository: CoffeeChatRepository,
-    @Lazy private val userService: UserService,
+    @Lazy private val authService: AuthService,
     @Lazy private val postService: PostService,
 ) {
     @Value("\${custom.page.size:12}")
@@ -327,7 +327,7 @@ class CoffeeChatService(
         )
 
     private fun getUserEntityOrThrow(userId: String): UserEntity =
-        userService.getUserEntityByUserId(userId) ?: throw CoffeeChatNotFoundException(
+        authService.getUserEntityByUserId(userId) ?: throw CoffeeChatNotFoundException(
             details = mapOf("userId" to userId),
         )
 

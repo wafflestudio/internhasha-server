@@ -1,6 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
-import com.waffletoy.team1server.user.persistence.UserEntity
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import jakarta.persistence.*
 import java.util.*
 

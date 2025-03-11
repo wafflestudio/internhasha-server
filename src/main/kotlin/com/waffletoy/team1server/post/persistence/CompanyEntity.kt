@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.TagVo
-import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate

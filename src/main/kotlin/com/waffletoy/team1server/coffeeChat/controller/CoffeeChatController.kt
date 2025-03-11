@@ -1,13 +1,13 @@
 package com.waffletoy.team1server.coffeeChat.controller
 
+import com.waffletoy.team1server.auth.AuthUser
+import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
 import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatApplicant
 import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatBrief
 import com.waffletoy.team1server.coffeeChat.dto.CoffeeChatDetail
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
-import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.UserRole
-import com.waffletoy.team1server.user.dto.User
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank

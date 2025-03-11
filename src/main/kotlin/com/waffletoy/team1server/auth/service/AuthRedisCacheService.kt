@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.auth.service
 
-import com.waffletoy.team1server.user.utils.UserTokenUtil
+import com.waffletoy.team1server.auth.utils.UserTokenUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
 @Service
-class UserRedisCacheService(
+class AuthRedisCacheService(
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
     companion object {
@@ -17,7 +17,7 @@ class UserRedisCacheService(
         const val PREFIX_EMAIL_CODE_BY_SNUMAIL = "signup:emailCode:bySnuMail"
     }
 
-    private val logger: Logger = LoggerFactory.getLogger(UserRedisCacheService::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(AuthRedisCacheService::class.java)
     //
     // AUTHENTICATION
     //
