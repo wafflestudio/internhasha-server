@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.user.persistence
+package com.waffletoy.team1server.auth.persistence
 
-import com.waffletoy.team1server.user.UserRole
+import com.waffletoy.team1server.auth.UserRole
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
 import org.springframework.data.annotation.CreatedDate

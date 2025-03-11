@@ -1,10 +1,10 @@
 package com.waffletoy.team1server.post.controller
 
+import com.waffletoy.team1server.auth.AuthUser
+import com.waffletoy.team1server.auth.AuthUserOrNull
+import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.AuthUserOrNull
-import com.waffletoy.team1server.user.dto.User
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max

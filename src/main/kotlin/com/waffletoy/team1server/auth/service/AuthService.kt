@@ -1,17 +1,17 @@
-package com.waffletoy.team1server.user.service
+package com.waffletoy.team1server.auth.service
 
+import com.waffletoy.team1server.auth.*
+import com.waffletoy.team1server.auth.controller.*
+import com.waffletoy.team1server.auth.dto.*
+import com.waffletoy.team1server.auth.persistence.UserEntity
+import com.waffletoy.team1server.auth.persistence.UserRepository
+import com.waffletoy.team1server.auth.utils.PasswordGenerator
+import com.waffletoy.team1server.auth.utils.UserTokenUtil
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.email.EmailSendFailureException
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
-import com.waffletoy.team1server.user.*
-import com.waffletoy.team1server.user.controller.*
-import com.waffletoy.team1server.user.dto.*
-import com.waffletoy.team1server.user.persistence.UserEntity
-import com.waffletoy.team1server.user.persistence.UserRepository
-import com.waffletoy.team1server.user.utils.PasswordGenerator
-import com.waffletoy.team1server.user.utils.UserTokenUtil
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -22,9 +22,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class UserService(
+class AuthService(
     private val userRepository: UserRepository,
-    private val userRedisCacheService: UserRedisCacheService,
+    private val authRedisCacheService: AuthRedisCacheService,
     @Lazy private val emailService: EmailService,
 //    @Lazy private val coffeeChatService: CoffeeChatService,
 //    @Lazy private val postService: PostService,
@@ -49,7 +49,7 @@ class UserService(
         val tokens = UserTokenUtil.generateTokens(user)
 
         // 발급 받은 refresh token을 redis에 저장합니다.
-        userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
+        authRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
         return Pair(user, tokens)
     }
 
@@ -127,12 +127,12 @@ class UserService(
         val user = User.fromEntity(userEntity)
 
         // 기존 refresh token 을 만료합니다.(RTR)
-        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+        authRedisCacheService.deleteRefreshTokenByUserId(user.id)
 
         val tokens = UserTokenUtil.generateTokens(user)
 
         // 발급 받은 refresh token을 redis에 저장합니다.
-        userRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
+        authRedisCacheService.saveRefreshToken(user.id, tokens.refreshToken)
 
         return Pair(user, tokens)
     }
@@ -142,7 +142,7 @@ class UserService(
         refreshToken: String,
     ) {
         val userId =
-            userRedisCacheService.getUserIdByRefreshToken(refreshToken)
+            authRedisCacheService.getUserIdByRefreshToken(refreshToken)
                 ?: throw InvalidRefreshTokenException(
                     details = mapOf("refreshToken" to refreshToken),
                 )
@@ -154,7 +154,7 @@ class UserService(
 
         // 로그아웃 시 Refresh Token 삭제
         // (Access Token 은 클라이언트 측에서 삭제)
-        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+        authRedisCacheService.deleteRefreshTokenByUserId(user.id)
 
         // 추후 유저의 Access Token 을 Access Token 의 남은 유효시간 만큼
         // Redis 블랙리스트에 추가할 필요성 있음
@@ -163,13 +163,13 @@ class UserService(
     @Transactional
     fun refreshAccessToken(refreshToken: String): UserTokenUtil.Tokens {
         val userId =
-            userRedisCacheService.getUserIdByRefreshToken(refreshToken)
+            authRedisCacheService.getUserIdByRefreshToken(refreshToken)
                 ?: throw InvalidRefreshTokenException(
                     details = mapOf("refreshToken" to refreshToken),
                 )
 
         // 기존 refresh token 을 만료합니다.(RTR)
-        userRedisCacheService.deleteRefreshTokenByUserId(userId)
+        authRedisCacheService.deleteRefreshTokenByUserId(userId)
 
         val userEntity =
             userRepository.findByIdOrNull(userId)
@@ -179,7 +179,7 @@ class UserService(
 
         val tokens = UserTokenUtil.generateTokens(User.fromEntity(entity = userEntity))
         // 발급 받은 refresh token을 redis에 저장합니다.
-        userRedisCacheService.saveRefreshToken(userEntity.id, tokens.refreshToken)
+        authRedisCacheService.saveRefreshToken(userEntity.id, tokens.refreshToken)
 
         return tokens
     }
@@ -199,7 +199,7 @@ class UserService(
         val emailCode = (100000..999999).random().toString()
         val encryptedEmailCode = BCrypt.hashpw(emailCode, BCrypt.gensalt())
 
-        userRedisCacheService.saveEmailCode(request.snuMail, encryptedEmailCode)
+        authRedisCacheService.saveEmailCode(request.snuMail, encryptedEmailCode)
         try {
             emailService.sendEmail(
                 to = request.snuMail,
@@ -215,7 +215,7 @@ class UserService(
 
     fun checkSnuMailVerification(request: CheckSnuMailVerificationRequest) {
         val encryptedCode =
-            userRedisCacheService.getEmailCode(request.snuMail)
+            authRedisCacheService.getEmailCode(request.snuMail)
                 ?: throw UserEmailVerificationInvalidException(
                     details = mapOf("snuMail" to request.snuMail),
                 )
@@ -226,7 +226,7 @@ class UserService(
                 details = mapOf("snuMail" to request.snuMail),
             )
         } else {
-            userRedisCacheService.deleteEmailCode(request.snuMail)
+            authRedisCacheService.deleteEmailCode(request.snuMail)
         }
     }
 
@@ -253,7 +253,7 @@ class UserService(
         coffeeChatService.deleteCoffeeChatByUser(userEntity)
 
         userRepository.deleteUserEntityById(user.id)
-        userRedisCacheService.deleteRefreshTokenByUserId(user.id)
+        authRedisCacheService.deleteRefreshTokenByUserId(user.id)
     }
 
     @Transactional

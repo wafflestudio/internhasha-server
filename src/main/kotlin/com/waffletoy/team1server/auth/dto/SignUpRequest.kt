@@ -1,9 +1,9 @@
-package com.waffletoy.team1server.user.dto
+package com.waffletoy.team1server.auth.dto
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.waffletoy.team1server.user.UserRole
+import com.waffletoy.team1server.auth.UserRole
 import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 
@@ -66,6 +66,6 @@ data class SignUpRequest(
     ) : Info()
 
     companion object {
-        const val PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$"
+        const val PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$"
     }
 }

@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.user.persistence
+package com.waffletoy.team1server.auth.persistence
 
 import org.springframework.data.jpa.repository.JpaRepository
 

@@ -1,10 +1,10 @@
-package com.waffletoy.team1server.user
+package com.waffletoy.team1server.auth
 
+import com.waffletoy.team1server.auth.dto.User
+import com.waffletoy.team1server.auth.service.AuthService
 import com.waffletoy.team1server.exceptions.ApiException
 import com.waffletoy.team1server.exceptions.BadAuthorizationHeaderException
 import com.waffletoy.team1server.exceptions.InvalidAccessTokenException
-import com.waffletoy.team1server.user.dto.User
-import com.waffletoy.team1server.user.service.UserService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
@@ -16,7 +16,7 @@ import org.springframework.web.method.support.ModelAndViewContainer
 
 @Component
 class UserOrNullArgumentResolver(
-    private val userService: UserService,
+    private val authService: AuthService,
 ) : HandlerMethodArgumentResolver {
     private val logger: Logger = LoggerFactory.getLogger(UserOrNullArgumentResolver::class.java)
 
@@ -65,7 +65,7 @@ class UserOrNullArgumentResolver(
 
         return try {
             // Authenticate the user using the extracted access token
-            userService.authenticate(accessToken).also {
+            authService.authenticate(accessToken).also {
                 logger.debug("Authenticated User: $it")
             }
         } catch (ex: ApiException) {

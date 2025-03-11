@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.user.utils
+package com.waffletoy.team1server.auth.utils
 
-import com.waffletoy.team1server.user.dto.User
+import com.waffletoy.team1server.auth.dto.User
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

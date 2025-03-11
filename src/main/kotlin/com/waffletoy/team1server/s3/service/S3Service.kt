@@ -6,13 +6,13 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.s3.S3CloudFrontKeyFailedException
 import com.waffletoy.team1server.s3.S3FileType
 import com.waffletoy.team1server.s3.S3SDKClientFailedException
 import com.waffletoy.team1server.s3.S3UrlGenerationFailedException
 import com.waffletoy.team1server.s3.controller.S3DownloadReq
 import com.waffletoy.team1server.s3.controller.S3UploadReq
-import com.waffletoy.team1server.user.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service

@@ -1,9 +1,9 @@
-package com.waffletoy.team1server.user.controller
+package com.waffletoy.team1server.auth.controller
 
-import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.dto.*
-import com.waffletoy.team1server.user.service.UserService
-import com.waffletoy.team1server.user.utils.UserTokenResponseUtil
+import com.waffletoy.team1server.auth.AuthUser
+import com.waffletoy.team1server.auth.dto.*
+import com.waffletoy.team1server.auth.service.AuthService
+import com.waffletoy.team1server.auth.utils.UserTokenResponseUtil
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -13,33 +13,42 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/auth")
 class UserController(
-    private val userService: UserService,
+    private val authService: AuthService,
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
     // 회원가입
-    @PostMapping
+    @PostMapping("/user")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithAccessToken> {
-        val (user, tokens) = userService.signUp(request)
+        val (user, tokens) = authService.signUp(request)
         return UserTokenResponseUtil.buildUserWithTokensResponse(user, tokens, response, isSecure)
     }
 
+    // 회원 탈퇴
+    @DeleteMapping("/user")
+    fun deleteUser(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity<Void> {
+        authService.withdrawUser(user)
+        return ResponseEntity.ok().build()
+    }
+
     // 로그인
-    @PostMapping("/auth")
+    @PostMapping("/user/session")
     fun signIn(
         @Valid @RequestBody request: SignInRequest,
         response: HttpServletResponse,
     ): ResponseEntity<UserWithAccessToken> {
-        val (user, tokens) = userService.signIn(request)
+        val (user, tokens) = authService.signIn(request)
         return UserTokenResponseUtil.buildUserWithTokensResponse(user, tokens, response, isSecure)
     }
 
     // 로그아웃
-    @DeleteMapping("/auth")
+    @DeleteMapping("/user/session")
     fun signOut(
         @Parameter(hidden = true) @AuthUser user: User,
         @CookieValue("refresh_token") refreshToken: String?,
@@ -49,7 +58,7 @@ class UserController(
             return ResponseEntity.badRequest().build()
         }
 
-        userService.signOut(user, refreshToken)
+        authService.signOut(user, refreshToken)
         return UserTokenResponseUtil.buildDeleteTokenResponse(response)
     }
 
@@ -62,7 +71,7 @@ class UserController(
         if (refreshToken.isNullOrBlank()) {
             return ResponseEntity.badRequest().build()
         }
-        val tokens = userService.refreshAccessToken(refreshToken)
+        val tokens = authService.refreshAccessToken(refreshToken)
         return UserTokenResponseUtil.buildTokensResponse(tokens, response)
     }
 
@@ -72,33 +81,24 @@ class UserController(
         @Valid @RequestBody request: MailRequest,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        userService.checkDuplicateMail(request)
+        authService.checkDuplicateMail(request)
         return ResponseEntity.ok().build()
     }
 
     // 스누메일 인증을 위한 코드 발송
-    @PostMapping("/snu-mail/verification")
+    @PostMapping("/mail/verify")
     fun sendSnuMailVerification(
         @Valid @RequestBody request: SnuMailRequest,
     ): ResponseEntity<Void> {
-        userService.sendSnuMailVerification(request)
+        authService.sendSnuMailVerification(request)
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/snu-mail-verification/verify")
+    @PostMapping("/mail/validate")
     fun checkSnuMailVerification(
         @Valid @RequestBody request: CheckSnuMailVerificationRequest,
     ): ResponseEntity<Void> {
-        userService.checkSnuMailVerification(request)
-        return ResponseEntity.ok().build()
-    }
-
-    // 회원 탈퇴
-    @DeleteMapping
-    fun deleteUser(
-        @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<Void> {
-        userService.withdrawUser(user)
+        authService.checkSnuMailVerification(request)
         return ResponseEntity.ok().build()
     }
 
@@ -108,7 +108,7 @@ class UserController(
         @Parameter(hidden = true) @AuthUser user: User,
         @Valid @RequestBody request: ChangePasswordRequest,
     ): ResponseEntity<Void> {
-        userService.changePassword(user, request)
+        authService.changePassword(user, request)
         return ResponseEntity.ok().build()
     }
 
@@ -117,7 +117,7 @@ class UserController(
     fun resetPassword(
         @Valid @RequestBody request: MailRequest,
     ): ResponseEntity<Void> {
-        userService.resetPassword(request)
+        authService.resetPassword(request)
         return ResponseEntity.ok().build()
     }
 
@@ -151,12 +151,12 @@ data class MailRequest(
 
 data class ChangePasswordRequest(
     @field:Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$",
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$",
         message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
     )
     val oldPassword: String,
     @field:Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*]).{8,20}$",
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$",
         message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
     )
     val newPassword: String,

@@ -1,9 +1,9 @@
-package com.waffletoy.team1server.user.utils
+package com.waffletoy.team1server.auth.utils
 
-import com.waffletoy.team1server.user.dto.Token
-import com.waffletoy.team1server.user.dto.User
-import com.waffletoy.team1server.user.dto.UserBrief
-import com.waffletoy.team1server.user.dto.UserWithAccessToken
+import com.waffletoy.team1server.auth.dto.Token
+import com.waffletoy.team1server.auth.dto.User
+import com.waffletoy.team1server.auth.dto.UserBrief
+import com.waffletoy.team1server.auth.dto.UserWithAccessToken
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
 

@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import com.waffletoy.team1server.post.Category
 import com.waffletoy.team1server.post.PostInvalidFiltersException
 import com.waffletoy.team1server.post.Series
-import com.waffletoy.team1server.user.persistence.UserEntity
 import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime

@@ -1,9 +1,9 @@
 package com.waffletoy.team1server.s3.controller
 
+import com.waffletoy.team1server.auth.AuthUser
+import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.s3.S3FileType
 import com.waffletoy.team1server.s3.service.S3Service
-import com.waffletoy.team1server.user.AuthUser
-import com.waffletoy.team1server.user.dto.User
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank

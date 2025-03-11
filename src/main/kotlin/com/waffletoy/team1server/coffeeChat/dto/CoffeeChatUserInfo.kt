@@ -1,7 +1,7 @@
 package com.waffletoy.team1server.coffeeChat.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.waffletoy.team1server.user.persistence.UserEntity
+import com.waffletoy.team1server.auth.persistence.UserEntity
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CoffeeChatUserInfo(
