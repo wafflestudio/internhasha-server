@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.security.spec.InvalidKeySpecException
 import java.time.Duration
 import java.time.Instant
@@ -111,11 +113,12 @@ class S3Service(
         expiration: Date,
     ): String {
         try {
+            val encodedS3Key = URLEncoder.encode(s3Key, StandardCharsets.UTF_8.toString()).replace("+", "%20")
             return CloudFrontUrlSigner.getSignedURLWithCannedPolicy(
                 SignerUtils.Protocol.https,
                 domainName,
                 tempPrivateKeyFile,
-                s3Key,
+                encodedS3Key,
                 keyPairId,
                 expiration,
             )
