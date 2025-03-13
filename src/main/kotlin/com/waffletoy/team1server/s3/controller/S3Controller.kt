@@ -23,17 +23,17 @@ class S3Controller(
         @Parameter(hidden = true) @AuthUser user: User,
         @Valid @RequestBody s3UploadReq: S3UploadReq,
     ): ResponseEntity<S3UploadResp> {
-        val (url, filepath) = s3Service.generateUploadUrl(user, s3UploadReq)
-        return ResponseEntity.ok(S3UploadResp(url, filepath))
+        val (url, s3Key) = s3Service.generateUploadUrl(user, s3UploadReq)
+        return ResponseEntity.ok(S3UploadResp(url, s3Key))
     }
 
     @GetMapping
     fun generateDownloadUrl(
         @Parameter(hidden = true) @AuthUser user: User,
-        @RequestParam(required = true) filePath: String,
+        @RequestParam(required = true) s3Key: String,
         @RequestParam(required = true) fileType: S3FileType,
     ): ResponseEntity<S3DownloadResp> {
-        val s3DownloadReq = S3DownloadReq(fileType, filePath)
+        val s3DownloadReq = S3DownloadReq(fileType, s3Key)
         val url = s3Service.generateDownloadUrl(user, s3DownloadReq)
         return ResponseEntity.ok(S3DownloadResp(url))
     }
@@ -48,14 +48,14 @@ data class S3UploadReq(
 
 data class S3UploadResp(
     val url: String,
-    val filePath: String,
+    val s3Key: String,
 )
 
 data class S3DownloadReq(
     @field:NotNull(message = "파일 타입은 필수입니다.")
     val fileType: S3FileType,
     @field:NotBlank(message = "파일 경로는 필수입니다.")
-    val filePath: String,
+    val s3Key: String,
 )
 
 data class S3DownloadResp(
