@@ -63,12 +63,12 @@ class S3Service(
 
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
-        val filePath = "static/${if (isPrivate) "private" else "public"}/${s3UploadReq.fileType}/${randomString}_$today/${s3UploadReq.fileName}"
+        val s3Key = "static/${if (isPrivate) "private" else "public"}/${s3UploadReq.fileType}/${randomString}_$today/${s3UploadReq.fileName}"
         val expiration = calculateExpiration(expirationMinutes)
 
         return Pair(
-            generateS3PresignedUrl(bucketName, filePath, expiration, HttpMethod.PUT),
-            filePath,
+            generateS3PresignedUrl(bucketName, s3Key, expiration, HttpMethod.PUT),
+            s3Key,
         )
     }
 
@@ -85,20 +85,20 @@ class S3Service(
             }
         return if (isPrivate) {
             val expiration = calculateExpiration(expirationMinutes)
-            generateCloudfrontSignedUrl(s3DownloadReq.filePath, expiration)
+            generateCloudfrontSignedUrl(s3DownloadReq.s3Key, expiration)
         } else {
-            "$domainName/${s3DownloadReq.filePath}"
+            "$domainName/${s3DownloadReq.s3Key}"
         }
     }
 
     private fun generateS3PresignedUrl(
         bucketName: String,
-        filePath: String,
+        s3Key: String,
         expiration: Date,
         httpMethod: HttpMethod,
     ): String {
         try {
-            return amazonS3.generatePresignedUrl(bucketName, filePath, expiration, httpMethod).toString()
+            return amazonS3.generatePresignedUrl(bucketName, s3Key, expiration, httpMethod).toString()
         } catch (e: AmazonS3Exception) {
             throw S3UrlGenerationFailedException()
         } catch (e: SdkClientException) {
@@ -107,7 +107,7 @@ class S3Service(
     }
 
     private fun generateCloudfrontSignedUrl(
-        filePath: String,
+        s3Key: String,
         expiration: Date,
     ): String {
         try {
@@ -115,7 +115,7 @@ class S3Service(
                 SignerUtils.Protocol.https,
                 domainName,
                 tempPrivateKeyFile,
-                filePath,
+                s3Key,
                 keyPairId,
                 expiration,
             )
