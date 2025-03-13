@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
-class UserController(
+class AuthController(
     private val authService: AuthService,
     @Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
