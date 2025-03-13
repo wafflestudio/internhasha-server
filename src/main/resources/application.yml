@@ -6,22 +6,6 @@ spring:
             hibernate:
                 jdbc:
                     timezone: Asia/Seoul
-    security:
-        oauth2:
-            client:
-                registration:
-                    google:
-                        client-id: ${GOOGLE_CLIENT_ID}
-                        client-secret: ${GOOGLE_CLIENT_SECRET}
-                        scope:
-                        - https://www.googleapis.com/auth/userinfo.email
-                        - https://www.googleapis.com/auth/userinfo.profile
-                        - openid
-                provider:
-                    google:
-                        authorization-uri: ${GOOGLE_AUTH_URI}
-                        token-uri: ${GOOGLE_TOKEN_URI}
-                        user-name-attribute: email
     mail:
         host: smtp.gmail.com
         port: 587
