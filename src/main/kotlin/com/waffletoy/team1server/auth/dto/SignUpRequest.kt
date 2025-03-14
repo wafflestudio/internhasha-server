@@ -36,9 +36,10 @@ data class SignUpRequest(
         )
         val mail: String,
         @field:NotBlank(message = "password is required")
-        @field:Pattern(
-            regexp = PASSWORD_REGEX,
-            message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
+        @field:Size(
+            min = 8,
+            max = 64,
+            message = "Password must be between 8 and 64 characters.",
         )
         val password: String,
     ) : Info()
@@ -55,17 +56,9 @@ data class SignUpRequest(
         @field:NotBlank(message = "password is required")
         @field:Size(
             min = 8,
-            max = 20,
-            message = "Password must be between 8 and 20 characters.",
-        )
-        @field:Pattern(
-            regexp = PASSWORD_REGEX,
-            message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
+            max = 64,
+            message = "Password must be between 8 and 64 characters.",
         )
         val password: String,
     ) : Info()
-
-    companion object {
-        const val PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$"
-    }
 }

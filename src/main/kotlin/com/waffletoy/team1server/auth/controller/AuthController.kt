@@ -150,14 +150,18 @@ data class MailRequest(
 )
 
 data class ChangePasswordRequest(
-    @field:Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$",
-        message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
+    @field:NotBlank(message = "password is required")
+    @field:Size(
+        min = 8,
+        max = 64,
+        message = "Password must be between 8 and 64 characters.",
     )
     val oldPassword: String,
-    @field:Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#\$%^&+=!*()]).{8,20}$",
-        message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.",
+    @field:NotBlank(message = "password is required")
+    @field:Size(
+        min = 8,
+        max = 64,
+        message = "Password must be between 8 and 64 characters.",
     )
     val newPassword: String,
 )
