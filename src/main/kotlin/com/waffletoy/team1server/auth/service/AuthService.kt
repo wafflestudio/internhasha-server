@@ -9,6 +9,7 @@ import com.waffletoy.team1server.auth.utils.PasswordGenerator
 import com.waffletoy.team1server.auth.utils.UserTokenUtil
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.email.EmailSendFailureException
+import com.waffletoy.team1server.email.EmailType
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
@@ -202,9 +203,10 @@ class AuthService(
         authRedisCacheService.saveEmailCode(request.snuMail, encryptedEmailCode)
         try {
             emailService.sendEmail(
+                type = EmailType.VerifyMail,
                 to = request.snuMail,
                 subject = "[인턴하샤] 이메일 인증 요청 메일이 도착했습니다.",
-                text = "이메일 인증 번호: $emailCode",
+                text = emailCode,
             )
         } catch (ex: Exception) {
             throw EmailSendFailureException(
@@ -297,13 +299,10 @@ class AuthService(
         // 로컬 계정 유저의 정보를 제공 or 소셜 로그인 정보를 제공
         try {
             emailService.sendEmail(
+                type = EmailType.ResetPassword,
                 to = user.mail,
                 subject = "[인턴하샤] 임시 비밀번호를 알려드립니다.",
-                text =
-                    """
-                    다음 임시 비밀번호를 이용하여 로그인 후 비밀번호를 재설정하세요.
-                    - 임시 비밀번호 : $newPassword
-                    """.trimIndent(),
+                text = newPassword,
             )
         } catch (ex: Exception) {
             throw EmailSendFailureException(
