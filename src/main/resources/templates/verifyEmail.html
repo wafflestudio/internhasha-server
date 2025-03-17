@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"
+    xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f9f9f9;">
+        <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 20px;
+                        border-radius: 8px; border: 1px solid #ddd;">
+            <p style="font-size: 16px; font-weight: bold; color: #333;">
+                이메일 인증 번호를 입력해주세요.
+            </p>
+            <pre th:text="${emailCode}" style="background-color: #eee; padding: 10px; border-radius: 5px;
+                            font-size: 16px; font-weight: bold; white-space: pre-wrap;
+                            word-break: break-word; text-align: left;">
+                    placeholder
+            </pre>
+        </div>
+    </body>
+</html>
