@@ -13,15 +13,16 @@ data class Post(
     val companyName: String,
     val explanation: String,
     val email: String,
-    val slogan: String,
-    val investAmount: Int,
-    val investCompany: String,
-    val series: Series,
-    val irDeckLink: String?,
+    val slogan: String, //회사 한 줄 소개
+    val companyInfoPDFLink: String?, //회사 원페이저 소개 pdf
     val landingPageLink: String,
     val imageLink: String,
     val links: List<Link>,
     val tags: List<String>,
+    val location: String,
+    val vcName: String,
+    val vcRec: String,
+    val salary: Int,
     // 직군 정보
     val title: String,
     val employmentEndDate: LocalDateTime?,
@@ -30,7 +31,8 @@ data class Post(
     val isActive: Boolean,
     val category: Category,
     val detail: String,
-    val headcount: Int,
+    val headcount: Int, //전체 구성 인원수
+    val domain: String,
     // 북마크 여부
     val isBookmarked: Boolean = false,
 ) {
@@ -43,11 +45,11 @@ data class Post(
             Post(
                 id = entity.id,
                 author =
-                    AuthorBrief(
-                        id = entity.company.company.id,
-                        name = entity.company.company.name,
-                        profileImageLink = entity.company.company.profileImageLink,
-                    ),
+                AuthorBrief(
+                    id = entity.company.company.id,
+                    name = entity.company.company.name,
+                    profileImageLink = entity.company.company.profileImageLink,
+                ),
                 companyName = entity.company.companyName,
                 explanation = entity.company.explanation ?: "",
                 email = entity.company.email,
