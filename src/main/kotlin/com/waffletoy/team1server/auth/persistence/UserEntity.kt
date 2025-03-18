@@ -35,9 +35,7 @@ class UserEntity(
     val userRole: UserRole,
     // APPLICATNT specific field
 //    @Column(name = "phone_number", nullable = true)
-//    var phoneNumber: String? = null,
-    @Column(name = "profile_image_link", nullable = true, length = 2048)
-    val profileImageLink: String? = null,
+//    var phoneNumber: String? = null,,
 ) {
     // Validates either local or google login is provided
     @PrePersist
