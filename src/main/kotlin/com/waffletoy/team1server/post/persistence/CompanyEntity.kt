@@ -18,9 +18,9 @@ class CompanyEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "COMPANY", nullable = false)
-    open val company: UserEntity,
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "USER", nullable = false)
+    open val user: UserEntity,
     @Column(name = "NAME", nullable = false)
     open var companyName: String,
     @Column(name = "EXPLANATION", columnDefinition = "TEXT")
