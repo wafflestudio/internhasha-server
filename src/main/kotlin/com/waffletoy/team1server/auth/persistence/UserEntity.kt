@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.auth.persistence
 
 import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.post.persistence.CompanyEntity
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
 import org.springframework.data.annotation.CreatedDate
@@ -33,6 +34,8 @@ class UserEntity(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val userRole: UserRole,
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, optional = true)
+    val company: CompanyEntity? = null
     // APPLICATNT specific field
 //    @Column(name = "phone_number", nullable = true)
 //    var phoneNumber: String? = null,,
