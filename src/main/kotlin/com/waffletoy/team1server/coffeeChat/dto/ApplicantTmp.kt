@@ -23,7 +23,7 @@ data class ApplicantTmp(
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 userRole = entity.userRole,
-                mail = entity.mail,
+                mail = entity.email,
                 imageKey = entity.profileImageLink,
             )
     }

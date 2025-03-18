@@ -22,7 +22,7 @@ data class User(
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 userRole = entity.userRole,
-                mail = entity.mail,
+                mail = entity.email,
             )
     }
 }
