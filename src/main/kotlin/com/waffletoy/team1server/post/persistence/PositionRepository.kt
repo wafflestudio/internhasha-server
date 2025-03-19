@@ -20,7 +20,7 @@ interface PositionRepository : JpaRepository<PositionEntity, String>, JpaSpecifi
     @Query(
         "SELECT p FROM PositionEntity p " +
             "JOIN p.company c " +
-                "WHERE c.user = :user",
+            "WHERE c.user = :user",
     )
     fun findByUser(
         @Param("user") user: UserEntity,
