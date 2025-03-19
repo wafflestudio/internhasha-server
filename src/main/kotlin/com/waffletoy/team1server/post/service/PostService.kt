@@ -397,7 +397,7 @@ class PostService(
             throw NotAuthorizedException()
         }
         val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
-        return companyRepository.findAllByCompany(userEntity).map { Company.fromEntity(it) }
+        return companyRepository.findAllByUser(userEntity).map { Company.fromEntity(it) }
     }
 
     @Transactional
