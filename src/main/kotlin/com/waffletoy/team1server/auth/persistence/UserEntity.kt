@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.auth.persistence
 
 import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.post.persistence.CompanyEntity
 import jakarta.persistence.*
 import jakarta.validation.ValidationException
 import org.springframework.data.annotation.CreatedDate
@@ -18,8 +19,8 @@ class UserEntity(
     val id: String = UUID.randomUUID().toString(),
     @Column(name = "name", nullable = false)
     var name: String,
-    @Column(name = "mail", nullable = false, unique = true)
-    val mail: String,
+    @Column(name = "email", nullable = false, unique = true)
+    val email: String,
     @Column(name = "password_hash", nullable = true)
     open var passwordHash: String? = null,
     // Date info
@@ -33,11 +34,11 @@ class UserEntity(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val userRole: UserRole,
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, optional = true)
+    val company: CompanyEntity? = null
     // APPLICATNT specific field
 //    @Column(name = "phone_number", nullable = true)
-//    var phoneNumber: String? = null,
-    @Column(name = "profile_image_link", nullable = true, length = 2048)
-    val profileImageLink: String? = null,
+//    var phoneNumber: String? = null,,
 ) {
     // Validates either local or google login is provided
     @PrePersist
