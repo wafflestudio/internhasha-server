@@ -220,7 +220,7 @@ class PostService(
         val positions = mutableListOf<PositionEntity>()
 
         (1..cnt).forEach { index ->
-            val company = authService.makeDummyUser(index)
+            val user = authService.makeDummyUser(index)
             val tags =
                 listOf("Tech", "Finance", "Health")
                     .shuffled()
@@ -230,7 +230,7 @@ class PostService(
 
             val companyEntity =
                 CompanyEntity(
-                    company = company,
+                    user = user,
                     companyName = "dummy Company $index",
                     explanation = "Explanation of dummy Company $index",
                     email = "dummy${index}_${Random.nextInt(0, 10001)}@example.com",
@@ -324,7 +324,7 @@ class PostService(
         // Map CreateCompanyRequest to CompanyEntity
         val companyEntity =
             CompanyEntity(
-                company = userEntity,
+                user = userEntity,
                 companyName = request.companyName,
                 email = request.email,
                 series = request.series,
@@ -353,7 +353,7 @@ class PostService(
         companyId: String,
     ): Company {
         var companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
-        if (user.userRole != UserRole.COMPANY || companyEntity.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || companyEntity.user.id != user.id) {
             throw NotAuthorizedException()
         }
         companyEntity = updateCompanyEntityWithRequest(companyEntity, request)
@@ -385,7 +385,7 @@ class PostService(
         companyId: String,
     ) {
         val companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
-        if (user.userRole != UserRole.COMPANY || companyEntity.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || companyEntity.user.id != user.id) {
             throw NotAuthorizedException()
         }
         companyRepository.delete(companyEntity)
@@ -465,7 +465,7 @@ class PostService(
                 ?: throw PostCompanyNotFoundException(mapOf("companyId" to (request.companyId ?: "null")))
 
         // Check if the user is the owner of the company
-        if (company.company.id != user.id) {
+        if (company.user.id != user.id) {
             throw NotAuthorizedException()
         }
 
@@ -495,7 +495,7 @@ class PostService(
         request: UpdatePositionRequest,
     ): Position {
         var positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
-        if (user.userRole != UserRole.COMPANY || positionEntity.company.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || positionEntity.company.user.id != user.id) {
             throw NotAuthorizedException()
         }
         positionEntity = updatePositionEntityWithRequest(positionEntity, request)
@@ -521,7 +521,7 @@ class PostService(
         positionId: String,
     ) {
         val positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
-        if (user.userRole != UserRole.COMPANY || positionEntity.company.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || positionEntity.company.user.id != user.id) {
             throw NotAuthorizedException()
         }
         positionRepository.delete(positionEntity)

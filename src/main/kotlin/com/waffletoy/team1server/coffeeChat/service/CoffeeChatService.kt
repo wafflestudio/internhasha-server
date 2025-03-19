@@ -266,7 +266,7 @@ class CoffeeChatService(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }
-        return coffeeChatRepository.findAllExceptStatusByCompanyId(user.id, CoffeeChatStatus.CANCELED)
+        return coffeeChatRepository.findAllExceptStatusByUserId(user.id, CoffeeChatStatus.CANCELED)
             .map { CoffeeChatBrief.fromEntity(it) }
     }
 
@@ -279,8 +279,8 @@ class CoffeeChatService(
                     applicantId = user.id,
                 ).toInt()
             UserRole.COMPANY ->
-                coffeeChatRepository.countByCompanyIdAndStatus(
-                    companyId = user.id,
+                coffeeChatRepository.countByUserIdAndStatus(
+                    userId = user.id,
                     status = CoffeeChatStatus.WAITING,
                 ).toInt()
         }
@@ -312,7 +312,7 @@ class CoffeeChatService(
                 }
             }
             UserRole.COMPANY -> {
-                if (coffeeChatEntity.position.company.company.id != user.id) {
+                if (coffeeChatEntity.position.company.user.id != user.id) {
                     throw CoffeeChatUserForbiddenException(
                         details = mapOf("userId" to user.id, "userRole" to user.userRole),
                     )
