@@ -35,7 +35,10 @@ class UserEntity(
     @Column(nullable = false)
     val userRole: UserRole,
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, optional = true)
-    val company: CompanyEntity? = null
+    val company: CompanyEntity? = null,
+    @Deprecated("This field will be moved to ApplicantEntity, CompanyEntity respectively.")
+    @Column(name = "profile_image_link", nullable = true, length = 2048)
+    val profileImageLink: String? = null
     // APPLICATNT specific field
 //    @Column(name = "phone_number", nullable = true)
 //    var phoneNumber: String? = null,,
