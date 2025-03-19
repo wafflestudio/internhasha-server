@@ -19,8 +19,8 @@ class UserEntity(
     val id: String = UUID.randomUUID().toString(),
     @Column(name = "name", nullable = false)
     var name: String,
-    @Column(name = "email", nullable = false, unique = true)
-    val email: String,
+    @Column(name = "mail", nullable = false, unique = true)
+    val mail: String,
     @Column(name = "password_hash", nullable = true)
     open var passwordHash: String? = null,
     // Date info

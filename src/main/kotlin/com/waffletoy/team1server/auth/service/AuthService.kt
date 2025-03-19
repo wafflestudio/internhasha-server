@@ -79,7 +79,7 @@ class AuthService(
         val user =
             UserEntity(
                 name = info.name,
-                email = info.mail,
+                mail = info.mail,
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.APPLICANT,
             ).let { userRepository.save(it) }
@@ -106,7 +106,7 @@ class AuthService(
         val user =
             UserEntity(
                 name = info.name,
-                email = info.mail,
+                mail = info.mail,
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.COMPANY,
             ).let { userRepository.save(it) }
@@ -300,13 +300,13 @@ class AuthService(
         try {
             emailService.sendEmail(
                 type = EmailType.ResetPassword,
-                to = user.email,
+                to = user.mail,
                 subject = "[인턴하샤] 임시 비밀번호를 알려드립니다.",
                 text = newPassword,
             )
         } catch (ex: Exception) {
             throw EmailSendFailureException(
-                details = mapOf("mail" to user.email),
+                details = mapOf("mail" to user.mail),
             )
         }
     }
@@ -334,7 +334,7 @@ class AuthService(
             ?: userRepository.save(
                 UserEntity(
                     name = "dummy$index",
-                    email = "dummy$index@gmail.com",
+                    mail = "dummy$index@gmail.com",
                     passwordHash = BCrypt.hashpw("DummyPW$index!99", BCrypt.gensalt()),
                     userRole = UserRole.COMPANY,
                 ),
