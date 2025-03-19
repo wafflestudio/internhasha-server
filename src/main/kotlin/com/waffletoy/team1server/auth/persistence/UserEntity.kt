@@ -20,7 +20,7 @@ class UserEntity(
     @Column(name = "name", nullable = false)
     var name: String,
     @Column(name = "mail", nullable = false, unique = true)
-    val mail: String,
+    val email: String,
     @Column(name = "password_hash", nullable = true)
     open var passwordHash: String? = null,
     // Date info
