@@ -30,6 +30,7 @@ class ApplicantEntity(
     @Enumerated
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
+    @Column(name = "enroll_year", columnDefinition = "SMALLINT") // MySQL SMALLINT는 -32768~32767
     var enrollYear: Int? = null,
     @Column(name = "dept")
     var dept: String? = null,
