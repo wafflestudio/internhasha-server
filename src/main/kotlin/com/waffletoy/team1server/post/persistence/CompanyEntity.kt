@@ -1,7 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.auth.persistence.UserEntity
-import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.LinkVo
 import com.waffletoy.team1server.post.dto.TagVo
 import jakarta.persistence.*
@@ -18,33 +17,51 @@ class CompanyEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY", nullable = false)
     open val company: UserEntity,
+
     @Column(name = "NAME", nullable = false)
     open var companyName: String,
-    @Column(name = "EXPLANATION", columnDefinition = "TEXT")
-    open var explanation: String? = null,
-    @Column(name = "EMAIL", nullable = false, unique = true)
-    open var email: String,
-    @Column(name = "SLOGAN")
-    open var slogan: String? = null,
-    @Column(name = "INVEST_AMOUNT")
-    open var investAmount: Int = 0,
-    @Column(name = "INVEST_COMPANY")
-    open var investCompany: String? = null,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "SERIES", nullable = false)
-    open var series: Series = Series.SEED,
-    @Column(name = "IMAGE_LINK", length = 2048)
-    open var imageLink: String? = null,
-    @Column(name = "IR_DECK_LINK", length = 2048)
-    open var irDeckLink: String? = null,
-    @Column(name = "LANDING_PAGE_LINK", length = 2048)
-    open var landingPageLink: String? = null,
+
+    @Column(name = "ESTABLISHED_YEAR", nullable = false)
+    open var companyEstablishedYear: Int,
+
+    @Column(name = "DOMAIN", nullable = false)
+    open var domain: String,
+
+    @Column(name = "HEADCOUNT", nullable = false)
+    open var headcount: Int,
+
+    @Column(name = "LOCATION", nullable = false)
+    open var location: String,
+
+    @Column(name = "SLOGAN", nullable = false)
+    open var slogan: String,
+
+    @Column(name = "DETAIL", columnDefinition = "TEXT", nullable = false)
+    open var detail: String,
+
+    @Column(name = "IMAGE_KEY", nullable = false)
+    open var imageKey: String,
+
+    @Column(name = "COMPANY_INFO_PDF_LINK", length = 2048, nullable = true)
+    open var companyInfoPDFLink: String? = null,
+
+    @Column(name = "LANDING_PAGE_LINK", length = 2048, nullable = false)
+    open var landingPageLink: String,
+
+    @Column(name = "VC_NAME", nullable = true)
+    open var vcName: String,
+
+    @Column(name = "VC_REC", nullable = true)
+    open var vcRec: String,
+
     @CreatedDate
-    @Column(name = "CREATED_AT", nullable = false)
+    @Column(name = "CREATED_AT", nullable = false, updatable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),
+
     @LastModifiedDate
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
