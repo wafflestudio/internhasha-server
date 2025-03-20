@@ -39,6 +39,24 @@ class CoffeeChatService(
         }
     }
 
+    fun checkIsSubmitted(
+        user: User,
+        postId: String,
+    ): Boolean {
+        if (user.userRole != UserRole.APPLICANT) {
+            throw CoffeeChatUserForbiddenException(details = mapOf("userId" to user.id, "userRole" to user.userRole))
+        }
+
+        val positionEntity = getPositionEntityOrThrow(postId)
+
+        // 이미 대기 중인 커피챗 ID가 있으면 True
+        return (
+            coffeeChatRepository.findByApplicantIdAndPositionIdAndCoffeeChatStatus(
+                user.id, postId, CoffeeChatStatus.WAITING,
+            ) != null
+        )
+    }
+
     private fun getCoffeeChatDetailApplicant(
         user: User,
         coffeeChatId: String,
@@ -149,92 +167,139 @@ class CoffeeChatService(
     @Transactional
     fun changeCoffeeChatStatus(
         user: User,
-        coffeeChatId: String,
         coffeeChatStatusReq: CoffeeChatStatusReq,
-    ): CoffeeChatDetail {
-        return when (val newStatus = coffeeChatStatusReq.coffeeChatStatus) {
-            CoffeeChatStatus.WAITING -> throw CoffeeChatStatusForbiddenException(
-                details =
-                    mapOf(
-                        "status" to newStatus.toString(),
-                    ),
-            )
-            CoffeeChatStatus.CANCELED -> cancelCoffeeChat(user, coffeeChatId)
-            CoffeeChatStatus.REJECTED -> rejectCoffeeChat(user, coffeeChatId)
-            CoffeeChatStatus.ACCEPTED -> acceptCoffeeChat(user, coffeeChatId)
+    ): CoffeeChatDetailList {
+        // 하나라도 유효하지 않은 커피챗이 들어오면 404
+        val coffeeChatEntityList = coffeeChatStatusReq.coffeeChatList.map { getCoffeeChatEntity(it) }
+
+        val succeeded: MutableList<CoffeeChatDetail> = mutableListOf()
+        val failed: MutableList<CoffeeChatDetail> = mutableListOf()
+
+        // 변경 권한을 확인
+        when (user.userRole) {
+            UserRole.APPLICANT -> {
+                if (coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.CANCELED) {
+                    throw CoffeeChatUserForbiddenException(
+                        details =
+                            mapOf(
+                                "userRole" to user.userRole,
+                                "coffeeChatStatus" to coffeeChatStatusReq.coffeeChatStatus,
+                            ),
+                    )
+                }
+                for (coffeeChatEntity in coffeeChatEntityList) {
+                    if (coffeeChatEntity.applicant.id != user.id ||
+                        coffeeChatEntity.coffeeChatStatus != CoffeeChatStatus.WAITING
+                    ) {
+                        failed.add(CoffeeChatApplicant.fromEntity(coffeeChatEntity))
+                    } else {
+                        coffeeChatEntity.coffeeChatStatus = coffeeChatStatusReq.coffeeChatStatus
+                        coffeeChatEntity.changed = true
+                        succeeded.add(CoffeeChatApplicant.fromEntity(coffeeChatEntity))
+                    }
+                }
+            }
+            UserRole.COMPANY -> {
+                if (coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.ACCEPTED &&
+                    coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.REJECTED
+                ) {
+                    throw CoffeeChatUserForbiddenException(
+                        details =
+                            mapOf(
+                                "userRole" to user.userRole,
+                                "coffeeChatStatus" to coffeeChatStatusReq.coffeeChatStatus,
+                            ),
+                    )
+                }
+                for (coffeeChatEntity in coffeeChatEntityList) {
+                    if (coffeeChatEntity.position.company.user.id != user.id ||
+                        coffeeChatEntity.coffeeChatStatus != CoffeeChatStatus.WAITING
+                    ) {
+                        failed.add(CoffeeChatCompany.fromEntity(coffeeChatEntity))
+                    } else {
+                        coffeeChatEntity.coffeeChatStatus = coffeeChatStatusReq.coffeeChatStatus
+                        coffeeChatEntity.changed = true
+                        succeeded.add(CoffeeChatCompany.fromEntity(coffeeChatEntity))
+                    }
+                }
+            }
         }
+        return CoffeeChatDetailList(
+            succeeded = succeeded,
+            failed = failed,
+        )
     }
 
-    private fun cancelCoffeeChat(
-        user: User,
-        coffeeChatId: String,
-    ): CoffeeChatApplicant {
-        // 커피챗 찾기
-        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-        // 작성자가 아니면 403
-        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.APPLICANT)
-        // 업데이트
-        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.CANCELED
-        } else {
-            throw CoffeeChatStatusForbiddenException(
-                details =
-                    mapOf(
-                        "coffeeChatId" to coffeeChatId,
-                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-                    ),
-            )
-        }
-        return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
-    }
-
-    private fun acceptCoffeeChat(
-        user: User,
-        coffeeChatId: String,
-    ): CoffeeChatCompany {
-        // 커피챗 찾기
-        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-        // 대상 회사가 아니면 403
-        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
-        // 업데이트
-        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.ACCEPTED
-            coffeeChatEntity.changed = true
-        } else {
-            throw CoffeeChatStatusForbiddenException(
-                details =
-                    mapOf(
-                        "coffeeChatId" to coffeeChatId,
-                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-                    ),
-            )
-        }
-        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
-    }
-
-    private fun rejectCoffeeChat(
-        user: User,
-        coffeeChatId: String,
-    ): CoffeeChatCompany {
-        // 커피챗 찾기
-        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-        // 대상 회사가 아니면 403
-        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
-        // 업데이트
-        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.REJECTED
-            coffeeChatEntity.changed = true
-        } else {
-            throw CoffeeChatStatusForbiddenException(
-                details =
-                    mapOf(
-                        "coffeeChatId" to coffeeChatId,
-                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-                    ),
-            )
-        }
-        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
-    }
+//    private fun cancelCoffeeChat(
+//        user: User,
+//        coffeeChatId: String,
+//    ): CoffeeChatApplicant {
+//        // 커피챗 찾기
+//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
+//        // 작성자가 아니면 403
+//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.APPLICANT)
+//        // 업데이트
+//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
+//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.CANCELED
+//        } else {
+//            throw CoffeeChatStatusForbiddenException(
+//                details =
+//                    mapOf(
+//                        "coffeeChatId" to coffeeChatId,
+//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
+//                    ),
+//            )
+//        }
+//        return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
+//    }
+//
+//    private fun acceptCoffeeChat(
+//        user: User,
+//        coffeeChatId: String,
+//    ): CoffeeChatCompany {
+//        // 커피챗 찾기
+//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
+//        // 대상 회사가 아니면 403
+//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
+//        // 업데이트
+//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
+//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.ACCEPTED
+//            coffeeChatEntity.changed = true
+//        } else {
+//            throw CoffeeChatStatusForbiddenException(
+//                details =
+//                    mapOf(
+//                        "coffeeChatId" to coffeeChatId,
+//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
+//                    ),
+//            )
+//        }
+//        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
+//    }
+//
+//    private fun rejectCoffeeChat(
+//        user: User,
+//        coffeeChatId: String,
+//    ): CoffeeChatCompany {
+//        // 커피챗 찾기
+//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
+//        // 대상 회사가 아니면 403
+//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
+//        // 업데이트
+//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
+//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.REJECTED
+//            coffeeChatEntity.changed = true
+//        } else {
+//            throw CoffeeChatStatusForbiddenException(
+//                details =
+//                    mapOf(
+//                        "coffeeChatId" to coffeeChatId,
+//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
+//                    ),
+//            )
+//        }
+//        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
+//    }
 
     @Transactional
     fun getCoffeeChatListApplicant(
