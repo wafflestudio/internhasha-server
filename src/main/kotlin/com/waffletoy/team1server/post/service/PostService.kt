@@ -8,7 +8,6 @@ import com.waffletoy.team1server.auth.service.AuthService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
-import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.dto.*
 import com.waffletoy.team1server.post.persistence.*
 import org.springframework.beans.factory.annotation.Value
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import kotlin.random.Random
 
 @Service
 class PostService(
@@ -220,7 +218,7 @@ class PostService(
         val positions = mutableListOf<PositionEntity>()
 
         (1..cnt).forEach { index ->
-            val company = authService.makeDummyUser(index)
+            val user = authService.makeDummyUser(index)
             val tags =
                 listOf("Tech", "Finance", "Health")
                     .shuffled()
@@ -230,29 +228,34 @@ class PostService(
 
             val companyEntity =
                 CompanyEntity(
-                    company = company,
-                    companyName = "dummy Company $index",
-                    explanation = "Explanation of dummy Company $index",
-                    email = "dummy${index}_${Random.nextInt(0, 10001)}@example.com",
+                    user = user,
+                    detail = "Explanation of dummy Company $index",
+                    companyEstablishedYear = 2000 + index,
                     slogan = "Slogan of dummy$index",
-                    investAmount = (1000..5000).random(),
-                    investCompany = "Company A$index, Company B$index",
-                    series = Series.entries.random(),
-                    imageLink = "https://www.company$index/image",
+                    domain = "www.company$index.com",
+                    headcount = (10..500).random(),
+                    location = "Location $index",
+                    profileImageKey = "profile-image-key-$index",
+                    companyInfoPDFLink = "https://www.company$index/info.pdf",
+                    landingPageLink = "https://www.company$index",
+                    vcName = "Mr. Hoon",
+                    vcRec = "아주 좋아요",
                     tags = tags,
                 )
+
             companies.add(companyEntity)
 
             Category.entries.shuffled().take((1..3).random()).forEach { category ->
                 positions.add(
                     PositionEntity(
-                        title = "Title of $index",
-                        category = category,
+                        positionTitle = "Title of $index",
+                        positionType = category,
                         detail = "Detail of $category",
-                        headcount = (1..3).random(),
+                        headCount = (1..3).random(),
                         isActive = true,
                         employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                         company = companyEntity,
+                        salary = 10,
                     ),
                 )
             }
@@ -324,7 +327,7 @@ class PostService(
         // Map CreateCompanyRequest to CompanyEntity
         val companyEntity =
             CompanyEntity(
-                company = userEntity,
+                user = userEntity,
                 companyName = request.companyName,
                 email = request.email,
                 series = request.series,
@@ -353,7 +356,7 @@ class PostService(
         companyId: String,
     ): Company {
         var companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
-        if (user.userRole != UserRole.COMPANY || companyEntity.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || companyEntity.user.id != user.id) {
             throw NotAuthorizedException()
         }
         companyEntity = updateCompanyEntityWithRequest(companyEntity, request)
@@ -385,7 +388,7 @@ class PostService(
         companyId: String,
     ) {
         val companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
-        if (user.userRole != UserRole.COMPANY || companyEntity.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || companyEntity.user.id != user.id) {
             throw NotAuthorizedException()
         }
         companyRepository.delete(companyEntity)
@@ -397,7 +400,7 @@ class PostService(
             throw NotAuthorizedException()
         }
         val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
-        return companyRepository.findAllByCompany(userEntity).map { Company.fromEntity(it) }
+        return companyRepository.findAllByUser(userEntity).map { Company.fromEntity(it) }
     }
 
     @Transactional
@@ -465,7 +468,7 @@ class PostService(
                 ?: throw PostCompanyNotFoundException(mapOf("companyId" to (request.companyId ?: "null")))
 
         // Check if the user is the owner of the company
-        if (company.company.id != user.id) {
+        if (company.user.id != user.id) {
             throw NotAuthorizedException()
         }
 
@@ -495,7 +498,7 @@ class PostService(
         request: UpdatePositionRequest,
     ): Position {
         var positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
-        if (user.userRole != UserRole.COMPANY || positionEntity.company.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || positionEntity.company.user.id != user.id) {
             throw NotAuthorizedException()
         }
         positionEntity = updatePositionEntityWithRequest(positionEntity, request)
@@ -521,7 +524,7 @@ class PostService(
         positionId: String,
     ) {
         val positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
-        if (user.userRole != UserRole.COMPANY || positionEntity.company.company.id != user.id) {
+        if (user.userRole != UserRole.COMPANY || positionEntity.company.user.id != user.id) {
             throw NotAuthorizedException()
         }
         positionRepository.delete(positionEntity)

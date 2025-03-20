@@ -1,9 +1,6 @@
 package com.waffletoy.team1server.post.dto
 
-import com.waffletoy.team1server.post.Category
-import com.waffletoy.team1server.post.Series
 import com.waffletoy.team1server.post.persistence.PositionEntity
-import java.time.LocalDateTime
 
 data class Post(
     val id: String,
@@ -25,11 +22,11 @@ data class Post(
             Post(
                 id = entity.id,
                 author =
-                AuthorBrief(
-                    id = entity.company.company.id,
-                    name = entity.company.company.name,
-                    profileImageLink = entity.company.company.profileImageLink,
-                ),
+                    AuthorBrief(
+                        id = entity.company.user.id,
+                        name = entity.company.user.name,
+                        profileImageKey = entity.company.profileImageKey,
+                    ),
                 company = Company.fromEntity(entity.company),
                 position = Position.fromEntity(entity),
                 isBookmarked = isBookmarked,

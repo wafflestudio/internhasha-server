@@ -11,7 +11,7 @@ data class CoffeeChatBrief(
     // 공고 제목
     val title: String,
     // 회사 정보
-    val company: CoffeeChatUserInfo,
+    val user: CoffeeChatUserInfo,
     // 커피챗 생성, 수정 시간
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -27,8 +27,8 @@ data class CoffeeChatBrief(
         ) = CoffeeChatBrief(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.title,
-            company = entity.position.company.company.let { CoffeeChatUserInfo.fromEntity(it) },
+            title = entity.position.positionTitle,
+            user = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             coffeeChatStatus = entity.coffeeChatStatus,

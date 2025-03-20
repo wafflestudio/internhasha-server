@@ -15,12 +15,12 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         """
     SELECT c 
     FROM CoffeeChatEntity c 
-    WHERE c.position.company.company.id = :companyId
+    WHERE c.position.company.user.id = :userId
     AND c.coffeeChatStatus <> :excludedStatus
 """,
     )
-    fun findAllExceptStatusByCompanyId(
-        @Param("companyId") companyId: String,
+    fun findAllExceptStatusByUserId(
+        @Param("userId") userId: String,
         @Param("excludedStatus") excludedStatus: CoffeeChatStatus,
     ): List<CoffeeChatEntity>
 
@@ -41,12 +41,12 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         """
     SELECT COUNT(c) 
     FROM CoffeeChatEntity c 
-    WHERE c.position.company.company.id = :companyId
+    WHERE c.position.company.user.id = :userId
     AND c.coffeeChatStatus = :status
     """,
     )
-    fun countByCompanyIdAndStatus(
-        @Param("companyId") companyId: String,
+    fun countByUserIdAndStatus(
+        @Param("userId") userId: String,
         @Param("status") status: CoffeeChatStatus,
     ): Long
 }

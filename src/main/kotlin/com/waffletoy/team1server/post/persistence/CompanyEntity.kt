@@ -17,51 +17,34 @@ class CompanyEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "COMPANY", nullable = false)
-    open val company: UserEntity,
-
-    @Column(name = "NAME", nullable = false)
-    open var companyName: String,
-
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "USER", nullable = false)
+    open val user: UserEntity,
     @Column(name = "ESTABLISHED_YEAR", nullable = false)
     open var companyEstablishedYear: Int,
-
     @Column(name = "DOMAIN", nullable = false)
     open var domain: String,
-
     @Column(name = "HEADCOUNT", nullable = false)
     open var headcount: Int,
-
     @Column(name = "LOCATION", nullable = false)
     open var location: String,
-
     @Column(name = "SLOGAN", nullable = false)
     open var slogan: String,
-
     @Column(name = "DETAIL", columnDefinition = "TEXT", nullable = false)
     open var detail: String,
-
-    @Column(name = "IMAGE_KEY", nullable = false)
-    open var imageKey: String,
-
+    @Column(name = "PROFILE_IMAGE_KEY", nullable = true)
+    open var profileImageKey: String,
     @Column(name = "COMPANY_INFO_PDF_LINK", length = 2048, nullable = true)
     open var companyInfoPDFLink: String? = null,
-
     @Column(name = "LANDING_PAGE_LINK", length = 2048, nullable = false)
     open var landingPageLink: String,
-
     @Column(name = "VC_NAME", nullable = true)
     open var vcName: String,
-
     @Column(name = "VC_REC", nullable = true)
     open var vcRec: String,
-
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),
-
     @LastModifiedDate
     @Column(name = "UPDATED_AT", nullable = false)
     open var updatedAt: LocalDateTime = LocalDateTime.now(),

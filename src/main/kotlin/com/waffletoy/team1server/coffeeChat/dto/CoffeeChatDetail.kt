@@ -13,7 +13,7 @@ data class CoffeeChatApplicant(
     // 공고 제목
     val title: String,
     // 회사명, 회사 이미지 url
-    val company: CoffeeChatUserInfo,
+    val user: CoffeeChatUserInfo,
     // 커피챗 생성, 수정 시간
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -29,8 +29,8 @@ data class CoffeeChatApplicant(
         ) = CoffeeChatApplicant(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.title,
-            company = entity.position.company.company.let { CoffeeChatUserInfo.fromEntity(it) },
+            title = entity.position.positionTitle,
+            user = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             coffeeChatStatus = entity.coffeeChatStatus,
@@ -47,7 +47,7 @@ data class CoffeeChatCompany(
     // 공고 제목
     val title: String,
     // 회사명, 회사 이미지 url(imageLink)
-    val company: CoffeeChatUserInfo,
+    val user: CoffeeChatUserInfo,
     // 커피챗 생성, 수정 시간
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -65,8 +65,8 @@ data class CoffeeChatCompany(
         ) = CoffeeChatCompany(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.title,
-            company = entity.position.company.company.let { CoffeeChatUserInfo.fromEntity(it) },
+            title = entity.position.positionTitle,
+            user = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             coffeeChatStatus = entity.coffeeChatStatus,
