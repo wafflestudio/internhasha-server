@@ -14,5 +14,5 @@ interface CompanyRepository : JpaRepository<CompanyEntity, String> {
      */
     fun existsByEmail(email: String): Boolean
 
-    fun findAllByCompany(company: UserEntity): List<CompanyEntity>
+    fun findAllByUser(user: UserEntity): List<CompanyEntity>
 }

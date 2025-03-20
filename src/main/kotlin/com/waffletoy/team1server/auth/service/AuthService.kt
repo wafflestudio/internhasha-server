@@ -56,7 +56,7 @@ class AuthService(
 
     private fun localApplicantSignUp(info: SignUpRequest.LocalApplicantInfo): User {
         // 이미 존재하는 계정 확인
-        val existingUser = userRepository.findByMail(info.mail)
+        val existingUser = userRepository.findByEmail(info.mail)
         existingUser?.let {
             if (it.userRole != UserRole.APPLICANT) {
                 throw NotAuthorizedException(
@@ -69,7 +69,7 @@ class AuthService(
         }
 
         // 이메일(아이디) 중복 확인
-        if (userRepository.existsByMail(info.mail)) {
+        if (userRepository.existsByEmail(info.mail)) {
             throw UserDuplicateLocalIdException(
                 details = mapOf("mail" to info.mail),
             )
@@ -96,7 +96,7 @@ class AuthService(
         }
 
         // 이메일(아이디) 중복 확인
-        if (userRepository.existsByMail(info.mail)) {
+        if (userRepository.existsByEmail(info.mail)) {
             throw UserDuplicateLocalIdException(
                 details = mapOf("mail" to info.mail),
             )
@@ -118,7 +118,7 @@ class AuthService(
     @Transactional
     fun signIn(request: SignInRequest): Pair<User, UserTokenUtil.Tokens> {
         val userEntity =
-            userRepository.findByMail(request.mail)
+            userRepository.findByEmail(request.mail)
                 ?: throw InvalidCredentialsException()
 
         if (!BCrypt.checkpw(request.password, userEntity.passwordHash)) {
@@ -188,7 +188,7 @@ class AuthService(
     // 메일(아이디) 중복 확인
     @Transactional(readOnly = true)
     fun checkDuplicateMail(request: MailRequest) {
-        if (userRepository.existsByMail(request.mail)) {
+        if (userRepository.existsByEmail(request.mail)) {
             throw UserDuplicateSnuMailException(
                 details = mapOf("mail" to request.mail),
             )
@@ -285,7 +285,7 @@ class AuthService(
     fun resetPassword(mailRequest: MailRequest) {
         // 메일을 기준으로 유저 찾기
         val user =
-            userRepository.findByMail(mailRequest.mail)
+            userRepository.findByEmail(mailRequest.mail)
                 ?: throw UserNotFoundException(
                     details = mapOf("mail" to mailRequest.mail),
                 )
@@ -306,7 +306,7 @@ class AuthService(
             )
         } catch (ex: Exception) {
             throw EmailSendFailureException(
-                details = mapOf("mail" to user.email),
+                details = mapOf("email" to user.email),
             )
         }
     }
@@ -330,7 +330,7 @@ class AuthService(
     }
 
     fun makeDummyUser(index: Int): UserEntity {
-        return userRepository.findByMail("dummy$index@gmail.com")
+        return userRepository.findByEmail("dummy$index@gmail.com")
             ?: userRepository.save(
                 UserEntity(
                     name = "dummy$index",
