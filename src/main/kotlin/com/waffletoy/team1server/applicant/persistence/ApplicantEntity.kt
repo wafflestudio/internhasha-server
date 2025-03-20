@@ -10,11 +10,10 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
-import javax.management.Attribute
 
 @Entity(name = "applicants")
 @EntityListeners(AuditingEntityListener::class)
-class ApplicantEntity (
+class ApplicantEntity(
     @Id
     @Column(name = "id", nullable = false, updatable = false, length = 36)
     val id: String = UUID.randomUUID().toString(),
@@ -47,11 +46,10 @@ class ApplicantEntity (
     var cvKey: String? = null,
     @Column(name = "portfolio_key")
     var portfolioKey: String? = null,
-    @Column(name = "links", length=10500)
+    @Column(name = "links", length = 10500)
     @Convert(converter = StringListConverter::class)
-    var links: List<Link>
-) {
-}
+    var links: List<Link>,
+)
 
 @Converter(autoApply = false)
 class StringListConverter<E> : AttributeConverter<List<E>?, String?> {
@@ -61,7 +59,7 @@ class StringListConverter<E> : AttributeConverter<List<E>?, String?> {
         return list?.let { objectMapper.writeValueAsString(it) }
     }
 
-    override fun convertToEntityAttribute(str: String?) : List<E>? {
-        return str?.let { objectMapper.readValue(it, object: TypeReference<List<E>> (){}) }
+    override fun convertToEntityAttribute(str: String?): List<E>? {
+        return str?.let { objectMapper.readValue(it, object : TypeReference<List<E>> () {}) }
     }
 }
