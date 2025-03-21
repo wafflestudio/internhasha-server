@@ -17,6 +17,7 @@ class ApplicantController(
     fun getMe(
         @Parameter(hidden = true) @AuthUser user: User,
     ) : ResponseEntity<User> {
+        TODO("ApplicantService.getMeByUser")
         return ResponseEntity.ok(user)
     }
 }
