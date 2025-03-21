@@ -47,7 +47,7 @@ class CoffeeChatService(
             throw CoffeeChatUserForbiddenException(details = mapOf("userId" to user.id, "userRole" to user.userRole))
         }
 
-        val positionEntity = getPositionEntityOrThrow(postId)
+        getPositionEntityOrThrow(postId)
 
         // 이미 대기 중인 커피챗 ID가 있으면 True
         return (

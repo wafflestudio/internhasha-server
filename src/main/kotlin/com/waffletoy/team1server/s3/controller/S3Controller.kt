@@ -42,7 +42,7 @@ class S3Controller(
 
 data class S3UploadReq(
     @field:NotBlank(message = "파일 이름은 필수입니다.")
-    @field:Size(min=1, max=255, message = "File name must be between 1 and 255 characters.")
+    @field:Size(min = 1, max = 255, message = "File name must be between 1 and 255 characters.")
     val fileName: String,
     @field:NotNull(message = "파일 타입은 필수입니다.")
     val fileType: S3FileType,
@@ -56,7 +56,7 @@ data class S3UploadResp(
 data class S3DownloadReq(
     @field:NotNull(message = "파일 타입은 필수입니다.")
     val fileType: S3FileType,
-    @field:Size(min=1, max=255, message = "must be between 1 and 255 characters.")
+    @field:Size(min = 1, max = 255, message = "must be between 1 and 255 characters.")
     @field:NotBlank(message = "파일 경로는 필수입니다.")
     val s3Key: String,
 )
