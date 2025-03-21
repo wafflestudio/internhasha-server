@@ -27,7 +27,7 @@ class ApplicantEntity(
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime? = null,
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
     var enrollYear: Int? = null,
