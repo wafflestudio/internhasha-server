@@ -2,7 +2,6 @@ package com.waffletoy.team1server.applicant.dto
 
 import com.waffletoy.team1server.applicant.persistence.ApplicantEntity
 import com.waffletoy.team1server.auth.UserRole
-import com.waffletoy.team1server.auth.dto.User
 import java.time.LocalDateTime
 
 data class ApplicantResponse(
@@ -13,7 +12,8 @@ data class ApplicantResponse(
     val email: String,
     val enrollYear: Int? = null,
     val department: String? = null,
-    val positions: List<String>? = null, // JobCategory로 E 바꿀 것
+    // JobCategory로 E 바꿀 것
+    val positions: List<String>? = null,
     val slogan: String? = null,
     val explanation: String? = null,
     val stacks: List<String>? = null,
@@ -40,8 +40,7 @@ data class ApplicantResponse(
             imageKey = entity.profileImageKey,
             cvKey = entity.cvKey,
             portfolioKey = entity.portfolioKey,
-            links = entity.links
+            links = entity.links,
         )
     }
 }
-

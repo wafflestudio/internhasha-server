@@ -10,20 +10,20 @@ import org.springframework.stereotype.Service
 
 @Service
 class ApplicantService(
-    val applicantRepository: ApplicantRepository
+    val applicantRepository: ApplicantRepository,
 ) {
     fun getApplicant(
         user: User,
-    ) : ApplicantEntity {
+    ): ApplicantEntity {
         // User가 Applicant가 맞는지 확인
-        if ( user.userRole != UserRole.APPLICANT ) {
+        if (user.userRole != UserRole.APPLICANT) {
             throw ApplicantUserForbiddenException(
                 details = mapOf("userId" to user.id, "userRole" to user.userRole),
             )
         }
 
         // User의 Applicant 정보 받기
-        val applicantEntity : ApplicantEntity? = applicantRepository.findByUser(user)
+        val applicantEntity: ApplicantEntity? = applicantRepository.findByUser(user)
 
         // applicant null이면 정보 없음 반환
         if (applicantEntity == null) {
@@ -33,5 +33,4 @@ class ApplicantService(
         // 정보 반환
         return applicantEntity
     }
-
 }

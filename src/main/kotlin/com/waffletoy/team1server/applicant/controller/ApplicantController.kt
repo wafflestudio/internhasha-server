@@ -19,10 +19,10 @@ class ApplicantController(
     @GetMapping("/me")
     fun getApplicant(
         @Parameter(hidden = true) @AuthUser user: User,
-    ) : ResponseEntity<ApplicantResponse> {
-        val applicantEntity : ApplicantEntity = applicantService.getApplicant(user)
+    ): ResponseEntity<ApplicantResponse> {
+        val applicantEntity: ApplicantEntity = applicantService.getApplicant(user)
 
         // ApplicantInfoResponse DTO로 재포장 해 반환
-        return ResponseEntity.ok( ApplicantResponse.fromEntity(applicantEntity) )
+        return ResponseEntity.ok(ApplicantResponse.fromEntity(applicantEntity))
     }
 }
