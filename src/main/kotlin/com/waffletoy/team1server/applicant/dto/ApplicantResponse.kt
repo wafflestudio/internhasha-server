@@ -12,8 +12,7 @@ data class ApplicantResponse(
     val email: String,
     val enrollYear: Int? = null,
     val department: String? = null,
-    // JobCategory로 E 바꿀 것
-    val positions: List<String>? = null,
+    val positions: List<JobCategory>? = null,
     val slogan: String? = null,
     val explanation: String? = null,
     val stacks: List<String>? = null,
