@@ -28,7 +28,7 @@ class ApplicantEntity(
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime? = null,
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
     // MySQL SMALLINT는 -32768~32767
