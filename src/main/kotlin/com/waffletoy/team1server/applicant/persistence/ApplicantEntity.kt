@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.waffletoy.team1server.applicant.dto.Link
 import com.waffletoy.team1server.auth.UserRole
+import com.waffletoy.team1server.auth.persistence.UserEntity
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -17,12 +18,15 @@ class ApplicantEntity(
     @Id
     @Column(name = "id", nullable = false, updatable = false, length = 36)
     val id: String = UUID.randomUUID().toString(),
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    val user: UserEntity,
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime? = null,
     @LastModifiedDate
-    @Column(name = "modified_at", nullable = false)
-    val modified_at: LocalDateTime? = null,
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: LocalDateTime? = null,
     @Enumerated
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
@@ -48,7 +52,7 @@ class ApplicantEntity(
     var portfolioKey: String? = null,
     @Column(name = "links", length = 10500)
     @Convert(converter = StringListConverter::class)
-    var links: List<Link>,
+    var links: List<Link>? = null,
 )
 
 @Converter(autoApply = false)
