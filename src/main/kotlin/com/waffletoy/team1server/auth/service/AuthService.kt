@@ -71,7 +71,7 @@ class AuthService(
         // 이메일(아이디) 중복 확인
         if (userRepository.existsByEmail(info.mail)) {
             throw UserDuplicateLocalIdException(
-                details = mapOf("mail" to info.mail),
+                details = mapOf("email" to info.mail),
             )
         }
 
