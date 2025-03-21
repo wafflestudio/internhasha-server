@@ -15,15 +15,15 @@ class PositionEntity(
     @Id
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
-    @Column(name = "TITLE", nullable = false)
-    open var title: String = "",
-    @Column(name = "CATEGORY", nullable = false)
+    @Column(name = "POSITION_TITLE", nullable = false)
+    open var positionTitle: String = "",
+    @Column(name = "POSITION_TYPE", nullable = false)
     @Enumerated(EnumType.STRING)
-    open var category: Category,
-    @Column(name = "DETAIL", nullable = true, columnDefinition = "TEXT")
-    open var detail: String? = null,
+    open var positionType: Category,
+    @Column(name = "DETAIL", nullable = false, columnDefinition = "TEXT")
+    open var detail: String,
     @Column(name = "HEADCOUNT", nullable = false)
-    open var headcount: Int = 0,
+    open var headCount: Int = 0,
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),
@@ -34,6 +34,8 @@ class PositionEntity(
     open var employmentEndDate: LocalDateTime? = null,
     @Column(name = "IS_ACTIVE", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     open var isActive: Boolean = false,
+    @Column(name = "SALARY", nullable = true)
+    open var salary: Int? = null,
     // 특정 Company에 join
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "COMPANY_ID", nullable = false)

@@ -5,27 +5,29 @@ import java.time.LocalDateTime
 
 data class Position(
     val id: String,
-    val title: String,
-    val category: String,
-    val detail: String? = null,
-    val headcount: Int,
+    val isActive: Boolean,
+    val positionTitle: String,
+    val positionType: String,
+    val headCount: Int,
+    val salary: Int? = null,
+    val detail: String,
+    val employmentEndDate: LocalDateTime? = null,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
-    val employmentEndDate: LocalDateTime? = null,
-    val isActive: Boolean,
 ) {
     companion object {
         fun fromEntity(entity: PositionEntity): Position {
             return Position(
                 id = entity.id,
-                title = entity.title,
-                category = entity.category.displayName(),
+                isActive = entity.isActive,
+                positionTitle = entity.positionTitle,
+                positionType = entity.positionType.displayName(),
+                headCount = entity.headCount,
+                salary = entity.salary,
                 detail = entity.detail,
-                headcount = entity.headcount,
+                employmentEndDate = entity.employmentEndDate,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
-                employmentEndDate = entity.employmentEndDate,
-                isActive = entity.isActive,
             )
         }
     }

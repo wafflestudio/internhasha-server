@@ -29,7 +29,7 @@ data class CoffeeChatApplicant(
         ) = CoffeeChatApplicant(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.title,
+            title = entity.position.positionTitle,
             user = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
@@ -65,7 +65,7 @@ data class CoffeeChatCompany(
         ) = CoffeeChatCompany(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.title,
+            title = entity.position.positionTitle,
             user = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
