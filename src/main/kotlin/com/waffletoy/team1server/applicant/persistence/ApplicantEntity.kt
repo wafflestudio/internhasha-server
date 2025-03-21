@@ -2,6 +2,7 @@ package com.waffletoy.team1server.applicant.persistence
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.waffletoy.team1server.applicant.dto.JobCategory
 import com.waffletoy.team1server.applicant.dto.Link
 import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.persistence.UserEntity
@@ -35,7 +36,7 @@ class ApplicantEntity(
     var dept: String? = null,
     @Column(name = "positions")
     @Convert(converter = StringListConverter::class)
-    var positions: List<String>? = null,
+    var positions: List<JobCategory>? = null,
     @Column(name = "slogan")
     var slogan: String? = null,
     @Column(name = "explanation", columnDefinition = "TEXT")
