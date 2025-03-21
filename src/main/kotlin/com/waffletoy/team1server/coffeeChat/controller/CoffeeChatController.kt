@@ -134,7 +134,7 @@ data class CoffeeChatContent(
 data class CoffeeChatStatusReq(
     @field:NotNull(message = "Status cannot be null.")
     val coffeeChatStatus: CoffeeChatStatus,
-    @field:NotEmpty(message = "List not empty")
+    @field:NotEmpty(message = "List cannot not empty")
     val coffeeChatList: List<String>,
 )
 

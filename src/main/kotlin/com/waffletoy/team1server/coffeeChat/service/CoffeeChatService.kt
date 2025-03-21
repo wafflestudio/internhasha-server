@@ -178,6 +178,7 @@ class CoffeeChatService(
         // 변경 권한을 확인
         when (user.userRole) {
             UserRole.APPLICANT -> {
+                // 지원자는 취소만 가능
                 if (coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.CANCELED) {
                     throw CoffeeChatUserForbiddenException(
                         details =
@@ -187,6 +188,7 @@ class CoffeeChatService(
                             ),
                     )
                 }
+                // 본인이 작성한 커피챗만 & 대기 중인 커피챗만
                 for (coffeeChatEntity in coffeeChatEntityList) {
                     if (coffeeChatEntity.applicant.id != user.id ||
                         coffeeChatEntity.coffeeChatStatus != CoffeeChatStatus.WAITING
@@ -200,6 +202,7 @@ class CoffeeChatService(
                 }
             }
             UserRole.COMPANY -> {
+                // 회사는 수락, 거절만 가능
                 if (coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.ACCEPTED &&
                     coffeeChatStatusReq.coffeeChatStatus != CoffeeChatStatus.REJECTED
                 ) {
@@ -211,6 +214,7 @@ class CoffeeChatService(
                             ),
                     )
                 }
+                // 자신이 작성한 공고의 커피챗만 & 대기 중인 커피챗만
                 for (coffeeChatEntity in coffeeChatEntityList) {
                     if (coffeeChatEntity.position.company.user.id != user.id ||
                         coffeeChatEntity.coffeeChatStatus != CoffeeChatStatus.WAITING

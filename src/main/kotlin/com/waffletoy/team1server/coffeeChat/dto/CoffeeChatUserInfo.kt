@@ -23,7 +23,7 @@ data class CoffeeChatUserInfo(
                 UserRole.COMPANY ->
                     CoffeeChatUserInfo(
                         entity.name,
-                        entity.company?.imageLink,
+                        entity.company?.profileImageKey,
                     )
             }
         }
