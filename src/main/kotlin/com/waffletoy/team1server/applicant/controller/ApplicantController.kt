@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.applicant.controller
 
+import com.waffletoy.team1server.applicant.dto.ApplicantResponse
 import com.waffletoy.team1server.applicant.persistence.ApplicantEntity
 import com.waffletoy.team1server.applicant.service.ApplicantService
 import com.waffletoy.team1server.auth.AuthUser
@@ -18,10 +19,10 @@ class ApplicantController(
     @GetMapping("/me")
     fun getApplicant(
         @Parameter(hidden = true) @AuthUser user: User,
-    ) : ResponseEntity<User> {
+    ) : ResponseEntity<ApplicantResponse> {
         val applicantEntity : ApplicantEntity = applicantService.getApplicant(user)
 
         // ApplicantInfoResponse DTO로 재포장 해 반환
-        return ResponseEntity.ok(user)
+        return ResponseEntity.ok( ApplicantResponse.fromEntity(applicantEntity) )
     }
 }
