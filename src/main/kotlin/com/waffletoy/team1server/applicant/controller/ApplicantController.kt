@@ -18,6 +18,8 @@ class ApplicantController(
         @Parameter(hidden = true) @AuthUser user: User,
     ) : ResponseEntity<User> {
         TODO("ApplicantService.getMeByUser")
+
+        // ApplicantInfoResponse DTO로 재포장 해 반환
         return ResponseEntity.ok(user)
     }
 }
