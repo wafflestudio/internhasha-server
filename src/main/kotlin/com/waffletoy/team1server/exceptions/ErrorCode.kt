@@ -33,6 +33,10 @@ enum class ErrorCode(
     VALIDATION_FAILED("GEN_004", "Validation failed for the request.", HttpStatus.BAD_REQUEST),
     INVALID_JSON("GEN_005", "Malformed JSON request.", HttpStatus.BAD_REQUEST),
 
+    // Applicant-related errors
+    APPLICANT_USER_FORBIDDEN("APPLICANT_001", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),
+    APPLICANT_NOT_FOUND("APPLICANT_002", "Applicant not found.", HttpStatus.NOT_FOUND),
+
     // Post-related errors
     POST_NOT_FOUND("POST_001", "The requested post was not found.", HttpStatus.NOT_FOUND),
     POST_ALREADY_BOOKMARKED("POST_002", "The post is already bookmarked.", HttpStatus.CONFLICT),

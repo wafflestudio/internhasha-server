@@ -10,7 +10,7 @@ data class User(
     val createdAt: LocalDateTime? = null,
     val updatedAt: LocalDateTime? = null,
     val userRole: UserRole,
-    val mail: String?,
+    val email: String?,
 ) {
     companion object {
         fun fromEntity(
@@ -22,7 +22,7 @@ data class User(
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 userRole = entity.userRole,
-                mail = entity.email,
+                email = entity.email,
             )
     }
 }
