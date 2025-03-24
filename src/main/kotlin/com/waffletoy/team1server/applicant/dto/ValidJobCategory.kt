@@ -12,11 +12,14 @@ import kotlin.reflect.KClass
 annotation class ValidJobCategory(
     val message: String = "Invalid job category",
     val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = []
+    val payload: Array<KClass<out Payload>> = [],
 )
 
 class JobCategoryValidator : ConstraintValidator<ValidJobCategory, JobCategory> {
-    override fun isValid(value: JobCategory?, context: ConstraintValidatorContext?): Boolean {
+    override fun isValid(
+        value: JobCategory?,
+        context: ConstraintValidatorContext?,
+    ): Boolean {
         return value != null && value in JobCategory.values()
     }
 }

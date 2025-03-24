@@ -16,7 +16,10 @@ data class PutApplicantRequest(
     @field:Size(max = 1000, message = "explanation must be at most 1000 characters")
     val explanation: String? = null,
     @field:Size(max = 10, message = "the number of stacks cannot be more than 10")
-    val stacks: List<@Size(max = 30, message = "Each stack cannot be more than 30 characters") String>? = null,
+    val stacks: List<
+        @Size(max = 30, message = "Each stack cannot be more than 30 characters")
+        String,
+        >? = null,
     @field:Size(max = 512, message = "imageKey cannot be more than 512 characters")
     val imageKey: String? = null,
     @field:Size(max = 512, message = "cvKey cannot be more than 512 characters")

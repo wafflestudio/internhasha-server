@@ -46,33 +46,31 @@ class ApplicantService(
     fun putApplicant(
         user: User,
         request: PutApplicantRequest,
-
-    ) : ApplicantEntity {
-
+    ): ApplicantEntity {
         val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
 
         if (userEntity == null) {
             throw UserNotFoundException()
         }
 
-        if (request.portfolioKey != null && request.positions?.contains(JobCategory.DESIGN) != true ) {
+        if (request.portfolioKey != null && request.positions?.contains(JobCategory.DESIGN) != true) {
             throw ApplicantPortfolioForbidden()
         }
 
-
-        val newApplicant = ApplicantEntity(
-            user = userEntity,
-            enrollYear = request.enrollYear,
-            dept = request.department,
-            positions = request.positions,
-            slogan = request.slogan,
-            explanation = request.explanation,
-            stacks = request.stacks,
-            profileImageKey = request.imageKey,
-            cvKey = request.cvKey,
-            portfolioKey = request.portfolioKey,
-            links = request.links
-        )
+        val newApplicant =
+            ApplicantEntity(
+                user = userEntity,
+                enrollYear = request.enrollYear,
+                dept = request.department,
+                positions = request.positions,
+                slogan = request.slogan,
+                explanation = request.explanation,
+                stacks = request.stacks,
+                profileImageKey = request.imageKey,
+                cvKey = request.cvKey,
+                portfolioKey = request.portfolioKey,
+                links = request.links,
+            )
 
         return applicantRepository.saveAndFlush(newApplicant)
     }
