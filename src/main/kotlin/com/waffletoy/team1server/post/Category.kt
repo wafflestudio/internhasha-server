@@ -25,12 +25,3 @@ enum class Category {
         }
     }
 }
-
-enum class Series {
-    SEED,
-    PRE_A,
-    A,
-    B,
-    C,
-    D,
-}

@@ -5,6 +5,9 @@ import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.persistence.*
 import com.waffletoy.team1server.auth.service.AuthService
+import com.waffletoy.team1server.company.dto.TagVo
+import com.waffletoy.team1server.company.persistence.CompanyEntity
+import com.waffletoy.team1server.company.persistence.CompanyRepository
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.*
 import com.waffletoy.team1server.post.Category
@@ -57,58 +60,36 @@ class PostService(
      *
      * @param user nullable user field to get bookmark
      * @param positions List of position names to filter by.
-     * @param investmentMax Maximum investment amount.
-     * @param investmentMin Minimum investment amount.
-     * @param status Status filter (e.g., active, inactive).
-     * @param series List of series names to filter by.
-     * @param order sort posts by newest(0) or employmentEndDate(1)
+     * @param order Sort posts by newest(0) or employmentEndDate(1)
      * @param page The page number to retrieve.
      * @return A paginated [Page] of [Post].
-     * @throws PostInvalidFiltersException If invalid filters are provided.
      */
     @Transactional(readOnly = true)
     fun getPosts(
         user: User?,
         positions: List<String>?,
-        investmentMax: Int?,
-        investmentMin: Int?,
-        status: Int?,
-        series: List<String>?,
         page: Int = 0,
         order: Int = 0,
     ): Page<Post> {
-        // Example validation: investmentMin should not exceed investmentMax
-        if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
-            throw PostInvalidFiltersException(
-                details =
-                    mapOf(
-                        "investmentMin" to investmentMin,
-                        "investmentMax" to investmentMax,
-                    ),
-            )
-        }
-
         val specification =
             PositionSpecification.withFilters(
-                positions,
-                investmentMax,
-                investmentMin,
-                status ?: 2,
-                series,
-                order,
+                positions = positions,
+                order = order,
             )
 
         val validPage = if (page < 0) 0 else page
         val pageable = PageRequest.of(validPage, pageSize)
+
         val positionPage = positionRepository.findAll(specification, pageable)
 
         val bookmarkIds = getBookmarkIds(user)
         val isLoggedIn = user != null
+
         return positionPage.map { position ->
             Post.fromEntity(
                 entity = position,
                 isBookmarked = position.id in bookmarkIds,
-                isLoggedIn = user != null,
+                isLoggedIn = isLoggedIn,
             )
         }
     }
@@ -300,88 +281,7 @@ class PostService(
             emptySet()
         }
     }
-
-    /**
-     * Creates a new company associated with the given user.
-     *
-     * @param user The authenticated user creating the company.
-     * @param request The DTO containing company creation data.
-     * @return The created Company DTO.
-     * @throws NotAuthorizedException If user is not company.
-     * @throws PostCompanyExistsException If a company with the given email already exists.
-     */
-    @Transactional
-    fun createCompany(
-        user: User,
-        request: CreateCompanyRequest,
-    ): Company {
-        if (user.userRole != UserRole.COMPANY) {
-            throw NotAuthorizedException()
-        }
-        val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
-        // Check if a company with the same email already exists
-        if (companyRepository.existsByEmail(request.email)) {
-            throw PostCompanyExistsException()
-        }
-
-        // Map CreateCompanyRequest to CompanyEntity
-        val companyEntity =
-            CompanyEntity(
-                user = userEntity,
-                companyName = request.companyName,
-                email = request.email,
-                series = request.series,
-                explanation = request.explanation,
-                slogan = request.slogan,
-                investAmount = request.investAmount ?: 0,
-                investCompany = request.investCompany,
-                imageLink = request.imageLink,
-                irDeckLink = request.irDeckLink,
-                landingPageLink = request.landingPageLink,
-                links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
-                tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
-            )
-
-        // Save the CompanyEntity
-        val savedCompany = companyRepository.save(companyEntity)
-
-        // Convert to Company DTO
-        return Company.fromEntity(savedCompany)
-    }
-
-    @Transactional
-    fun updateCompany(
-        user: User,
-        request: UpdateCompanyRequest,
-        companyId: String,
-    ): Company {
-        var companyEntity = companyRepository.findByIdOrNull(companyId) ?: throw PostCompanyNotFoundException(mapOf("companyId" to companyId))
-        if (user.userRole != UserRole.COMPANY || companyEntity.user.id != user.id) {
-            throw NotAuthorizedException()
-        }
-        companyEntity = updateCompanyEntityWithRequest(companyEntity, request)
-        return Company.fromEntity(companyEntity)
-    }
-
-    private fun updateCompanyEntityWithRequest(
-        entity: CompanyEntity,
-        request: UpdateCompanyRequest,
-    ): CompanyEntity {
-        entity.companyName = request.companyName
-        entity.explanation = request.explanation
-        entity.email = request.email
-        entity.slogan = request.slogan
-        entity.investAmount = request.investAmount ?: 0
-        entity.investCompany = request.investCompany
-        entity.series = request.series
-        entity.imageLink = request.imageLink
-        entity.irDeckLink = request.irDeckLink
-        entity.landingPageLink = request.landingPageLink
-        entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
-        entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
-        return entity
-    }
-
+    /*
     @Transactional
     fun deleteCompany(
         user: User,
@@ -393,24 +293,12 @@ class PostService(
         }
         companyRepository.delete(companyEntity)
     }
-
-    @Transactional
-    fun getCompanyByCompany(user: User): List<Company> {
-        if (user.userRole != UserRole.COMPANY) {
-            throw NotAuthorizedException()
-        }
-        val userEntity = authService.getUserEntityByUserId(user.id) ?: throw UserNotFoundException(mapOf("userId" to user.id))
-        return companyRepository.findAllByUser(userEntity).map { Company.fromEntity(it) }
-    }
+     */
 
     @Transactional
     fun getPostByCompany(
         user: User,
         positions: List<String>?,
-        investmentMax: Int?,
-        investmentMin: Int?,
-        status: Int?,
-        series: List<String>?,
         page: Int = 0,
         order: Int = 0,
     ): Page<Post> {
@@ -422,25 +310,11 @@ class PostService(
             authService.getUserEntityByUserId(user.id)
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
-        if (investmentMin != null && investmentMax != null && investmentMin > investmentMax) {
-            throw PostInvalidFiltersException(
-                details =
-                    mapOf(
-                        "investmentMin" to investmentMin,
-                        "investmentMax" to investmentMax,
-                    ),
-            )
-        }
-
         val specification =
             PositionSpecification.withFilters(
-                positions,
-                investmentMax,
-                investmentMin,
-                status ?: 2,
-                series,
-                order,
-                userEntity,
+                positions = positions,
+                order = order,
+                company = userEntity,
             )
 
         val validPage = if (page < 0) 0 else page
@@ -475,12 +349,13 @@ class PostService(
         // Map CreatePositionRequest to PositionEntity
         val positionEntity =
             PositionEntity(
-                title = request.title,
-                category = request.category,
+                positionTitle = request.positionTitle,
+                positionType = request.positionType,
                 detail = request.detail,
-                headcount = request.headcount,
+                headCount = request.headCount,
+                salary = request.salary,
                 employmentEndDate = request.employmentEndDate,
-                isActive = request.isActive ?: false,
+                isActive = request.isActive,
                 company = company,
             )
 
@@ -509,12 +384,13 @@ class PostService(
         positionEntity: PositionEntity,
         request: UpdatePositionRequest,
     ): PositionEntity {
-        positionEntity.title = request.title
-        positionEntity.category = request.category
+        positionEntity.positionTitle = request.positionTitle
+        positionEntity.positionType = request.positionType
         positionEntity.detail = request.detail
-        positionEntity.headcount = request.headcount
+        positionEntity.headCount = request.headCount
+        positionEntity.salary = request.salary
         positionEntity.employmentEndDate = request.employmentEndDate
-        positionEntity.isActive = request.isActive ?: false
+        positionEntity.isActive = request.isActive
         return positionEntity
     }
 

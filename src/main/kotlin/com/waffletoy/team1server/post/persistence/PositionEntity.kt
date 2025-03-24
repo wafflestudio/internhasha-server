@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.persistence
 
+import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.post.Category
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate

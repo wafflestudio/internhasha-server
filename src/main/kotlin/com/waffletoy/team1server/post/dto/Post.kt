@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.dto
 
+import com.waffletoy.team1server.company.dto.Company
 import com.waffletoy.team1server.post.persistence.PositionEntity
 
 data class Post(

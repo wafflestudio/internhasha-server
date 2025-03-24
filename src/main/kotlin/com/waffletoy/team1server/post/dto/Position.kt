@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 
 data class Position(
     val id: String,
+    val companyId: String,
     val isActive: Boolean,
     val positionTitle: String,
     val positionType: String,
@@ -19,6 +20,7 @@ data class Position(
         fun fromEntity(entity: PositionEntity): Position {
             return Position(
                 id = entity.id,
+                companyId = entity.company.id,
                 isActive = entity.isActive,
                 positionTitle = entity.positionTitle,
                 positionType = entity.positionType.displayName(),
