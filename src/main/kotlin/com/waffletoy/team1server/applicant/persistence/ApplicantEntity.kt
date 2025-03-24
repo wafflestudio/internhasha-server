@@ -2,6 +2,7 @@ package com.waffletoy.team1server.applicant.persistence
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.waffletoy.team1server.applicant.dto.JobCategory
 import com.waffletoy.team1server.applicant.dto.Link
 import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.persistence.UserEntity
@@ -27,15 +28,17 @@ class ApplicantEntity(
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime? = null,
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
+    // MySQL SMALLINT는 -32768~32767
+    @Column(name = "enroll_year", columnDefinition = "SMALLINT")
     var enrollYear: Int? = null,
     @Column(name = "dept")
     var dept: String? = null,
     @Column(name = "positions")
     @Convert(converter = StringListConverter::class)
-    var positions: List<String>? = null,
+    var positions: List<JobCategory>? = null,
     @Column(name = "slogan")
     var slogan: String? = null,
     @Column(name = "explanation", columnDefinition = "TEXT")
