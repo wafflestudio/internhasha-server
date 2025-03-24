@@ -23,7 +23,7 @@ class ApplicantService(
         }
 
         // User의 Applicant 정보 받기
-        val applicantEntity: ApplicantEntity? = applicantRepository.findByUser(user)
+        val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
 
         // applicant null이면 정보 없음 반환
         if (applicantEntity == null) {
