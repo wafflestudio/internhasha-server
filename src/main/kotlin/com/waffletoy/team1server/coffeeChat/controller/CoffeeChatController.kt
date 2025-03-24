@@ -11,6 +11,7 @@ import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
@@ -31,6 +32,19 @@ class CoffeeChatController(
     ): ResponseEntity<CoffeeChatDetail> {
         return ResponseEntity.ok(
             coffeeChatService.getCoffeeChatDetail(user, coffeeChatId),
+        )
+    }
+
+    // 지원자 - 이미 대기 중 커피챗 있는지 확인
+    @GetMapping("/{postId}")
+    fun checkIsSubmitted(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @PathVariable postId: String,
+    ): ResponseEntity<CoffeeChatIsSubmitted> {
+        return ResponseEntity.ok(
+            CoffeeChatIsSubmitted(
+                coffeeChatService.checkIsSubmitted(user, postId),
+            ),
         )
     }
 
@@ -67,16 +81,14 @@ class CoffeeChatController(
     }
 
     // 커피챗 상태 변경
-    @PatchMapping("/{coffeeChatId}")
+    @PatchMapping
     fun changeCoffeeChatStatus(
         @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable coffeeChatId: String,
         @Valid @RequestBody coffeeChatStatusReq: CoffeeChatStatusReq,
-    ): ResponseEntity<CoffeeChatDetail> {
+    ): ResponseEntity<CoffeeChatDetailList> {
         return ResponseEntity.ok(
             coffeeChatService.changeCoffeeChatStatus(
                 user,
-                coffeeChatId,
                 coffeeChatStatusReq,
             ),
         )
@@ -115,13 +127,15 @@ class CoffeeChatController(
 
 data class CoffeeChatContent(
     @field:NotBlank(message = "Content cannot be blank.")
-    @field:Size(message = "Content must be at most 10,000 characters long")
+    @field:Size(min = 1, max = 10000, message = "Content must be at most 10,000 characters long")
     val content: String,
 )
 
 data class CoffeeChatStatusReq(
-    @field:NotNull(message = "Content cannot be blank.")
+    @field:NotNull(message = "Status cannot be null.")
     val coffeeChatStatus: CoffeeChatStatus,
+    @field:NotEmpty(message = "List cannot not empty")
+    val coffeeChatList: List<String>,
 )
 
 data class CoffeeChatList(
@@ -130,4 +144,13 @@ data class CoffeeChatList(
 
 data class CoffeeChatCount(
     val num: Int,
+)
+
+data class CoffeeChatIsSubmitted(
+    val isSubmitted: Boolean,
+)
+
+data class CoffeeChatDetailList(
+    val succeeded: List<CoffeeChatDetail>,
+    val failed: List<CoffeeChatDetail>,
 )

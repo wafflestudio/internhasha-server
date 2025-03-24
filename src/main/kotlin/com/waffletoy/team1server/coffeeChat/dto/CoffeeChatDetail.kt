@@ -19,7 +19,7 @@ data class CoffeeChatApplicant(
     val updatedAt: LocalDateTime,
     // 커피챗 상태
     val coffeeChatStatus: CoffeeChatStatus,
-    val changed: Boolean,
+    var changed: Boolean,
     // 내용
     val content: String,
 ) : CoffeeChatDetail() {
@@ -53,7 +53,7 @@ data class CoffeeChatCompany(
     val updatedAt: LocalDateTime,
     // 커피챗 상태
     val coffeeChatStatus: CoffeeChatStatus,
-    val changed: Boolean,
+    var changed: Boolean,
     // 내용
     val content: String,
     // 지원자 정보
