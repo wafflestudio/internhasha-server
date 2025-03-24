@@ -17,8 +17,7 @@ data class CoffeeChatUserInfo(
                 UserRole.APPLICANT ->
                     CoffeeChatUserInfo(
                         entity.name,
-                        entity.profileImageLink,
-                        // entity.applicant?.imageLink,
+                        entity.applicant?.profileImageKey,
                     )
                 UserRole.COMPANY ->
                     CoffeeChatUserInfo(

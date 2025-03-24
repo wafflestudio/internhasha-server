@@ -24,10 +24,10 @@ class ApplicantEntity(
     val user: UserEntity,
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime? = null,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Enumerated(EnumType.STRING)
     @Column(name = "user_role", nullable = false)
     val userRole: UserRole = UserRole.APPLICANT,
@@ -37,7 +37,7 @@ class ApplicantEntity(
     @Column(name = "dept")
     var dept: String? = null,
     @Column(name = "positions")
-    @Convert(converter = StringListConverter::class)
+    @Convert(converter = JobCategoryListConverter::class)
     var positions: List<JobCategory>? = null,
     @Column(name = "slogan")
     var slogan: String? = null,
@@ -53,19 +53,64 @@ class ApplicantEntity(
     @Column(name = "portfolio_key")
     var portfolioKey: String? = null,
     @Column(name = "links", length = 10500)
-    @Convert(converter = StringListConverter::class)
+    @Convert(converter = LinkListConverter::class)
     var links: List<Link>? = null,
 )
 
+// @Converter(autoApply = false)
+// class StringListConverter<E> : AttributeConverter<List<E>?, String?> {
+//    private val objectMapper = jacksonObjectMapper()
+//
+//    override fun convertToDatabaseColumn(list: List<E>?): String? {
+//        return list?.let { objectMapper.writeValueAsString(it) }
+//    }
+//
+//    override fun convertToEntityAttribute(str: String?): List<E>? {
+//        return str?.let { objectMapper.readValue(it, object : TypeReference<List<E>> () {}) }
+//    }
+// }
+
 @Converter(autoApply = false)
-class StringListConverter<E> : AttributeConverter<List<E>?, String?> {
+class JobCategoryListConverter : AttributeConverter<List<JobCategory>?, String?> {
     private val objectMapper = jacksonObjectMapper()
 
-    override fun convertToDatabaseColumn(list: List<E>?): String? {
-        return list?.let { objectMapper.writeValueAsString(it) }
+    override fun convertToDatabaseColumn(attribute: List<JobCategory>?): String? {
+        return attribute?.let { objectMapper.writeValueAsString(it) }
     }
 
-    override fun convertToEntityAttribute(str: String?): List<E>? {
-        return str?.let { objectMapper.readValue(it, object : TypeReference<List<E>> () {}) }
+    override fun convertToEntityAttribute(str: String?): List<JobCategory>? {
+        return str?.let {
+            objectMapper.readValue(it, object : TypeReference<List<JobCategory>>() {})
+        }
+    }
+}
+
+@Converter(autoApply = false)
+class StringListConverter : AttributeConverter<List<String>?, String?> {
+    private val objectMapper = jacksonObjectMapper()
+
+    override fun convertToDatabaseColumn(attribute: List<String>?): String? {
+        return attribute?.let { objectMapper.writeValueAsString(it) }
+    }
+
+    override fun convertToEntityAttribute(str: String?): List<String>? {
+        return str?.let {
+            objectMapper.readValue(it, object : TypeReference<List<String>>() {})
+        }
+    }
+}
+
+@Converter(autoApply = false)
+class LinkListConverter : AttributeConverter<List<Link>?, String?> {
+    private val objectMapper = jacksonObjectMapper()
+
+    override fun convertToDatabaseColumn(attribute: List<Link>?): String? {
+        return attribute?.let { objectMapper.writeValueAsString(it) }
+    }
+
+    override fun convertToEntityAttribute(str: String?): List<Link>? {
+        return str?.let {
+            objectMapper.readValue(it, object : TypeReference<List<Link>>() {})
+        }
     }
 }

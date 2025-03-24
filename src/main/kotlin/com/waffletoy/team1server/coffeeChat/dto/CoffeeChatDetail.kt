@@ -57,7 +57,7 @@ data class CoffeeChatCompany(
     // 내용
     val content: String,
     // 지원자 정보
-    val applicant: ApplicantTmp,
+    val applicant: ApplicantInfo,
 ) : CoffeeChatDetail() {
     companion object {
         fun fromEntity(
@@ -72,7 +72,7 @@ data class CoffeeChatCompany(
             coffeeChatStatus = entity.coffeeChatStatus,
             changed = entity.changed,
             content = entity.content,
-            applicant = entity.applicant.let { ApplicantTmp.fromEntity(it) },
+            applicant = entity.applicant.let { ApplicantInfo.fromEntity(it) },
         )
     }
 }
