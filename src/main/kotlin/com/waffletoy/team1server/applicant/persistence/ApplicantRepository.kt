@@ -4,5 +4,5 @@ import com.waffletoy.team1server.auth.dto.User
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ApplicantRepository : JpaRepository<ApplicantEntity, String> {
-    fun findByUserId(user: User): ApplicantEntity
+    fun findByUserId(userId: String): ApplicantEntity
 }

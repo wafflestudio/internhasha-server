@@ -8,6 +8,7 @@ import com.waffletoy.team1server.auth.dto.User
 import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -24,5 +25,14 @@ class ApplicantController(
 
         // ApplicantInfoResponse DTO로 재포장 해 반환
         return ResponseEntity.ok(ApplicantResponse.fromEntity(applicantEntity))
+    }
+
+    @PutMapping("/me")
+    fun putApplicant(
+        @Parameter(hidden = true) @AuthUser user: User,
+    ): ResponseEntity.BodyBuilder {
+        TODO("ApplicantRequest DTO 추가")
+        TODO("applicantService.putApplicant(request) 추가")
+        return ResponseEntity.ok()
     }
 }
