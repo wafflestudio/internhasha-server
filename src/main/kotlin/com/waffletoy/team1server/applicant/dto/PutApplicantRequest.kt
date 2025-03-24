@@ -1,12 +1,12 @@
 package com.waffletoy.team1server.applicant.dto
 
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
+import jakarta.validation.constraints.*
 
 data class PutApplicantRequest(
-    @field:NotBlank(message = "enrollYear is required")
-    @field:Size(min = 1000, max = 9999, message = "enrollYear must be 4 digits integer")
+    @field:NotNull(message = "enrollYear is required")
+    @field:Min(value = 1000, message = "enrollYear must be a valid 4-digit integer")
+    @field:Max(value = 9999, message = "enrollYear must be a valid 4-digit integer")
     val enrollYear: Int,
     @field:NotBlank(message = "department is required")
     val department: String,
