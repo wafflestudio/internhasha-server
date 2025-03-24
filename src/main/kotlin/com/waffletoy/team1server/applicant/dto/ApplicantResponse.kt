@@ -5,6 +5,7 @@ import com.waffletoy.team1server.auth.UserRole
 import java.time.LocalDateTime
 
 data class ApplicantResponse(
+    val id: String,
     val name: String,
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?,
@@ -25,6 +26,7 @@ data class ApplicantResponse(
         fun fromEntity(
             entity: ApplicantEntity,
         ) = ApplicantResponse(
+            id = entity.user.id,
             name = entity.user.name,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
