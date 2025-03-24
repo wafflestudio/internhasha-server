@@ -1,6 +1,6 @@
-package com.waffletoy.team1server.post.dto
+package com.waffletoy.team1server.company.dto
 
-import com.waffletoy.team1server.post.persistence.CompanyEntity
+import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
 class Company(

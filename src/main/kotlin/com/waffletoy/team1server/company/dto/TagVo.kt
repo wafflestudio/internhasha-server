@@ -1,4 +1,4 @@
-package com.waffletoy.team1server.post.dto
+package com.waffletoy.team1server.company.dto
 
 import jakarta.persistence.Embeddable
 

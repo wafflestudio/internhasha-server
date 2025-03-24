@@ -36,14 +36,16 @@ class PostController(
         // User 토큰이 들어올 수도, 아닐 수도 있음
         @Parameter(hidden = true) @AuthUserOrNull user: User?,
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) @Min(0) investmentMax: Int?,
-        @RequestParam(required = false) @Min(0) investmentMin: Int?,
-        @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
-        @RequestParam(required = false) series: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
     ): ResponseEntity<PostWithPage> {
-        val posts = postService.getPosts(user, roles, investmentMax, investmentMin, status, series, page ?: 0, order ?: 0)
+        val posts =
+            postService.getPosts(
+                user = user,
+                roles,
+                page = page ?: 0,
+                order = order ?: 0,
+            )
 
         // 총 페이지
         val totalPages = posts.totalPages
@@ -106,34 +108,6 @@ class PostController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/company")
-    fun createCompany(
-        @Parameter(hidden = true) @AuthUser user: User,
-        @Valid @RequestBody request: CreateCompanyRequest,
-    ): ResponseEntity<Company> {
-        val company = postService.createCompany(user, request)
-        return ResponseEntity.ok(company)
-    }
-
-    @PutMapping("/company/{company_id}")
-    fun updateCompany(
-        @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable("company_id") companyId: String,
-        @Valid @RequestBody request: UpdateCompanyRequest,
-    ): ResponseEntity<Company> {
-        val company = postService.updateCompany(user, request, companyId)
-        return ResponseEntity.ok(company)
-    }
-
-//    @DeleteMapping("/company/{company_id}")
-//    fun deleteCompany(
-//        @Parameter(hidden = true) @AuthUser user: User,
-//        @PathVariable("company_id") companyId: String,
-//    ): ResponseEntity<Void> {
-//        postService.deleteCompany(user, companyId)
-//        return ResponseEntity.ok().build()
-//    }
-
     @PostMapping("/position")
     fun createPosition(
         @Parameter(hidden = true) @AuthUser user: User,
@@ -162,26 +136,20 @@ class PostController(
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/company/me")
-    fun getCompanyByCompany(
-        @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<List<Company>> {
-        val companies = postService.getCompanyByCompany(user)
-        return ResponseEntity.ok(companies)
-    }
-
     @GetMapping("/position/me")
     fun getPostByCompany(
         @Parameter(hidden = true) @AuthUser user: User,
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) @Min(0) investmentMax: Int?,
-        @RequestParam(required = false) @Min(0) investmentMin: Int?,
-        @RequestParam(required = false) @Min(0) @Max(2) status: Int?,
-        @RequestParam(required = false) series: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
     ): ResponseEntity<PostWithPage> {
-        val posts = postService.getPostByCompany(user, roles, investmentMax, investmentMin, status, series, page ?: 0, order ?: 0)
+        val posts =
+            postService.getPostByCompany(
+                user = user,
+                positions = roles,
+                page = page ?: 0,
+                order = order ?: 0,
+            )
 
         // 총 페이지
         val totalPages = posts.totalPages
