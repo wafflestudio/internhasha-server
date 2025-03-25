@@ -49,8 +49,14 @@ class ApplicantService(
         user: User,
         request: PutApplicantRequest,
     ): ApplicantResponse {
-        val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
+        // user가 Applicant 맞는지 확인
+        if (user.userRole != UserRole.APPLICANT) {
+            throw ApplicantUserForbiddenException(
+                details = mapOf("userId" to user.id, "userRole" to user.userRole),
+            )
+        }
 
+        val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
         if (userEntity == null) {
             throw UserNotFoundException()
         }
