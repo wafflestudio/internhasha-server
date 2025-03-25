@@ -3,6 +3,7 @@ package com.waffletoy.team1server.applicant.service
 import com.waffletoy.team1server.applicant.ApplicantNotFoundException
 import com.waffletoy.team1server.applicant.ApplicantPortfolioForbidden
 import com.waffletoy.team1server.applicant.ApplicantUserForbiddenException
+import com.waffletoy.team1server.applicant.dto.ApplicantResponse
 import com.waffletoy.team1server.applicant.dto.JobCategory
 import com.waffletoy.team1server.applicant.dto.PutApplicantRequest
 import com.waffletoy.team1server.applicant.persistence.ApplicantEntity
@@ -47,7 +48,7 @@ class ApplicantService(
     fun putApplicant(
         user: User,
         request: PutApplicantRequest,
-    ): ApplicantEntity {
+    ): ApplicantResponse {
         val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
 
         if (userEntity == null) {
@@ -60,7 +61,7 @@ class ApplicantService(
 
         val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
 
-        val updatedApplicant = applicantEntity?.apply {
+        var updatedApplicant = applicantEntity?.apply {
             updatedAt = LocalDateTime.now()
             enrollYear = request.enrollYear
             dept = request.department
@@ -86,7 +87,8 @@ class ApplicantService(
             links = request.links,
         )
 
+        updatedApplicant = applicantRepository.saveAndFlush(updatedApplicant)
 
-        return applicantRepository.saveAndFlush(updatedApplicant)
+        return ApplicantResponse.fromEntity(updatedApplicant)
     }
 }

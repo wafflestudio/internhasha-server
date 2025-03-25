@@ -35,7 +35,7 @@ class ApplicantController(
         @Parameter(hidden = true) @AuthUser user: User,
         @Valid @RequestBody request: PutApplicantRequest,
     ): ResponseEntity<ApplicantResponse> {
-        val newApplicantEntity: ApplicantEntity = applicantService.putApplicant(user, request)
-        return ResponseEntity.ok(ApplicantResponse.fromEntity(newApplicantEntity))
+        val applicantResponse: ApplicantResponse = applicantService.putApplicant(user, request)
+        return ResponseEntity.ok(applicantResponse)
     }
 }
