@@ -61,31 +61,32 @@ class ApplicantService(
 
         val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
 
-        var updatedApplicant = applicantEntity?.apply {
-            updatedAt = LocalDateTime.now()
-            enrollYear = request.enrollYear
-            dept = request.department
-            positions = request.positions
-            slogan = request.slogan
-            explanation = request.explanation
-            stacks = request.stacks
-            profileImageKey = request.imageKey
-            cvKey = request.cvKey
-            portfolioKey = request.portfolioKey
-            links = request.links
-        } ?: ApplicantEntity(
-            user = userEntity,
-            enrollYear = request.enrollYear,
-            dept = request.department,
-            positions = request.positions,
-            slogan = request.slogan,
-            explanation = request.explanation,
-            stacks = request.stacks,
-            profileImageKey = request.imageKey,
-            cvKey = request.cvKey,
-            portfolioKey = request.portfolioKey,
-            links = request.links,
-        )
+        var updatedApplicant =
+            applicantEntity?.apply {
+                updatedAt = LocalDateTime.now()
+                enrollYear = request.enrollYear
+                dept = request.department
+                positions = request.positions
+                slogan = request.slogan
+                explanation = request.explanation
+                stacks = request.stacks
+                profileImageKey = request.imageKey
+                cvKey = request.cvKey
+                portfolioKey = request.portfolioKey
+                links = request.links
+            } ?: ApplicantEntity(
+                user = userEntity,
+                enrollYear = request.enrollYear,
+                dept = request.department,
+                positions = request.positions,
+                slogan = request.slogan,
+                explanation = request.explanation,
+                stacks = request.stacks,
+                profileImageKey = request.imageKey,
+                cvKey = request.cvKey,
+                portfolioKey = request.portfolioKey,
+                links = request.links,
+            )
 
         updatedApplicant = applicantRepository.saveAndFlush(updatedApplicant)
 
