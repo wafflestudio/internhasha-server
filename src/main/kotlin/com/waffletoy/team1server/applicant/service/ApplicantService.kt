@@ -3,6 +3,7 @@ package com.waffletoy.team1server.applicant.service
 import com.waffletoy.team1server.applicant.ApplicantNotFoundException
 import com.waffletoy.team1server.applicant.ApplicantPortfolioForbidden
 import com.waffletoy.team1server.applicant.ApplicantUserForbiddenException
+import com.waffletoy.team1server.applicant.dto.ApplicantResponse
 import com.waffletoy.team1server.applicant.dto.JobCategory
 import com.waffletoy.team1server.applicant.dto.PutApplicantRequest
 import com.waffletoy.team1server.applicant.persistence.ApplicantEntity
@@ -15,6 +16,7 @@ import com.waffletoy.team1server.auth.persistence.UserRepository
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class ApplicantService(
@@ -46,9 +48,15 @@ class ApplicantService(
     fun putApplicant(
         user: User,
         request: PutApplicantRequest,
-    ): ApplicantEntity {
-        val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
+    ): ApplicantResponse {
+        // user가 Applicant 맞는지 확인
+        if (user.userRole != UserRole.APPLICANT) {
+            throw ApplicantUserForbiddenException(
+                details = mapOf("userId" to user.id, "userRole" to user.userRole),
+            )
+        }
 
+        val userEntity: UserEntity? = userRepository.findByIdOrNull(user.id)
         if (userEntity == null) {
             throw UserNotFoundException()
         }
@@ -57,8 +65,22 @@ class ApplicantService(
             throw ApplicantPortfolioForbidden()
         }
 
-        val newApplicant =
-            ApplicantEntity(
+        val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
+
+        var updatedApplicant =
+            applicantEntity?.apply {
+                updatedAt = LocalDateTime.now()
+                enrollYear = request.enrollYear
+                dept = request.department
+                positions = request.positions
+                slogan = request.slogan
+                explanation = request.explanation
+                stacks = request.stacks
+                profileImageKey = request.imageKey
+                cvKey = request.cvKey
+                portfolioKey = request.portfolioKey
+                links = request.links
+            } ?: ApplicantEntity(
                 user = userEntity,
                 enrollYear = request.enrollYear,
                 dept = request.department,
@@ -72,6 +94,8 @@ class ApplicantService(
                 links = request.links,
             )
 
-        return applicantRepository.saveAndFlush(newApplicant)
+        updatedApplicant = applicantRepository.saveAndFlush(updatedApplicant)
+
+        return ApplicantResponse.fromEntity(updatedApplicant)
     }
 }
