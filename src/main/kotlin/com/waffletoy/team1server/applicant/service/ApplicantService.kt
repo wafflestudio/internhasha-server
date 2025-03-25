@@ -15,6 +15,7 @@ import com.waffletoy.team1server.auth.persistence.UserRepository
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class ApplicantService(
@@ -57,21 +58,35 @@ class ApplicantService(
             throw ApplicantPortfolioForbidden()
         }
 
-        val newApplicant =
-            ApplicantEntity(
-                user = userEntity,
-                enrollYear = request.enrollYear,
-                dept = request.department,
-                positions = request.positions,
-                slogan = request.slogan,
-                explanation = request.explanation,
-                stacks = request.stacks,
-                profileImageKey = request.imageKey,
-                cvKey = request.cvKey,
-                portfolioKey = request.portfolioKey,
-                links = request.links,
-            )
+        val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
 
-        return applicantRepository.saveAndFlush(newApplicant)
+        val updatedApplicant = applicantEntity?.apply {
+            updatedAt = LocalDateTime.now()
+            enrollYear = request.enrollYear
+            dept = request.department
+            positions = request.positions
+            slogan = request.slogan
+            explanation = request.explanation
+            stacks = request.stacks
+            profileImageKey = request.imageKey
+            cvKey = request.cvKey
+            portfolioKey = request.portfolioKey
+            links = request.links
+        } ?: ApplicantEntity(
+            user = userEntity,
+            enrollYear = request.enrollYear,
+            dept = request.department,
+            positions = request.positions,
+            slogan = request.slogan,
+            explanation = request.explanation,
+            stacks = request.stacks,
+            profileImageKey = request.imageKey,
+            cvKey = request.cvKey,
+            portfolioKey = request.portfolioKey,
+            links = request.links,
+        )
+
+
+        return applicantRepository.saveAndFlush(updatedApplicant)
     }
 }
