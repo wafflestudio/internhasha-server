@@ -51,7 +51,7 @@ class PositionSpecification {
         ): Predicate? {
             return company?.let {
                 val positionJoin = root.join<PositionEntity, CompanyEntity>("company")
-                val companyJoin = positionJoin.join<CompanyEntity, UserEntity>("company")
+                val companyJoin = positionJoin.join<CompanyEntity, UserEntity>("user")
 
                 criteriaBuilder.equal(companyJoin.get<Long>("id"), it.id)
             }

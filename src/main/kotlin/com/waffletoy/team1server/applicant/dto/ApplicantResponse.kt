@@ -5,6 +5,7 @@ import com.waffletoy.team1server.auth.UserRole
 import java.time.LocalDateTime
 
 data class ApplicantResponse(
+    val id: String,
     val name: String,
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?,
@@ -12,8 +13,7 @@ data class ApplicantResponse(
     val email: String,
     val enrollYear: Int? = null,
     val department: String? = null,
-    // JobCategory로 E 바꿀 것
-    val positions: List<String>? = null,
+    val positions: List<JobCategory>? = null,
     val slogan: String? = null,
     val explanation: String? = null,
     val stacks: List<String>? = null,
@@ -26,6 +26,7 @@ data class ApplicantResponse(
         fun fromEntity(
             entity: ApplicantEntity,
         ) = ApplicantResponse(
+            id = entity.user.id,
             name = entity.user.name,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
