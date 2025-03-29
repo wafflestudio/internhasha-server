@@ -35,8 +35,8 @@ class CompanyEntity(
     open var detail: String,
     @Column(name = "PROFILE_IMAGE_KEY", nullable = true)
     open var profileImageKey: String,
-    @Column(name = "COMPANY_INFO_PDF_LINK", length = 2048, nullable = true)
-    open var companyInfoPDFLink: String? = null,
+    @Column(name = "COMPANY_INFO_PDF_KEY", length = 2048, nullable = true)
+    open var companyInfoPDFKey: String? = null,
     @Column(name = "LANDING_PAGE_LINK", length = 2048, nullable = true)
     open var landingPageLink: String?,
     @Column(name = "VC_NAME", nullable = true)

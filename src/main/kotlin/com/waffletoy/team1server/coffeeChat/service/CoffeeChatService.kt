@@ -405,4 +405,11 @@ class CoffeeChatService(
     fun deleteCoffeeChatByUser(userEntity: UserEntity) {
         coffeeChatRepository.deleteAllByApplicantId(userEntity.id)
     }
+
+    // 특정 공고에 대해 커피챗 개수 가져오기(외부 사용 가능)
+    fun getCoffeeChatCount(positionId: String): Long =
+        coffeeChatRepository.countByPositionId(positionId)
+            ?: throw PostNotFoundException(
+                details = mapOf("positionId" to positionId),
+            )
 }

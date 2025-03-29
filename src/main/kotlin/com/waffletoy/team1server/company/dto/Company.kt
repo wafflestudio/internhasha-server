@@ -15,7 +15,7 @@ class Company(
     val detail: String,
     val profileImageKey: String,
     // 선택 정보
-    val companyInfoPDFLink: String?,
+    val companyInfoPDFKey: String?,
     val landingPageLink: String?,
     val links: List<Link>,
     val tags: List<Tag>,
@@ -37,7 +37,7 @@ class Company(
                 detail = entity.detail,
                 profileImageKey = entity.profileImageKey,
                 // Optional field
-                companyInfoPDFLink = entity.companyInfoPDFLink,
+                companyInfoPDFKey = entity.companyInfoPDFKey,
                 landingPageLink = entity.landingPageLink,
                 vcName = entity.vcName,
                 vcRec = entity.vcRec,

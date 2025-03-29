@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.dto
 
+import com.waffletoy.team1server.post.Category
 import java.time.LocalDateTime
 
 data class PostBrief(
@@ -13,7 +14,7 @@ data class PostBrief(
     val isActive: Boolean,
     val domain: String,
     val detail100: String,
-    val positionType: String,
+    val positionType: Category,
     val isBookmarked: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,

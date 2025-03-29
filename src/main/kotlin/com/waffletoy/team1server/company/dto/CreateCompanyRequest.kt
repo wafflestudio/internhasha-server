@@ -20,8 +20,8 @@ data class CreateCompanyRequest(
     val detail: String,
     @field:NotBlank(message = "Profile image key is required.")
     val profileImageKey: String,
-    @field:URL(message = "Company PDF link must be a valid URL.")
-    val companyInfoPDFLink: String? = null,
+    @field:URL(message = "Company PDF key must be a valid URL.")
+    val companyInfoPDFKey: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
     val landingPageLink: String? = null,
     @field:NotBlank(message = "VC name is required.")
