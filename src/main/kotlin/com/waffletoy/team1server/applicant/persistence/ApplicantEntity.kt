@@ -37,8 +37,8 @@ class ApplicantEntity(
     @Column(name = "dept")
     var dept: String? = null,
     @Column(name = "positions")
-    @Convert(converter = JobCategoryListConverter::class)
-    var positions: List<JobCategory>? = null,
+    @Convert(converter = StringListConverter::class)
+    var positions: List<String>? = null,
     @Column(name = "slogan")
     var slogan: String? = null,
     @Column(name = "explanation", columnDefinition = "TEXT")
@@ -57,33 +57,6 @@ class ApplicantEntity(
     var links: List<Link>? = null,
 )
 
-// @Converter(autoApply = false)
-// class StringListConverter<E> : AttributeConverter<List<E>?, String?> {
-//    private val objectMapper = jacksonObjectMapper()
-//
-//    override fun convertToDatabaseColumn(list: List<E>?): String? {
-//        return list?.let { objectMapper.writeValueAsString(it) }
-//    }
-//
-//    override fun convertToEntityAttribute(str: String?): List<E>? {
-//        return str?.let { objectMapper.readValue(it, object : TypeReference<List<E>> () {}) }
-//    }
-// }
-
-@Converter(autoApply = false)
-class JobCategoryListConverter : AttributeConverter<List<JobCategory>?, String?> {
-    private val objectMapper = jacksonObjectMapper()
-
-    override fun convertToDatabaseColumn(attribute: List<JobCategory>?): String? {
-        return attribute?.let { objectMapper.writeValueAsString(it) }
-    }
-
-    override fun convertToEntityAttribute(str: String?): List<JobCategory>? {
-        return str?.let {
-            objectMapper.readValue(it, object : TypeReference<List<JobCategory>>() {})
-        }
-    }
-}
 
 @Converter(autoApply = false)
 class StringListConverter : AttributeConverter<List<String>?, String?> {
