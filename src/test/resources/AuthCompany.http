@@ -1,0 +1,84 @@
+### 회사 회원가입
+POST http://localhost:8080/api/auth/user
+Content-Type: application/json
+
+{
+  "authType": "COMPANY",
+  "info": {
+    "type": "COMPANY",
+    "name": "COMPANY001",
+    "mail": "COMPANY001@gmail.com",
+    "password": "COMPANY001"
+  }
+}
+> {access_token}
+
+### 회사 로그인
+POST http://localhost:8080/api/auth/user/session
+Content-Type: application/json
+
+{
+  "mail": "COMPANY001@gmail.com",
+  "password": "COMPANY001"
+}
+> {access_token}
+
+### 로그아웃
+DELETE http://localhost:8080/api/auth/user/session
+Authorization: Bearer {access_token}
+
+#### 토큰 갱신
+#GET http://localhost:8080/api/auth/token
+#Cookie: refresh_token=<YOUR_REFRESH_TOKEN>
+#
+#### 메일 중복 확인
+#POST http://localhost:8080/api/auth/mail
+#Content-Type: application/json
+#{
+#  "mail": ""
+#}
+#
+#### 스누메일 인증 코드 발송
+#POST http://localhost:8080/api/auth/mail/verify
+#Content-Type: application/json
+#
+#{
+#  "snuMail": ""
+#}
+#
+#### 스누메일 인증 코드 확인
+#POST http://localhost:8080/api/auth/mail/validate
+#Content-Type: application/json
+#
+#{
+#  "snuMail": "",
+#  "code": ""
+#}
+#
+#### 비밀번호 변경
+#PATCH http://localhost:8080/api/auth/password
+#Authorization: Bearer <YOUR_ACCESS_TOKEN>
+#Content-Type: application/json
+#
+#{
+#  "oldPassword": "",
+#  "newPassword": ""
+#}
+#
+#### 비밀번호 초기화 (임시 비밀번호 발급)
+#POST http://localhost:8080/api/auth/password
+#Content-Type: application/json
+#
+#{
+#  "mail": ""
+#}
+#
+#### 사용자 정보 조회
+#GET http://localhost:8080/api/auth/me
+#Authorization: Bearer <YOUR_ACCESS_TOKEN>
+#
+#
+#
+#### 회원 탈퇴
+#DELETE http://localhost:8080/api/auth/user
+#Authorization: Bearer <YOUR_ACCESS_TOKEN>
