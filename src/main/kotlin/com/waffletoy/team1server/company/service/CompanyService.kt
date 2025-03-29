@@ -4,6 +4,7 @@ import com.waffletoy.team1server.auth.UserNotFoundException
 import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.service.AuthService
+import com.waffletoy.team1server.company.CompanyNotFoundException
 import com.waffletoy.team1server.company.dto.Company
 import com.waffletoy.team1server.company.dto.CreateCompanyRequest
 import com.waffletoy.team1server.company.dto.LinkVo
@@ -104,6 +105,11 @@ class CompanyService(
             authService.getUserEntityByUserId(user.id)
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
-        return companyRepository.findAllByUser(userEntity).firstOrNull()?: throw
+        val companyEntity =
+            companyRepository.findAllByUser(userEntity).firstOrNull()?: throw CompanyNotFoundException(
+            details = mapOf("userEntity" to userEntity),
+        )
+
+        return Company.fromEntity(companyEntity)
     }
 }
