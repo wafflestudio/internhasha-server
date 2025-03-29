@@ -56,7 +56,6 @@ class ApplicantEntity(
     var links: List<Link>? = null,
 )
 
-
 @Converter(autoApply = false)
 class StringListConverter : AttributeConverter<List<String>?, String?> {
     private val objectMapper = jacksonObjectMapper()
