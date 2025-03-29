@@ -12,4 +12,3 @@ class ApplicantNotFoundException(details: Map<String, Any>? = null) : ApiExcepti
     errorCode = ErrorCode.APPLICANT_NOT_FOUND,
     details = details,
 )
-

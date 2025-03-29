@@ -59,7 +59,6 @@ class ApplicantService(
             throw UserNotFoundException()
         }
 
-
         val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
 
         var updatedApplicant =
