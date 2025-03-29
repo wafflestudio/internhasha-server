@@ -2,7 +2,6 @@ package com.waffletoy.team1server.applicant.persistence
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.waffletoy.team1server.applicant.dto.JobCategory
 import com.waffletoy.team1server.applicant.dto.Link
 import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.persistence.UserEntity
