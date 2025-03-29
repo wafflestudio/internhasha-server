@@ -49,6 +49,9 @@ enum class ErrorCode(
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
     POST_POSITION_NOT_FOUND("POST_009", "Position not found", HttpStatus.NOT_FOUND),
 
+    // COMPANY-related errors
+    COMPANY_NOT_FOUND("COMPANY_001", "The requested company was not found.", HttpStatus.NOT_FOUND),
+
     // S3
     S3_URL_GENERATION_FAILED("S3_001", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     S3_SDK_FAILED("S3_002", "AWS SKD Client error", HttpStatus.INTERNAL_SERVER_ERROR),
