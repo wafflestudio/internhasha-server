@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
@@ -20,6 +21,7 @@ class Company(
     val links: List<Link>,
     val tags: List<Tag>,
     val vcName: String?,
+    @JsonProperty("vcRecommendation")
     val vcRec: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,

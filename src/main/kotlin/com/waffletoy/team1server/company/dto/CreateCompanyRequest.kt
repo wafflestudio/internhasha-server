@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -23,11 +24,12 @@ data class CreateCompanyRequest(
     @field:URL(message = "Company PDF key must be a valid URL.")
     val companyInfoPDFKey: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
-    val landingPageLink: String,
+    val landingPageLink: String? = null,
     @field:NotBlank(message = "VC name is required.")
     val vcName: String? = null,
     @field:NotBlank(message = "VC recommendation is required.")
-    val vcRecommendation: String? = null,
+    @JsonProperty("vcRecommendation")
+    val vcRec: String? = null,
     @field:Valid
     val links: List<Link> = emptyList(),
     @field:Valid
