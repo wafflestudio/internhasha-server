@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.company.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
@@ -9,7 +10,7 @@ class Company(
     // 필수 정보
     val companyName: String,
     val companyEstablishedYear: Int,
-    val domain: String,
+    val domain: Domain,
     val headcount: Int,
     val location: String,
     val slogan: String,
@@ -31,13 +32,13 @@ class Company(
             return Company(
                 id = entity.id,
                 companyName = entity.user.name,
-                companyEstablishedYear = entity.companyEstablishedYear,
-                domain = entity.domain,
-                headcount = entity.headcount,
-                location = entity.location,
-                slogan = entity.slogan,
-                detail = entity.detail,
-                profileImageKey = entity.profileImageKey,
+                companyEstablishedYear = entity.companyEstablishedYear ?: throw Exception("Oops, something went wrong!"),
+                domain = entity.domain ?: throw Exception("Oops, something went wrong!"),
+                headcount = entity.headcount ?: throw Exception("Oops, something went wrong!"),
+                location = entity.location ?: throw Exception("Oops, something went wrong!"),
+                slogan = entity.slogan ?: throw Exception("Oops, something went wrong!"),
+                detail = entity.detail ?: throw Exception("Oops, something went wrong!"),
+                profileImageKey = entity.profileImageKey ?: throw Exception("Oops, something went wrong!"),
                 // Optional field
                 companyInfoPDFKey = entity.companyInfoPDFKey,
                 landingPageLink = entity.landingPageLink,

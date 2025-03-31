@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.company.persistence
 
 import com.waffletoy.team1server.auth.persistence.UserEntity
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.dto.LinkVo
 import com.waffletoy.team1server.company.dto.TagVo
 import com.waffletoy.team1server.post.persistence.PositionEntity
@@ -21,28 +22,29 @@ class CompanyEntity(
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USER", nullable = false)
     open val user: UserEntity,
-    @Column(name = "ESTABLISHED_YEAR", nullable = false)
-    open var companyEstablishedYear: Int,
-    @Column(name = "DOMAIN", nullable = false)
-    open var domain: String,
-    @Column(name = "HEADCOUNT", nullable = false)
-    open var headcount: Int,
-    @Column(name = "LOCATION", nullable = false)
-    open var location: String,
-    @Column(name = "SLOGAN", nullable = false)
-    open var slogan: String,
-    @Column(name = "DETAIL", columnDefinition = "TEXT", nullable = false)
-    open var detail: String,
-    @Column(name = "PROFILE_IMAGE_KEY", nullable = true)
-    open var profileImageKey: String,
-    @Column(name = "COMPANY_INFO_PDF_KEY", length = 2048, nullable = true)
+    @Column(name = "ESTABLISHED_YEAR")
+    open var companyEstablishedYear: Int? = null,
+    @Column(name = "DOMAIN")
+    @Enumerated(EnumType.STRING)
+    open var domain: Domain? = null,
+    @Column(name = "HEADCOUNT")
+    open var headcount: Int? = null,
+    @Column(name = "LOCATION")
+    open var location: String? = null,
+    @Column(name = "SLOGAN")
+    open var slogan: String? = null,
+    @Column(name = "DETAIL", columnDefinition = "TEXT")
+    open var detail: String? = null,
+    @Column(name = "PROFILE_IMAGE_KEY")
+    open var profileImageKey: String? = null,
+    @Column(name = "COMPANY_INFO_PDF_KEY", length = 2048)
     open var companyInfoPDFKey: String? = null,
-    @Column(name = "LANDING_PAGE_LINK", length = 2048, nullable = true)
-    open var landingPageLink: String?,
-    @Column(name = "VC_NAME", nullable = true)
-    open var vcName: String?,
-    @Column(name = "VC_REC", nullable = true)
-    open var vcRec: String?,
+    @Column(name = "LANDING_PAGE_LINK", length = 2048)
+    open var landingPageLink: String? = null,
+    @Column(name = "VC_NAME")
+    open var vcName: String? = null,
+    @Column(name = "VC_REC")
+    open var vcRec: String? = null,
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),

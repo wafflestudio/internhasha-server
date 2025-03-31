@@ -52,7 +52,7 @@ data class SignUpRequest(
         val name: String,
         @field:NotBlank(message = "email is required")
         @field:Email(message = "email is required")
-        val mail: String,
+        val email: String,
         @field:NotBlank(message = "password is required")
         @field:Size(
             min = 8,
@@ -60,5 +60,7 @@ data class SignUpRequest(
             message = "Password must be between 8 and 64 characters.",
         )
         val password: String,
+        val vcName: String? = null,
+        val vcRecommendation: String? = null,
     ) : Info()
 }
