@@ -5,6 +5,7 @@ import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.persistence.*
 import com.waffletoy.team1server.auth.service.AuthService
+import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
 import com.waffletoy.team1server.company.dto.TagVo
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.company.persistence.CompanyRepository
@@ -29,6 +30,7 @@ class PostService(
     private val bookmarkRepository: BookmarkRepository,
     private val positionRepository: PositionRepository,
     @Lazy private val authService: AuthService,
+    @Lazy private val coffeeChatService: CoffeeChatService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
@@ -48,10 +50,12 @@ class PostService(
     ): Post {
         val positionEntity = getPositionEntityOrThrow(postId)
         val bookmarkIds = getBookmarkIds(user)
+        val coffeeChatCount = coffeeChatService.getCoffeeChatCount(positionEntity.id)
         return Post.fromEntity(
             entity = positionEntity,
             isBookmarked = positionEntity.id in bookmarkIds,
             isLoggedIn = user != null,
+            coffeeChatCount = coffeeChatCount,
         )
     }
 
@@ -90,6 +94,7 @@ class PostService(
                 entity = position,
                 isBookmarked = position.id in bookmarkIds,
                 isLoggedIn = isLoggedIn,
+                coffeeChatCount = coffeeChatService.getCoffeeChatCount(position.id),
             )
         }
     }
@@ -175,6 +180,7 @@ class PostService(
                 entity = position,
                 isBookmarked = true,
                 isLoggedIn = true,
+                coffeeChatCount = coffeeChatService.getCoffeeChatCount(position.id),
             )
         }
     }
@@ -217,10 +223,10 @@ class PostService(
                     headcount = (10..500).random(),
                     location = "Location $index",
                     profileImageKey = "profile-image-key-$index",
-                    companyInfoPDFLink = "https://www.company$index/info.pdf",
+                    companyInfoPDFKey = "https://www.company$index/info.pdf",
                     landingPageLink = "https://www.company$index",
                     vcName = "Mr. Hoon",
-                    vcRec = "아주 좋아요",
+                    vcRecommendation = "아주 좋아요",
                     tags = tags,
                 )
 
@@ -324,7 +330,12 @@ class PostService(
         val bookmarkIds = getBookmarkIds(user)
 
         return positionPage.map { position ->
-            Post.fromEntity(position, isBookmarked = position.id in bookmarkIds, isLoggedIn = true)
+            Post.fromEntity(
+                entity = position,
+                isBookmarked = position.id in bookmarkIds,
+                isLoggedIn = true,
+                coffeeChatCount = coffeeChatService.getCoffeeChatCount(position.id),
+            )
         }
     }
 

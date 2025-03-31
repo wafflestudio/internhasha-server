@@ -10,6 +10,7 @@ import com.waffletoy.team1server.coffeeChat.dto.*
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatRepository
 import com.waffletoy.team1server.post.PostNotFoundException
+import com.waffletoy.team1server.post.PostPositionNotFoundException
 import com.waffletoy.team1server.post.persistence.PositionEntity
 import com.waffletoy.team1server.post.service.PostService
 import org.springframework.beans.factory.annotation.Value
@@ -409,7 +410,7 @@ class CoffeeChatService(
     // 특정 공고에 대해 커피챗 개수 가져오기(외부 사용 가능)
     fun getCoffeeChatCount(positionId: String): Long =
         coffeeChatRepository.countByPositionId(positionId)
-            ?: throw PostNotFoundException(
+            ?: throw PostPositionNotFoundException(
                 details = mapOf("positionId" to positionId),
             )
 }

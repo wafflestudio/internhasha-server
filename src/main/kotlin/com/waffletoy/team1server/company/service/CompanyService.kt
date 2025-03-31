@@ -65,7 +65,7 @@ class CompanyService(
                     companyInfoPDFKey = request.companyInfoPDFKey,
                     landingPageLink = request.landingPageLink,
                     vcName = request.vcName,
-                    vcRec = request.vcRec,
+                    vcRecommendation = request.vcRecommendation,
                     links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
                     tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
                 )
@@ -89,7 +89,7 @@ class CompanyService(
         entity.companyInfoPDFKey = request.companyInfoPDFKey
         entity.landingPageLink = request.landingPageLink
         entity.vcName = request.vcName
-        entity.vcRec = request.vcRec
+        entity.vcRecommendation = request.vcRecommendation
         entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
         entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
         return entity
@@ -106,9 +106,9 @@ class CompanyService(
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
         val companyEntity =
-            companyRepository.findAllByUser(userEntity).firstOrNull()?: throw CompanyNotFoundException(
-            details = mapOf("userEntity" to userEntity),
-        )
+            companyRepository.findAllByUser(userEntity).firstOrNull() ?: throw CompanyNotFoundException(
+                details = mapOf("userEntity" to userEntity),
+            )
 
         return Company.fromEntity(companyEntity)
     }

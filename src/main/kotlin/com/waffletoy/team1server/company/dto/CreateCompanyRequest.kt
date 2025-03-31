@@ -27,7 +27,7 @@ data class CreateCompanyRequest(
     @field:NotBlank(message = "VC name is required.")
     val vcName: String? = null,
     @field:NotBlank(message = "VC recommendation is required.")
-    val vcRec: String? = null,
+    val vcRecommendation: String? = null,
     @field:Valid
     val links: List<Link> = emptyList(),
     @field:Valid

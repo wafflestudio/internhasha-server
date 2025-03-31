@@ -41,8 +41,8 @@ class CompanyEntity(
     open var landingPageLink: String?,
     @Column(name = "VC_NAME", nullable = true)
     open var vcName: String?,
-    @Column(name = "VC_REC", nullable = true)
-    open var vcRec: String?,
+    @Column(name = "VC_RECOMMENDATION", nullable = true)
+    open var vcRecommendation: String?,
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     open var createdAt: LocalDateTime = LocalDateTime.now(),

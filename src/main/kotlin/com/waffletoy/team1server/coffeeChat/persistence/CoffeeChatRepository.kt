@@ -50,6 +50,6 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         @Param("status") status: CoffeeChatStatus,
     ): Long
 
-    //특정 공고에 대해 신청된 커피수(상태 무관) 개수 가져오기
-    fun countByPositionId(positionId: String): Long
+    // 특정 공고에 대해 신청된 커피수(상태 무관) 개수 가져오기
+    fun countByPositionId(positionId: String): Long?
 }

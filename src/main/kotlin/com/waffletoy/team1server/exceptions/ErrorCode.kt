@@ -51,6 +51,7 @@ enum class ErrorCode(
 
     // COMPANY-related errors
     COMPANY_NOT_FOUND("COMPANY_001", "The requested company was not found.", HttpStatus.NOT_FOUND),
+    COMPANY_CREATION_FAILED("COMPANY_002", "Failed to create the company.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // S3
     S3_URL_GENERATION_FAILED("S3_001", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
