@@ -52,7 +52,7 @@ data class SignUpRequest(
         val name: String,
         @field:NotBlank(message = "email is required")
         @field:Email(message = "email is required")
-        val mail: String,
+        val email: String,
         @field:NotBlank(message = "password is required")
         @field:Size(
             min = 8,

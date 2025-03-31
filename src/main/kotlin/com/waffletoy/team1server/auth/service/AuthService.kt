@@ -96,9 +96,9 @@ class AuthService(
         }
 
         // 이메일(아이디) 중복 확인
-        if (userRepository.existsByEmail(info.mail)) {
+        if (userRepository.existsByEmail(info.email)) {
             throw UserDuplicateLocalIdException(
-                details = mapOf("mail" to info.mail),
+                details = mapOf("email" to info.email),
             )
         }
 
@@ -106,7 +106,7 @@ class AuthService(
         val user =
             UserEntity(
                 name = info.name,
-                email = info.mail,
+                email = info.email,
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.COMPANY,
             ).let { userRepository.save(it) }
@@ -287,7 +287,7 @@ class AuthService(
         val user =
             userRepository.findByEmail(mailRequest.mail)
                 ?: throw UserNotFoundException(
-                    details = mapOf("mail" to mailRequest.mail),
+                    details = mapOf("email" to mailRequest.mail),
                 )
 
         val newPassword = PasswordGenerator.generateRandomPassword()
