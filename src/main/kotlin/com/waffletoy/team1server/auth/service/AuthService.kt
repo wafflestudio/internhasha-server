@@ -8,6 +8,7 @@ import com.waffletoy.team1server.auth.persistence.UserRepository
 import com.waffletoy.team1server.auth.utils.PasswordGenerator
 import com.waffletoy.team1server.auth.utils.UserTokenUtil
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
+import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.email.EmailSendFailureException
 import com.waffletoy.team1server.email.EmailType
 import com.waffletoy.team1server.email.service.EmailService
@@ -110,6 +111,16 @@ class AuthService(
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.COMPANY,
             ).let { userRepository.save(it) }
+
+        if (info.vcName != null || info.vcRecommendation != null) {
+            val newCompany = CompanyEntity(user = user)
+
+            if (info.vcName != null) newCompany.vcName = info.vcName
+            if (info.vcRecommendation != null) newCompany.vcRec = info.vcRecommendation
+
+            user.company = newCompany
+            userRepository.save(user)
+        }
 
         return User.fromEntity(user)
     }
