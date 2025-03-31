@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.post.dto
 
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.dto.Tag
 import com.waffletoy.team1server.post.Category
 import java.time.LocalDateTime
@@ -13,7 +14,7 @@ data class PostBrief(
     val employmentEndDate: LocalDateTime?,
     val positionTitle: String,
     val isActive: Boolean,
-    val domain: String,
+    val domain: Domain,
     val detail100: String,
     val positionType: Category,
     val isBookmarked: Boolean,

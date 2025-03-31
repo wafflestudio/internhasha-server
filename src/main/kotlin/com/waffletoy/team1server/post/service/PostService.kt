@@ -6,6 +6,7 @@ import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.persistence.*
 import com.waffletoy.team1server.auth.service.AuthService
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.dto.TagVo
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.company.persistence.CompanyRepository
@@ -219,14 +220,14 @@ class PostService(
                     detail = "Explanation of dummy Company $index",
                     companyEstablishedYear = 2000 + index,
                     slogan = "Slogan of dummy$index",
-                    domain = "www.company$index.com",
+                    domain = Domain.HEALTHTECH,
                     headcount = (10..500).random(),
                     location = "Location $index",
                     profileImageKey = "profile-image-key-$index",
                     companyInfoPDFKey = "https://www.company$index/info.pdf",
                     landingPageLink = "https://www.company$index",
                     vcName = "Mr. Hoon",
-                    vcRecommendation = "아주 좋아요",
+                    vcRec = "아주 좋아요",
                     tags = tags,
                 )
 
