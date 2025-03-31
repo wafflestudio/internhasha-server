@@ -20,7 +20,7 @@ class Company(
     val links: List<Link>,
     val tags: List<Tag>,
     val vcName: String?,
-    val vcRecommendation: String?,
+    val vcRec: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
@@ -40,7 +40,7 @@ class Company(
                 companyInfoPDFKey = entity.companyInfoPDFKey,
                 landingPageLink = entity.landingPageLink,
                 vcName = entity.vcName,
-                vcRecommendation = entity.vcRecommendation,
+                vcRec = entity.vcRec,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 links = entity.links.map { Link.fromVo(it) },

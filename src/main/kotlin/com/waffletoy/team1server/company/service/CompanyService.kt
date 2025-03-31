@@ -65,7 +65,7 @@ class CompanyService(
                     companyInfoPDFKey = request.companyInfoPDFKey,
                     landingPageLink = request.landingPageLink,
                     vcName = request.vcName,
-                    vcRecommendation = request.vcRecommendation,
+                    vcRec = request.vcRecommendation,
                     links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
                     tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
                 )
@@ -89,7 +89,7 @@ class CompanyService(
         entity.companyInfoPDFKey = request.companyInfoPDFKey
         entity.landingPageLink = request.landingPageLink
         entity.vcName = request.vcName
-        entity.vcRecommendation = request.vcRecommendation
+        entity.vcRec = request.vcRecommendation
         entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
         entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
         return entity
