@@ -1,6 +1,5 @@
 package com.waffletoy.team1server.company.dto
 
-
 import com.waffletoy.team1server.company.Domain
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
