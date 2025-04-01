@@ -4,12 +4,13 @@ import com.waffletoy.team1server.company.Domain
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import org.hibernate.validator.constraints.URL
 
 data class CreateCompanyRequest(
     @field:Min(value = 1800, message = "Established year must be after 1800.")
     val companyEstablishedYear: Int,
-    @field:NotBlank(message = "Domain is required.")
+    @field:NotNull(message = "Domain is required.")
     val domain: Domain,
     @field:Min(value = 1, message = "Headcount must be at least 1.")
     val headcount: Int,
