@@ -11,6 +11,7 @@ import com.waffletoy.team1server.company.dto.TagVo
 import com.waffletoy.team1server.company.dto.UpdateCompanyRequest
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.company.persistence.CompanyRepository
+import com.waffletoy.team1server.exceptions.InvalidRequestException
 import com.waffletoy.team1server.exceptions.NotAuthorizedException
 import com.waffletoy.team1server.post.PostCompanyExistsException
 import org.springframework.stereotype.Service
@@ -50,7 +51,7 @@ class CompanyService(
             val updatedEntity = updateCompanyEntityWithRequest(existingCompany, request)
             Company.fromEntity(updatedEntity)
         } else {
-            // Create new company
+            // Create new company -> AuthAPI를 통해 Company 계정을 생성하는 과정에서 Company
             val newEntity =
                 CompanyEntity(
                     user = userEntity,
@@ -63,8 +64,6 @@ class CompanyService(
                     profileImageKey = request.profileImageKey,
                     companyInfoPDFLink = request.companyInfoPDFLink,
                     landingPageLink = request.landingPageLink,
-                    vcName = request.vcName,
-                    vcRec = request.vcRec,
                     links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
                     tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
                 )
@@ -87,8 +86,6 @@ class CompanyService(
         entity.profileImageKey = request.profileImageKey
         entity.companyInfoPDFLink = request.companyInfoPDFLink
         entity.landingPageLink = request.landingPageLink
-        entity.vcName = request.vcName
-        entity.vcRec = request.vcRec
         entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
         entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
         return entity
