@@ -4,6 +4,7 @@ import com.waffletoy.team1server.auth.UserNotFoundException
 import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.service.AuthService
+import com.waffletoy.team1server.company.CompanyNotFoundException
 import com.waffletoy.team1server.company.dto.Company
 import com.waffletoy.team1server.company.dto.CreateCompanyRequest
 import com.waffletoy.team1server.company.dto.LinkVo
@@ -50,7 +51,7 @@ class CompanyService(
             val updatedEntity = updateCompanyEntityWithRequest(existingCompany, request)
             Company.fromEntity(updatedEntity)
         } else {
-            // Create new company
+            // Create new company -> AuthAPI를 통해 Company 계정을 생성하는 과정에서 Company
             val newEntity =
                 CompanyEntity(
                     user = userEntity,
@@ -61,10 +62,8 @@ class CompanyService(
                     slogan = request.slogan,
                     detail = request.detail,
                     profileImageKey = request.profileImageKey,
-                    companyInfoPDFLink = request.companyInfoPDFLink,
+                    companyInfoPDFKey = request.companyInfoPDFKey,
                     landingPageLink = request.landingPageLink,
-                    vcName = request.vcName,
-                    vcRec = request.vcRec,
                     links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
                     tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
                 )
@@ -85,17 +84,15 @@ class CompanyService(
         entity.slogan = request.slogan
         entity.detail = request.detail
         entity.profileImageKey = request.profileImageKey
-        entity.companyInfoPDFLink = request.companyInfoPDFLink
+        entity.companyInfoPDFKey = request.companyInfoPDFKey
         entity.landingPageLink = request.landingPageLink
-        entity.vcName = request.vcName
-        entity.vcRec = request.vcRec
         entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
         entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
         return entity
     }
 
     @Transactional
-    fun getCompanyByCompany(user: User): List<Company> {
+    fun getCompany(user: User): Company {
         if (user.userRole != UserRole.COMPANY) {
             throw NotAuthorizedException()
         }
@@ -104,6 +101,11 @@ class CompanyService(
             authService.getUserEntityByUserId(user.id)
                 ?: throw UserNotFoundException(mapOf("userId" to user.id))
 
-        return companyRepository.findAllByUser(userEntity).map { Company.fromEntity(it) }
+        val companyEntity =
+            companyRepository.findAllByUser(userEntity).firstOrNull() ?: throw CompanyNotFoundException(
+                details = mapOf("userEntity" to userEntity),
+            )
+
+        return Company.fromEntity(companyEntity)
     }
 }

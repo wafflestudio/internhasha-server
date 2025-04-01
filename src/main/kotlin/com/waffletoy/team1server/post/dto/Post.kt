@@ -13,12 +13,15 @@ data class Post(
     val position: Position,
     // 북마크 여부
     val isBookmarked: Boolean = false,
+    // 해당 공고에 신청된 커피챗 개수
+    val coffeeChatCount: Long,
 ) {
     companion object {
         fun fromEntity(
             entity: PositionEntity,
             isBookmarked: Boolean = false,
             isLoggedIn: Boolean,
+            coffeeChatCount: Long,
         ): Post =
             Post(
                 id = entity.id,
@@ -31,6 +34,7 @@ data class Post(
                 company = Company.fromEntity(entity.company),
                 position = Position.fromEntity(entity),
                 isBookmarked = isBookmarked,
+                coffeeChatCount = coffeeChatCount,
             )
     }
 }

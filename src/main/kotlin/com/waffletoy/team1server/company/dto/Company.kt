@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
@@ -7,19 +9,20 @@ class Company(
     val id: String,
     // 필수 정보
     val companyName: String,
-    val companyEstablishedYear: Int,
-    val domain: String,
-    val headcount: Int,
-    val location: String,
-    val slogan: String,
-    val detail: String,
-    val profileImageKey: String,
+    val companyEstablishedYear: Int?,
+    val domain: Domain?,
+    val headcount: Int?,
+    val location: String?,
+    val slogan: String?,
+    val detail: String?,
+    val profileImageKey: String?,
     // 선택 정보
-    val companyInfoPDFLink: String?,
+    val companyInfoPDFKey: String?,
     val landingPageLink: String?,
     val links: List<Link>,
     val tags: List<Tag>,
     val vcName: String?,
+    @JsonProperty("vcRecommendation")
     val vcRec: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -29,15 +32,15 @@ class Company(
             return Company(
                 id = entity.id,
                 companyName = entity.user.name,
-                companyEstablishedYear = entity.companyEstablishedYear ?: throw Exception("Oops, something went wrong!"),
-                domain = entity.domain ?: throw Exception("Oops, something went wrong!"),
-                headcount = entity.headcount ?: throw Exception("Oops, something went wrong!"),
-                location = entity.location ?: throw Exception("Oops, something went wrong!"),
-                slogan = entity.slogan ?: throw Exception("Oops, something went wrong!"),
-                detail = entity.detail ?: throw Exception("Oops, something went wrong!"),
-                profileImageKey = entity.profileImageKey ?: throw Exception("Oops, something went wrong!"),
+                companyEstablishedYear = entity.companyEstablishedYear,
+                domain = entity.domain,
+                headcount = entity.headcount,
+                location = entity.location,
+                slogan = entity.slogan,
+                detail = entity.detail,
+                profileImageKey = entity.profileImageKey,
                 // Optional field
-                companyInfoPDFLink = entity.companyInfoPDFLink,
+                companyInfoPDFKey = entity.companyInfoPDFKey,
                 landingPageLink = entity.landingPageLink,
                 vcName = entity.vcName,
                 vcRec = entity.vcRec,
