@@ -11,7 +11,6 @@ import com.waffletoy.team1server.company.dto.TagVo
 import com.waffletoy.team1server.company.dto.UpdateCompanyRequest
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.company.persistence.CompanyRepository
-import com.waffletoy.team1server.exceptions.InvalidRequestException
 import com.waffletoy.team1server.exceptions.NotAuthorizedException
 import com.waffletoy.team1server.post.PostCompanyExistsException
 import org.springframework.stereotype.Service
