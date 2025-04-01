@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
@@ -38,7 +40,7 @@ class Company(
                 detail = entity.detail,
                 profileImageKey = entity.profileImageKey,
                 // Optional field
-                companyInfoPDFLink = entity.companyInfoPDFLink,
+                companyInfoPDFKey = entity.companyInfoPDFKey,
                 landingPageLink = entity.landingPageLink,
                 vcName = entity.vcName,
                 vcRec = entity.vcRec,
