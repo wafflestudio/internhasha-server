@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.coffeeChat.dto
 
+import com.waffletoy.team1server.applicant.dto.ApplicantResponse
 import com.waffletoy.team1server.coffeeChat.CoffeeChatStatus
 import com.waffletoy.team1server.coffeeChat.persistence.CoffeeChatEntity
 import java.time.LocalDateTime
@@ -57,7 +58,7 @@ data class CoffeeChatCompany(
     // 내용
     val content: String,
     // 지원자 정보
-    val applicant: ApplicantInfo,
+    val applicant: ApplicantResponse,
 ) : CoffeeChatDetail() {
     companion object {
         fun fromEntity(
@@ -72,7 +73,7 @@ data class CoffeeChatCompany(
             coffeeChatStatus = entity.coffeeChatStatus,
             changed = entity.changed,
             content = entity.content,
-            applicant = entity.applicant.let { ApplicantInfo.fromEntity(it) },
+            applicant = entity.applicant.applicant!!.let { ApplicantResponse.fromEntity(it) },
         )
     }
 }
