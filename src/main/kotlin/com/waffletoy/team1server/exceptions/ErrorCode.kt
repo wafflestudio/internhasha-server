@@ -36,7 +36,6 @@ enum class ErrorCode(
     // Applicant-related errors
     APPLICANT_USER_FORBIDDEN("APPLICANT_001", "You do not have permission to perform this action.", HttpStatus.FORBIDDEN),
     APPLICANT_NOT_FOUND("APPLICANT_002", "Applicant not found.", HttpStatus.NOT_FOUND),
-    APPLICANT_PORTFOLIO_FORBIDDEN("APPLICANT_003", "Applicant except designer is not allowed to have portfolioKey", HttpStatus.FORBIDDEN),
 
     // Post-related errors
     POST_NOT_FOUND("POST_001", "The requested post was not found.", HttpStatus.NOT_FOUND),
@@ -48,6 +47,10 @@ enum class ErrorCode(
     POST_COMPANY_EXISTS("POST_007", "Company email already exists", HttpStatus.CONFLICT),
     POST_COMPANY_NOT_FOUND("POST_008", "Company not found.", HttpStatus.NOT_FOUND),
     POST_POSITION_NOT_FOUND("POST_009", "Position not found", HttpStatus.NOT_FOUND),
+
+    // COMPANY-related errors
+    COMPANY_NOT_FOUND("COMPANY_001", "The requested company was not found.", HttpStatus.NOT_FOUND),
+    COMPANY_CREATION_FAILED("COMPANY_002", "Failed to create the company.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // S3
     S3_URL_GENERATION_FAILED("S3_001", "S3 URL generation failed.", HttpStatus.INTERNAL_SERVER_ERROR),

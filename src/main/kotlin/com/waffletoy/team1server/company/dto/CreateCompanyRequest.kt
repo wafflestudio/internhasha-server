@@ -1,5 +1,7 @@
 package com.waffletoy.team1server.company.dto
 
+
+import com.waffletoy.team1server.company.Domain
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -9,7 +11,7 @@ data class CreateCompanyRequest(
     @field:Min(value = 1800, message = "Established year must be after 1800.")
     val companyEstablishedYear: Int,
     @field:NotBlank(message = "Domain is required.")
-    val domain: String,
+    val domain: Domain,
     @field:Min(value = 1, message = "Headcount must be at least 1.")
     val headcount: Int,
     @field:NotBlank(message = "Location is required.")
@@ -20,8 +22,8 @@ data class CreateCompanyRequest(
     val detail: String,
     @field:NotBlank(message = "Profile image key is required.")
     val profileImageKey: String,
-    @field:URL(message = "Company PDF link must be a valid URL.")
-    val companyInfoPDFLink: String? = null,
+    @field:URL(message = "Company PDF key must be a valid URL.")
+    val companyInfoPDFKey: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
     val landingPageLink: String? = null,
     @field:Valid

@@ -1,5 +1,8 @@
 package com.waffletoy.team1server.post.dto
 
+import com.waffletoy.team1server.company.Domain
+import com.waffletoy.team1server.company.dto.Tag
+import com.waffletoy.team1server.post.Category
 import java.time.LocalDateTime
 
 data class PostBrief(
@@ -11,12 +14,13 @@ data class PostBrief(
     val employmentEndDate: LocalDateTime?,
     val positionTitle: String,
     val isActive: Boolean,
-    val domain: String?,
+    val domain: Domain?,
     val detail100: String,
-    val positionType: String,
+    val positionType: Category,
     val isBookmarked: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
+    val tags: List<Tag>,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
@@ -35,6 +39,7 @@ data class PostBrief(
                 domain = post.company.domain,
                 detail100 = post.position.detail.take(100),
                 isBookmarked = post.isBookmarked,
+                tags = post.company.tags,
             )
     }
 }

@@ -36,8 +36,8 @@ class CompanyController(
     @GetMapping("/me")
     fun getCompanyByCompany(
         @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<List<Company>> {
-        val companies = companyService.getCompanyByCompany(user)
+    ): ResponseEntity<Company> {
+        val companies = companyService.getCompany(user)
         return ResponseEntity.ok(companies)
     }
 }

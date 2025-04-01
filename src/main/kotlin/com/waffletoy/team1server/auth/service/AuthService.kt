@@ -8,6 +8,7 @@ import com.waffletoy.team1server.auth.persistence.UserRepository
 import com.waffletoy.team1server.auth.utils.PasswordGenerator
 import com.waffletoy.team1server.auth.utils.UserTokenUtil
 import com.waffletoy.team1server.coffeeChat.service.CoffeeChatService
+import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.email.EmailSendFailureException
 import com.waffletoy.team1server.email.EmailType
 import com.waffletoy.team1server.email.service.EmailService
@@ -96,9 +97,9 @@ class AuthService(
         }
 
         // 이메일(아이디) 중복 확인
-        if (userRepository.existsByEmail(info.mail)) {
+        if (userRepository.existsByEmail(info.email)) {
             throw UserDuplicateLocalIdException(
-                details = mapOf("mail" to info.mail),
+                details = mapOf("email" to info.email),
             )
         }
 
@@ -106,10 +107,20 @@ class AuthService(
         val user =
             UserEntity(
                 name = info.name,
-                email = info.mail,
+                email = info.email,
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.COMPANY,
             ).let { userRepository.save(it) }
+
+        if (info.vcName != null || info.vcRecommendation != null) {
+            val newCompany = CompanyEntity(user = user)
+
+            if (info.vcName != null) newCompany.vcName = info.vcName
+            if (info.vcRecommendation != null) newCompany.vcRec = info.vcRecommendation
+
+            user.company = newCompany
+            userRepository.save(user)
+        }
 
         return User.fromEntity(user)
     }
@@ -287,7 +298,7 @@ class AuthService(
         val user =
             userRepository.findByEmail(mailRequest.mail)
                 ?: throw UserNotFoundException(
-                    details = mapOf("mail" to mailRequest.mail),
+                    details = mapOf("email" to mailRequest.mail),
                 )
 
         val newPassword = PasswordGenerator.generateRandomPassword()
