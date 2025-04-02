@@ -73,7 +73,16 @@ data class CoffeeChatCompany(
             coffeeChatStatus = entity.coffeeChatStatus,
             changed = entity.changed,
             content = entity.content,
-            applicant = entity.applicant.applicant!!.let { ApplicantResponse.fromEntity(it) },
+            applicant =
+                entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
+                    ?: ApplicantResponse(
+                        id = entity.applicant.id,
+                        name = entity.applicant.name,
+                        createdAt = entity.applicant.createdAt,
+                        updatedAt = entity.applicant.updatedAt,
+                        userRole = entity.applicant.userRole,
+                        email = entity.applicant.email,
+                    ),
         )
     }
 }
