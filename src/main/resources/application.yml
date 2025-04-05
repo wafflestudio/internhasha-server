@@ -22,7 +22,7 @@ spring:
             host: ${SPRING_REDIS_HOST:localhost}
             port: ${SPRING_REDIS_PORT:6379}
 custom:
-    domain-name: www.survey-josha.site
+    domain-name: https://www.survey-josha.site
     domain-url: api.survey-josha.site
     is-secure: ${IS_SECURE:false}
     SECRET: ${SECRET:Helloworld}
