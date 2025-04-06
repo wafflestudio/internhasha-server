@@ -424,6 +424,23 @@ class PostService(
         bookmarkRepository.deleteAllByUser(userEntity)
     }
 
+    //공고 즉시 마감
+    fun closePosition(
+        user: User,
+        positionId: String,
+    ) {
+        val positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
+
+        //회사 계정이 아닌 경우 에러
+        if (positionEntity.company.user.id != user.id) {
+            throw NotAuthorizedException()
+        }
+
+        positionEntity.isActive = false
+        positionEntity.employmentEndDate = LocalDateTime.now()
+        positionRepository.save(positionEntity)
+    }
+
     @Value("\${custom.SECRET}")
     private lateinit var devSecret: String
 }

@@ -162,6 +162,16 @@ class PostController(
             ),
         )
     }
+
+    //공고 즉시 마감
+    @PatchMapping("position/{position_id}/close")
+    fun closePosition(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @PathVariable("position_id") positionId: String,
+    ): ResponseEntity<Void> {
+        postService.closePosition(user, positionId)
+        return ResponseEntity.noContent().build()
+    }
 }
 
 data class Paginator(
