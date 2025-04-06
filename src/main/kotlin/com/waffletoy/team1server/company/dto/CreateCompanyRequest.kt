@@ -1,5 +1,6 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.waffletoy.team1server.company.Domain
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import org.hibernate.validator.constraints.URL
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class CreateCompanyRequest(
     @field:Min(value = 1800, message = "Established year must be after 1800.")
     val companyEstablishedYear: Int,
@@ -22,7 +24,7 @@ data class CreateCompanyRequest(
     val detail: String,
     @field:NotBlank(message = "Profile image key is required.")
     val profileImageKey: String,
-    @field:URL(message = "Company PDF key must be a valid URL.")
+    @field:NotBlank(message = "Company PDF key is required.")
     val companyInfoPDFKey: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
     val landingPageLink: String? = null,

@@ -1,10 +1,12 @@
 package com.waffletoy.team1server.company.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import java.time.LocalDateTime
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class Company(
     val id: String,
     // 필수 정보

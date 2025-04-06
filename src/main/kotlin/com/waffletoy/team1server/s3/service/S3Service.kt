@@ -89,7 +89,7 @@ class S3Service(
             val expiration = calculateExpiration(expirationMinutes)
             generateCloudfrontSignedUrl(s3DownloadReq.s3Key, expiration)
         } else {
-            "$domainName/${s3DownloadReq.s3Key}"
+            "https://$domainName/${s3DownloadReq.s3Key}"
         }
     }
 

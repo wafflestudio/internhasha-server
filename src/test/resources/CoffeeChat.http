@@ -95,11 +95,20 @@ Authorization: Bearer {{access_token_applicant2}}
 GET http://localhost:8080/api/coffeeChat
 Authorization: Bearer {{access_token_company2}}
 
-### 10. 해당 공고에 대기 중 커피챗 있는지 확인
+> {%
+    client.global.set("coffeeChat_id3", response.body.coffeeChatList[0].id);
+%}
+
+### 11. 회사 - 커피챗 상세 페이지 불러오기
+GET http://localhost:8080/api/coffeeChat/{{coffeeChat_id3}}
+Authorization: Bearer {{access_token_company2}}
+
+
+### 12. 해당 공고에 대기 중 커피챗 있는지 확인
 GET http://localhost:8080/api/coffeeChat/{{post_id2}}/status
 Authorization: Bearer {{access_token_applicant2}}
 
-### 11. 지원자 - 커피챗 취소 하기 - 다시 커피챗 작성 시 6번 시도
+### 13. 지원자 - 커피챗 취소 하기 - 다시 커피챗 작성 시 6번 시도
 PATCH http://localhost:8080/api/coffeeChat
 Authorization: Bearer {{access_token_applicant2}}
 Content-Type: application/json
@@ -109,11 +118,11 @@ Content-Type: application/json
   "coffeeChatList": ["{{coffeeChat_id2}}"]
 }
 
-### 13. 회사 - 배지 표시 커피챗 개수 확인
+### 14. 회사 - 배지 표시 커피챗 개수 확인
 GET http://localhost:8080/api/coffeeChat/count
 Authorization: Bearer {{access_token_company2}}
 
-### 12. 회사 - 커피챗 승인
+### 15. 회사 - 커피챗 승인
 PATCH http://localhost:8080/api/coffeeChat
 Authorization: Bearer {{access_token_company2}}
 Content-Type: application/json
@@ -123,6 +132,6 @@ Content-Type: application/json
   "coffeeChatList": ["{{coffeeChat_id2}}"]
 }
 
-### 13. 지원자 - 배지 표시 커피챗 개수 확인
+### 16. 지원자 - 배지 표시 커피챗 개수 확인
 GET http://localhost:8080/api/coffeeChat/count
 Authorization: Bearer {{access_token_applicant2}}

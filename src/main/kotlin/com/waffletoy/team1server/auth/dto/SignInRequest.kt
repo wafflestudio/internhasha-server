@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size
 data class SignInRequest(
     @field:NotBlank(message = "mail is required")
     @field:Email(message = "Invalid email format.")
-    val mail: String,
+    val email: String,
     @field:NotBlank(message = "password is required")
     @field:NotBlank(message = "password is required")
     @field:Size(

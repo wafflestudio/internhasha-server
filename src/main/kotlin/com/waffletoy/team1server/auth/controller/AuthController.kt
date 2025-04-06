@@ -78,7 +78,7 @@ class AuthController(
     // 메일 중복 확인
     @PostMapping("/mail")
     fun checkDuplicateMail(
-        @Valid @RequestBody request: MailRequest,
+        @Valid @RequestBody request: EmailRequest,
         response: HttpServletResponse,
     ): ResponseEntity<Void> {
         authService.checkDuplicateMail(request)
@@ -115,7 +115,7 @@ class AuthController(
     // 임시 비밀번호를 스누메일로 전송
     @PostMapping("/password")
     fun resetPassword(
-        @Valid @RequestBody request: MailRequest,
+        @Valid @RequestBody request: EmailRequest,
     ): ResponseEntity<Void> {
         authService.resetPassword(request)
         return ResponseEntity.ok().build()
@@ -143,10 +143,10 @@ data class SnuMailRequest(
     val snuMail: String,
 )
 
-data class MailRequest(
+data class EmailRequest(
     @field:NotBlank(message = "email is required")
     @field:Email(message = "email is required")
-    val mail: String,
+    val email: String,
 )
 
 data class ChangePasswordRequest(

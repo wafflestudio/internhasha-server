@@ -57,7 +57,7 @@ class AuthService(
 
     private fun localApplicantSignUp(info: SignUpRequest.LocalApplicantInfo): User {
         // 이미 존재하는 계정 확인
-        val existingUser = userRepository.findByEmail(info.mail)
+        val existingUser = userRepository.findByEmail(info.email)
         existingUser?.let {
             if (it.userRole != UserRole.APPLICANT) {
                 throw NotAuthorizedException(
@@ -65,14 +65,14 @@ class AuthService(
                 )
             }
             throw UserDuplicateSnuMailException(
-                details = mapOf("snuMail" to info.mail),
+                details = mapOf("snuMail" to info.email),
             )
         }
 
         // 이메일(아이디) 중복 확인
-        if (userRepository.existsByEmail(info.mail)) {
+        if (userRepository.existsByEmail(info.email)) {
             throw UserDuplicateLocalIdException(
-                details = mapOf("email" to info.mail),
+                details = mapOf("email" to info.email),
             )
         }
 
@@ -80,7 +80,7 @@ class AuthService(
         val user =
             UserEntity(
                 name = info.name,
-                email = info.mail,
+                email = info.email,
                 passwordHash = BCrypt.hashpw(info.password, BCrypt.gensalt()),
                 userRole = UserRole.APPLICANT,
             ).let { userRepository.save(it) }
@@ -129,7 +129,7 @@ class AuthService(
     @Transactional
     fun signIn(request: SignInRequest): Pair<User, UserTokenUtil.Tokens> {
         val userEntity =
-            userRepository.findByEmail(request.mail)
+            userRepository.findByEmail(request.email)
                 ?: throw InvalidCredentialsException()
 
         if (!BCrypt.checkpw(request.password, userEntity.passwordHash)) {
@@ -198,10 +198,10 @@ class AuthService(
 
     // 메일(아이디) 중복 확인
     @Transactional(readOnly = true)
-    fun checkDuplicateMail(request: MailRequest) {
-        if (userRepository.existsByEmail(request.mail)) {
+    fun checkDuplicateMail(request: EmailRequest) {
+        if (userRepository.existsByEmail(request.email)) {
             throw UserDuplicateSnuMailException(
-                details = mapOf("mail" to request.mail),
+                details = mapOf("email" to request.email),
             )
         }
     }
@@ -293,12 +293,12 @@ class AuthService(
     }
 
     @Transactional
-    fun resetPassword(mailRequest: MailRequest) {
+    fun resetPassword(emailRequest: EmailRequest) {
         // 메일을 기준으로 유저 찾기
         val user =
-            userRepository.findByEmail(mailRequest.mail)
+            userRepository.findByEmail(emailRequest.email)
                 ?: throw UserNotFoundException(
-                    details = mapOf("email" to mailRequest.mail),
+                    details = mapOf("email" to emailRequest.email),
                 )
 
         val newPassword = PasswordGenerator.generateRandomPassword()

@@ -34,7 +34,7 @@ data class SignUpRequest(
             regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$",
             message = "snuMail must be a valid SNU email address.",
         )
-        val mail: String,
+        val email: String,
         @field:NotBlank(message = "password is required")
         @field:Size(
             min = 8,

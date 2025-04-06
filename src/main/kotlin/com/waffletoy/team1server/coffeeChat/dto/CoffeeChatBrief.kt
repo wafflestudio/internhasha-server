@@ -8,8 +8,8 @@ data class CoffeeChatBrief(
     val id: String,
     // 공고 ID
     val postId: String,
-    // 공고 제목
-    val title: String,
+    // 공고 포지션
+    val positionType: String,
     // 회사 정보
     val company: CoffeeChatUserInfo,
     // 커피챗 생성, 수정 시간
@@ -27,7 +27,7 @@ data class CoffeeChatBrief(
         ) = CoffeeChatBrief(
             id = entity.id,
             postId = entity.position.id,
-            title = entity.position.positionTitle,
+            positionType = entity.position.positionType.displayName(),
             company = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
