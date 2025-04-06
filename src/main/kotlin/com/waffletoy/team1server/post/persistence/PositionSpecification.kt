@@ -86,7 +86,7 @@ class PositionSpecification {
         private fun buildIsActivePredicate(
             root: Root<PositionEntity>,
             criteriaBuilder: CriteriaBuilder,
-            isActive: Boolean?
+            isActive: Boolean?,
         ): Predicate? {
             return isActive?.let {
                 criteriaBuilder.equal(root.get<Boolean>("isActive"), it)
@@ -96,29 +96,28 @@ class PositionSpecification {
         private fun buildDomainPredicate(
             root: Root<PositionEntity>,
             criteriaBuilder: CriteriaBuilder,
-            domains: List<String>?
+            domains: List<String>?,
         ): Predicate? {
             domains?.let {
                 val domainEnums =
                     domains.mapNotNull { domainStr ->
-                    try {
-                        Domain.valueOf(domainStr)
-                    } catch (e: IllegalArgumentException) {
-                        null
+                        try {
+                            Domain.valueOf(domainStr)
+                        } catch (e: IllegalArgumentException) {
+                            null
+                        }
                     }
-                }
                 if (domainEnums.isNotEmpty()) {
                     val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
                     return criteriaBuilder.or(
                         *domainEnums.map { domain ->
                             criteriaBuilder.equal(companyJoin.get<Domain>("domain"), domain)
-                        }.toTypedArray()
+                        }.toTypedArray(),
                     )
                 }
             }
             return null
         }
-
 
         private fun <T> sortPredicate(
             root: Root<PositionEntity>,
