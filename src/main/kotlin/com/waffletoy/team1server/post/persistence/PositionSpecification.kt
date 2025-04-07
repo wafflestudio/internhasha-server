@@ -1,6 +1,7 @@
 package com.waffletoy.team1server.post.persistence
 
 import com.waffletoy.team1server.auth.persistence.UserEntity
+import com.waffletoy.team1server.company.Domain
 import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.post.Category
 import jakarta.persistence.criteria.*
@@ -14,6 +15,8 @@ class PositionSpecification {
             order: Int,
             company: UserEntity? = null,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
+            isActive: Boolean?,
+            domains: List<String>?,
         ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
                 requireNotNull(query) { "Criteria Query should not be null" }
@@ -26,6 +29,8 @@ class PositionSpecification {
                     listOfNotNull(
                         buildCategoryPredicate(root, criteriaBuilder, positions),
                         buildCompanyPredicate(root, criteriaBuilder, company),
+                        buildIsActivePredicate(root, criteriaBuilder, isActive),
+                        buildDomainPredicate(root, criteriaBuilder, domains),
                     )
 
                 // 중복 방지
@@ -71,6 +76,42 @@ class PositionSpecification {
                     return criteriaBuilder.or(
                         *positionEnums.map { positionEnum ->
                             criteriaBuilder.equal(root.get<String>("category"), positionEnum.name)
+                        }.toTypedArray(),
+                    )
+                }
+            }
+            return null
+        }
+
+        private fun buildIsActivePredicate(
+            root: Root<PositionEntity>,
+            criteriaBuilder: CriteriaBuilder,
+            isActive: Boolean?,
+        ): Predicate? {
+            return isActive?.let {
+                criteriaBuilder.equal(root.get<Boolean>("isActive"), it)
+            }
+        }
+
+        private fun buildDomainPredicate(
+            root: Root<PositionEntity>,
+            criteriaBuilder: CriteriaBuilder,
+            domains: List<String>?,
+        ): Predicate? {
+            domains?.let {
+                val domainEnums =
+                    domains.mapNotNull { domainStr ->
+                        try {
+                            Domain.valueOf(domainStr)
+                        } catch (e: IllegalArgumentException) {
+                            null
+                        }
+                    }
+                if (domainEnums.isNotEmpty()) {
+                    val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
+                    return criteriaBuilder.or(
+                        *domainEnums.map { domain ->
+                            criteriaBuilder.equal(companyJoin.get<Domain>("domain"), domain)
                         }.toTypedArray(),
                     )
                 }

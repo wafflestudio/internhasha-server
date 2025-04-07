@@ -21,6 +21,7 @@ data class PostBrief(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val tags: List<Tag>,
+    val coffeeChatCount: Long,
 ) {
     companion object {
         fun fromPost(post: Post): PostBrief =
@@ -40,6 +41,7 @@ data class PostBrief(
                 detail100 = post.position.detail.take(100),
                 isBookmarked = post.isBookmarked,
                 tags = post.company.tags,
+                coffeeChatCount = post.coffeeChatCount,
             )
     }
 }

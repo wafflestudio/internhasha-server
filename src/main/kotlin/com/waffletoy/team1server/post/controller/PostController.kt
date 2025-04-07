@@ -36,15 +36,19 @@ class PostController(
         // User 토큰이 들어올 수도, 아닐 수도 있음
         @Parameter(hidden = true) @AuthUserOrNull user: User?,
         @RequestParam(required = false) roles: List<String>?,
+        @RequestParam(required = false) status: Boolean?,
+        @RequestParam(required = false) domains: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
     ): ResponseEntity<PostWithPage> {
         val posts =
             postService.getPosts(
                 user = user,
-                roles,
+                positions = roles,
                 page = page ?: 0,
                 order = order ?: 0,
+                isActive = status,
+                domains = domains,
             )
 
         // 총 페이지
@@ -140,6 +144,8 @@ class PostController(
     fun getPostByCompany(
         @Parameter(hidden = true) @AuthUser user: User,
         @RequestParam(required = false) roles: List<String>?,
+        @RequestParam(required = false) status: Boolean?,
+        @RequestParam(required = false) domains: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
     ): ResponseEntity<PostWithPage> {
@@ -149,6 +155,8 @@ class PostController(
                 positions = roles,
                 page = page ?: 0,
                 order = order ?: 0,
+                isActive = status,
+                domains = domains,
             )
 
         // 총 페이지
@@ -161,6 +169,16 @@ class PostController(
                 paginator = Paginator(totalPages),
             ),
         )
+    }
+
+    // 공고 즉시 마감
+    @PatchMapping("position/{position_id}/close")
+    fun closePosition(
+        @Parameter(hidden = true) @AuthUser user: User,
+        @PathVariable("position_id") positionId: String,
+    ): ResponseEntity<Void> {
+        postService.closePosition(user, positionId)
+        return ResponseEntity.noContent().build()
     }
 }
 

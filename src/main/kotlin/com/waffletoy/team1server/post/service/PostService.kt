@@ -75,11 +75,15 @@ class PostService(
         positions: List<String>?,
         page: Int = 0,
         order: Int = 0,
+        isActive: Boolean?,
+        domains: List<String>?,
     ): Page<Post> {
         val specification =
             PositionSpecification.withFilters(
                 positions = positions,
                 order = order,
+                isActive = isActive,
+                domains = domains,
             )
 
         val validPage = if (page < 0) 0 else page
@@ -308,6 +312,8 @@ class PostService(
         positions: List<String>?,
         page: Int = 0,
         order: Int = 0,
+        isActive: Boolean?,
+        domains: List<String>?,
     ): Page<Post> {
         if (user.userRole != UserRole.COMPANY) {
             throw NotAuthorizedException()
@@ -322,6 +328,8 @@ class PostService(
                 positions = positions,
                 order = order,
                 company = userEntity,
+                isActive = isActive,
+                domains = domains,
             )
 
         val validPage = if (page < 0) 0 else page
@@ -422,6 +430,23 @@ class PostService(
     @Transactional(propagation = Propagation.REQUIRED)
     fun deleteBookmarkByUser(userEntity: UserEntity) {
         bookmarkRepository.deleteAllByUser(userEntity)
+    }
+
+    // 공고 즉시 마감
+    fun closePosition(
+        user: User,
+        positionId: String,
+    ) {
+        val positionEntity = positionRepository.findByIdOrNull(positionId) ?: throw PostPositionNotFoundException(mapOf("positionId" to positionId))
+
+        // 회사 계정이 아닌 경우 에러
+        if (positionEntity.company.user.id != user.id) {
+            throw NotAuthorizedException()
+        }
+
+        positionEntity.isActive = false
+        positionEntity.employmentEndDate = LocalDateTime.now()
+        positionRepository.save(positionEntity)
     }
 
     @Value("\${custom.SECRET}")
