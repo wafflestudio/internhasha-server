@@ -269,14 +269,14 @@ class AuthService(
         userRepository.deleteUserEntityById(user.id)
         authRedisCacheService.deleteRefreshTokenByUserId(user.id)
 
-        //s3 object 삭제
+        // s3 object 삭제
         userEntity.applicant?.let { applicant ->
             applicant.cvKey?.let { s3Service.deleteS3File(it) }
             applicant.profileImageKey?.let { s3Service.deleteS3File(it) }
             applicant.portfolioKey?.let { s3Service.deleteS3File(it) }
         }
-        
-        //Applicant Entity 는 cascade 삭제
+
+        // Applicant Entity 는 cascade 삭제
     }
 
     @Transactional

@@ -9,7 +9,6 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -38,15 +37,6 @@ class S3Controller(
         val s3DownloadReq = S3DownloadReq(fileType, s3Key)
         val url = s3Service.generateDownloadUrl(user, s3DownloadReq)
         return ResponseEntity.ok(S3DownloadResp(url))
-    }
-
-    @DeleteMapping
-    fun deleteObject(
-        @Parameter(hidden = true) @AuthUser user: User,
-        @RequestParam(required = true) s3Key: String,
-    ): ResponseEntity<Void> {
-        s3Service.deleteS3File(s3Key)
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 }
 
