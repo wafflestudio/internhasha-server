@@ -100,7 +100,7 @@ Authorization: Bearer {{access_token_company2}}
 
 {
   "companyEstablishedYear": 2000,
-  "domain": "tech",
+  "domain": "FINTECH",
   "headcount": 150,
   "location": "Seoul, South Korea",
   "slogan": "Innovating the Future",
@@ -108,6 +108,7 @@ Authorization: Bearer {{access_token_company2}}
   "profileImageKey": "profile-image-key-123",
   "companyInfoPDFLink": "https://example.com/company-info.pdf",
   "landingPageLink": "https://example.com",
+  "companyInfoPDFKey": "key",
   "vcName": "Seoul Ventures",
   "vcRec": "Highly recommended by Seoul Ventures for innovation and growth potential.",
   "links": [
