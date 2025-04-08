@@ -124,7 +124,7 @@ class PostController(
     @PutMapping("/position/{position_id}")
     fun updatePosition(
         @Parameter(hidden = true) @AuthUser user: User,
-        @PathVariable("position_id") positionId: String,
+            @PathVariable("position_id") positionId: String,
         @Valid @RequestBody request: UpdatePositionRequest,
     ): ResponseEntity<Position> {
         val position = postService.updatePosition(user, positionId, request)
