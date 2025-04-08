@@ -24,14 +24,13 @@ data class CreateCompanyRequest(
     val detail: String,
     @field:NotBlank(message = "Profile image key is required.")
     val profileImageKey: String,
-    @field:NotBlank(message = "Company PDF key is required.")
     val companyInfoPDFKey: String? = null,
     @field:URL(message = "Landing page link must be a valid URL.")
     val landingPageLink: String? = null,
     @field:Valid
-    val links: List<Link> = emptyList(),
+    val links: List<Link>? = emptyList(),
     @field:Valid
-    val tags: List<Tag> = emptyList(),
+    val tags: List<Tag>? = emptyList(),
 )
 
 typealias UpdateCompanyRequest = CreateCompanyRequest

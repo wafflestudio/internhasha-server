@@ -64,8 +64,8 @@ class CompanyService(
                     profileImageKey = request.profileImageKey,
                     companyInfoPDFKey = request.companyInfoPDFKey,
                     landingPageLink = request.landingPageLink,
-                    links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList(),
-                    tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList(),
+                    links = request.links?.map { LinkVo(description = it.description, link = it.link) }?.toMutableList() ?: mutableListOf(),
+                    tags = request.tags?.map { TagVo(tag = it.tag) }?.toMutableList() ?: mutableListOf(),
                 )
 
             val saved = companyRepository.save(newEntity)
@@ -86,8 +86,8 @@ class CompanyService(
         entity.profileImageKey = request.profileImageKey
         entity.companyInfoPDFKey = request.companyInfoPDFKey
         entity.landingPageLink = request.landingPageLink
-        entity.links = request.links.map { LinkVo(description = it.description, link = it.link) }.toMutableList()
-        entity.tags = request.tags.map { TagVo(tag = it.tag) }.toMutableList()
+        entity.links = request.links?.map { LinkVo(description = it.description, link = it.link) }?.toMutableList() ?: mutableListOf()
+        entity.tags = request.tags?.map { TagVo(tag = it.tag) }?.toMutableList() ?: mutableListOf()
         return entity
     }
 
