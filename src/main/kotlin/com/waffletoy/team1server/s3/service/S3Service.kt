@@ -7,10 +7,7 @@ import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.waffletoy.team1server.auth.dto.User
-import com.waffletoy.team1server.s3.S3CloudFrontKeyFailedException
-import com.waffletoy.team1server.s3.S3FileType
-import com.waffletoy.team1server.s3.S3SDKClientFailedException
-import com.waffletoy.team1server.s3.S3UrlGenerationFailedException
+import com.waffletoy.team1server.s3.*
 import com.waffletoy.team1server.s3.controller.S3DownloadReq
 import com.waffletoy.team1server.s3.controller.S3UploadReq
 import org.springframework.beans.factory.annotation.Autowired
@@ -129,6 +126,19 @@ class S3Service(
                 }
                 else -> throw e
             }
+        }
+    }
+
+    fun deleteS3File(s3Key: String) {
+        val isPrivate = s3Key.startsWith("static/private/")
+        val bucketName = if (isPrivate) bucketPrivate else bucketPublic
+
+        try {
+            amazonS3.deleteObject(bucketName, s3Key)
+        } catch (e: AmazonS3Exception) {
+            throw S3DeleteFailedException()
+        } catch (e: SdkClientException) {
+            throw S3SDKClientFailedException()
         }
     }
 

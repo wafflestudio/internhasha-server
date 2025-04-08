@@ -8,7 +8,7 @@ Content-Type: application/json
     "type": "COMPANY",
     "name": "COMPANY001",
     "secretPassword": "{{SECRET_FOR_INTERNHASHA}}",
-    "mail": "COMPANY001@gmail.com",
+    "email": "COMPANY001@gmail.com",
     "password": "COMPANY001"
   }
 }
@@ -20,7 +20,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "COMPANY001@gmail.com",
+  "email": "COMPANY001@gmail.com",
   "password": "COMPANY001"
 }
 > {%
