@@ -10,7 +10,7 @@ Content-Type: application/json
   "info": {
     "type": "APPLICANT",
     "name": "APPLICANT001",
-    "mail": "{{test_mail}}",
+    "email": "{{test_mail}}",
     "password": "APPLICANT001"
   }
 }
@@ -22,7 +22,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "{{test_mail}}",
+  "email": "{{test_mail}}",
   "password": "APPLICANT001"
 }
 > {%
@@ -45,7 +45,7 @@ POST http://localhost:8080/api/auth/mail
 Content-Type: application/json
 
 {
-  "mail": "{{test_mail}}"
+  "email": "{{test_mail}}"
 }
 
 ### 6. 스누메일 인증 코드 발송
@@ -70,7 +70,7 @@ POST http://localhost:8080/api/auth/password
 Content-Type: application/json
 
 {
-  "mail": "{{test_mail}}"
+  "email": "{{test_mail}}"
 }
 
 

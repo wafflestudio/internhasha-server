@@ -3,7 +3,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "COMPANY002@gmail.com",
+  "email": "COMPANY002@gmail.com",
   "password": "COMPANY002"
 }
 > {%
@@ -16,7 +16,7 @@ Content-Type: application/json
 Authorization: Bearer {{access_token_company2}}
 
 > {%
-    client.global.set("company_id2", response.body[0].id);
+    client.global.set("company_id2", response.body.id);
 %}
 
 ### 3. 채용 포지션 생성하기
@@ -78,7 +78,7 @@ Content-Type: application/json
   "info": {
     "type": "APPLICANT",
     "name": "APPLICANT002",
-    "mail": "APPLICANT002@snu.ac.kr",
+    "email": "APPLICANT002@snu.ac.kr",
     "password": "APPLICANT002"
   }
 }
@@ -89,7 +89,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "APPLICANT002@snu.ac.kr",
+  "email": "APPLICANT002@snu.ac.kr",
   "password": "APPLICANT002"
 }
 > {%

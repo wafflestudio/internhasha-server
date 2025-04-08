@@ -14,6 +14,7 @@ import com.waffletoy.team1server.email.EmailType
 import com.waffletoy.team1server.email.service.EmailService
 import com.waffletoy.team1server.exceptions.*
 import com.waffletoy.team1server.post.service.PostService
+import com.waffletoy.team1server.s3.service.S3Service
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional
 class AuthService(
     private val userRepository: UserRepository,
     private val authRedisCacheService: AuthRedisCacheService,
+    private val s3Service: S3Service,
     @Lazy private val emailService: EmailService,
 //    @Lazy private val coffeeChatService: CoffeeChatService,
 //    @Lazy private val postService: PostService,
@@ -261,12 +263,20 @@ class AuthService(
         val postService = applicationContext.getBean(PostService::class.java)
         val coffeeChatService = applicationContext.getBean(CoffeeChatService::class.java)
 
-        // 외래키 제약이 걸려있는 bookmark, coffeeChat 삭제
+        // 일방향 외래키 제약이 걸려있는 bookmark, coffeeChat 삭제
         postService.deleteBookmarkByUser(userEntity)
         coffeeChatService.deleteCoffeeChatByUser(userEntity)
-
         userRepository.deleteUserEntityById(user.id)
         authRedisCacheService.deleteRefreshTokenByUserId(user.id)
+
+        // s3 object 삭제
+        userEntity.applicant?.let { applicant ->
+            applicant.cvKey?.let { s3Service.deleteS3File(it) }
+            applicant.profileImageKey?.let { s3Service.deleteS3File(it) }
+            applicant.portfolioKey?.let { s3Service.deleteS3File(it) }
+        }
+
+        // Applicant Entity 는 cascade 삭제
     }
 
     @Transactional

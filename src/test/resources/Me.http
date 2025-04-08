@@ -7,7 +7,7 @@ Content-Type: application/json
   "info": {
     "type": "APPLICANT",
     "name": "APPLICANT002",
-    "mail": "APPLICANT002@snu.ac.kr",
+    "email": "APPLICANT002@snu.ac.kr",
     "password": "APPLICANT002"
   }
 }
@@ -18,7 +18,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "APPLICANT002@snu.ac.kr",
+  "email": "APPLICANT002@snu.ac.kr",
   "password": "APPLICANT002"
 }
 > {%
@@ -74,7 +74,7 @@ Content-Type: application/json
     "type": "COMPANY",
     "name": "COMPANY002",
     "secretPassword": "{{SECRET_FOR_INTERNHASHA}}",
-    "mail": "COMPANY002@gmail.com",
+    "email": "COMPANY002@gmail.com",
     "password": "COMPANY002"
   }
 }
@@ -86,7 +86,7 @@ POST http://localhost:8080/api/auth/user/session
 Content-Type: application/json
 
 {
-  "mail": "COMPANY002@gmail.com",
+  "email": "COMPANY002@gmail.com",
   "password": "COMPANY002"
 }
 > {%
@@ -100,7 +100,7 @@ Authorization: Bearer {{access_token_company2}}
 
 {
   "companyEstablishedYear": 2000,
-  "domain": "tech",
+  "domain": "FINTECH",
   "headcount": 150,
   "location": "Seoul, South Korea",
   "slogan": "Innovating the Future",
@@ -108,6 +108,7 @@ Authorization: Bearer {{access_token_company2}}
   "profileImageKey": "profile-image-key-123",
   "companyInfoPDFLink": "https://example.com/company-info.pdf",
   "landingPageLink": "https://example.com",
+  "companyInfoPDFKey": "key",
   "vcName": "Seoul Ventures",
   "vcRec": "Highly recommended by Seoul Ventures for innovation and growth potential.",
   "links": [
