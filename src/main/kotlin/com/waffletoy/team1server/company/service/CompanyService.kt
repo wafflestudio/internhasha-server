@@ -14,6 +14,7 @@ import com.waffletoy.team1server.company.persistence.CompanyEntity
 import com.waffletoy.team1server.company.persistence.CompanyRepository
 import com.waffletoy.team1server.exceptions.NotAuthorizedException
 import com.waffletoy.team1server.post.PostCompanyExistsException
+import com.waffletoy.team1server.s3.service.S3Service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 class CompanyService(
     private val companyRepository: CompanyRepository,
     private val authService: AuthService,
+    private val s3Service: S3Service,
 ) {
     /**
      * Creates a new company associated with the given user.
@@ -47,6 +49,12 @@ class CompanyService(
         val existingCompany = companyRepository.findAllByUser(userEntity).firstOrNull()
 
         return if (existingCompany != null) {
+            // 기존 s3 object 삭제
+            existingCompany?.let { company ->
+                company.companyInfoPDFKey?.let { if (it != request.companyInfoPDFKey) s3Service.deleteS3File(it) }
+                company.profileImageKey?.let { if (it != request.profileImageKey) s3Service.deleteS3File(it) }
+            }
+
             // Update existing company
             val updatedEntity = updateCompanyEntityWithRequest(existingCompany, request)
             Company.fromEntity(updatedEntity)
