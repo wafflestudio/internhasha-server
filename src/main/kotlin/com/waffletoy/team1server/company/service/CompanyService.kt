@@ -50,9 +50,9 @@ class CompanyService(
 
         return if (existingCompany != null) {
             // 기존 s3 object 삭제
-            existingCompany.let { company ->
-                company.companyInfoPDFKey?.let { s3Service.deleteS3File(it) }
-                company.profileImageKey?.let { s3Service.deleteS3File(it) }
+            existingCompany?.let { company ->
+                company.companyInfoPDFKey?.let { if (it != request.companyInfoPDFKey) s3Service.deleteS3File(it) }
+                company.profileImageKey?.let { if (it != request.profileImageKey) s3Service.deleteS3File(it) }
             }
 
             // Update existing company
