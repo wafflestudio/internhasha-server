@@ -11,6 +11,7 @@ import com.waffletoy.team1server.auth.UserRole
 import com.waffletoy.team1server.auth.dto.User
 import com.waffletoy.team1server.auth.persistence.UserEntity
 import com.waffletoy.team1server.auth.persistence.UserRepository
+import com.waffletoy.team1server.s3.service.S3Service
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ import java.time.LocalDateTime
 @Service
 class ApplicantService(
     val applicantRepository: ApplicantRepository,
+    val s3Service: S3Service,
     @Lazy private val userRepository: UserRepository,
 ) {
     fun getApplicant(
@@ -60,6 +62,13 @@ class ApplicantService(
         }
 
         val applicantEntity: ApplicantEntity? = applicantRepository.findByUserId(user.id)
+
+        // 기존 s3 object 삭제
+        applicantEntity?.let { applicant ->
+            applicant.cvKey?.let { s3Service.deleteS3File(it) }
+            applicant.profileImageKey?.let { s3Service.deleteS3File(it) }
+            applicant.portfolioKey?.let { s3Service.deleteS3File(it) }
+        }
 
         var updatedApplicant =
             applicantEntity?.apply {
