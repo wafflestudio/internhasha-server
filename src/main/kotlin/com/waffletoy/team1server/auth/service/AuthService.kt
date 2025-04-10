@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 class AuthService(
@@ -76,6 +77,15 @@ class AuthService(
             throw UserDuplicateLocalIdException(
                 details = mapOf("email" to info.email),
             )
+        }
+
+        // 성공 코드 확인(실제로 메일 인증으로 발급한 성공 코드 or 비밀코드)
+        if (info.successCode != devSecret) {
+            if (authRedisCacheService.getSuccessCode(info.successCode)) {
+                authRedisCacheService.deleteSuccessCode(info.successCode)
+            } else {
+                throw UserSuccessCodeException(details = mapOf("user" to info.name, "successCode" to info.successCode))
+            }
         }
 
         // 새로운 사용자 생성
@@ -228,7 +238,9 @@ class AuthService(
         }
     }
 
-    fun checkSnuMailVerification(request: CheckSnuMailVerificationRequest) {
+    fun checkSnuMailVerification(
+        request: CheckSnuMailVerificationRequest,
+    ): String {
         val encryptedCode =
             authRedisCacheService.getEmailCode(request.snuMail)
                 ?: throw UserEmailVerificationInvalidException(
@@ -242,6 +254,9 @@ class AuthService(
             )
         } else {
             authRedisCacheService.deleteEmailCode(request.snuMail)
+            val successCode = UUID.randomUUID().toString()
+            authRedisCacheService.saveSuccessCode(successCode)
+            return successCode
         }
     }
 

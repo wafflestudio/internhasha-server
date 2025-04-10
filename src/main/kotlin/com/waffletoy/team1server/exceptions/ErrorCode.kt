@@ -13,6 +13,7 @@ enum class ErrorCode(
     USER_NOT_FOUND("USER_004", "User not found.", HttpStatus.NOT_FOUND),
     USER_INVALID_ROLE("USER_005", "Invalid user role.", HttpStatus.FORBIDDEN),
     USER_EMAIL_VERIFICATION_INVALID("USER_006", "Invalid email verification code.", HttpStatus.BAD_REQUEST),
+    USER_SUCCESS_CODE_VERIFICATION_FAILED("USER_007", "The success code is invalid or expired.", HttpStatus.BAD_REQUEST),
 
     // Authentication-related errors
     AUTH_BAD_HEADER("AUTH_001", "Wrong Authorization header", HttpStatus.BAD_REQUEST),

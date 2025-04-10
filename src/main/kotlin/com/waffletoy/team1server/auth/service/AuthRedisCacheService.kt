@@ -15,6 +15,7 @@ class AuthRedisCacheService(
         const val PREFIX_REFRESH_TOKEN_BY_USER_ID = "auth:refreshToken:byUserId"
         const val PREFIX_USER_ID_BY_REFRESH_TOKEN = "auth:userId:byRefreshToken"
         const val PREFIX_EMAIL_CODE_BY_SNUMAIL = "signup:emailCode:bySnuMail"
+        const val PREFIX_EMAIL_CODE_SUCCESS = "signup:emailCode:success"
     }
 
     private val logger: Logger = LoggerFactory.getLogger(AuthRedisCacheService::class.java)
@@ -113,6 +114,31 @@ class AuthRedisCacheService(
     // 이메일 인증 토큰 삭제
     fun deleteEmailCode(snuMail: String): Boolean {
         val key = "$PREFIX_EMAIL_CODE_BY_SNUMAIL:$String"
+        return redisTemplate.delete(key)
+    }
+
+    // 이메일 인증 성공 코드 저장
+    fun saveSuccessCode(
+        successCode: String,
+    ) {
+        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
+        redisTemplate.opsForValue().set(
+            key,
+            true.toString(),
+            UserTokenUtil.emailTokenExpirationTime * 1000,
+            TimeUnit.MILLISECONDS,
+        )
+    }
+
+    // 이메일 인증 성공 토큰 조회
+    fun getSuccessCode(successCode: String): Boolean {
+        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
+        return redisTemplate.hasKey(key)
+    }
+
+    // 이메일 인증 성공 토큰 삭제
+    fun deleteSuccessCode(successCode: String): Boolean {
+        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
         return redisTemplate.delete(key)
     }
 }

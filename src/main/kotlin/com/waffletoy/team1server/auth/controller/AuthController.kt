@@ -97,9 +97,9 @@ class AuthController(
     @PostMapping("/mail/validate")
     fun checkSnuMailVerification(
         @Valid @RequestBody request: CheckSnuMailVerificationRequest,
-    ): ResponseEntity<Void> {
-        authService.checkSnuMailVerification(request)
-        return ResponseEntity.ok().build()
+    ): ResponseEntity<SuccessCode> {
+        val successCode = authService.checkSnuMailVerification(request)
+        return ResponseEntity.ok(SuccessCode(successCode))
     }
 
     // 비밀 번호 변경
@@ -164,4 +164,8 @@ data class ChangePasswordRequest(
         message = "Password must be between 8 and 64 characters.",
     )
     val newPassword: String,
+)
+
+data class SuccessCode(
+    val successCode: String,
 )

@@ -22,3 +22,8 @@ class UserEmailVerificationInvalidException(details: Map<String, Any>? = null) :
     errorCode = ErrorCode.USER_EMAIL_VERIFICATION_INVALID,
     details = details,
 )
+
+class UserSuccessCodeException(details: Map<String, Any>? = null) : ApiException(
+    errorCode = ErrorCode.USER_SUCCESS_CODE_VERIFICATION_FAILED,
+    details = details,
+)
