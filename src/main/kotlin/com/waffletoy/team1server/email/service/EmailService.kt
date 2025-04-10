@@ -31,10 +31,12 @@ class EmailService(
             when (type) {
                 EmailType.VerifyMail -> {
                     context.setVariable("emailCode", text)
+                    context.setVariable("email", to)
                     templateName = "verifyEmail"
                 }
                 EmailType.ResetPassword -> {
                     context.setVariable("newPassword", text)
+                    context.setVariable("email", to)
                     templateName = "resetPassword"
                 }
             }

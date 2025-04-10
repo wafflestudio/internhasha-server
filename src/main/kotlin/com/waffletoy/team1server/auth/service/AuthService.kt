@@ -218,7 +218,7 @@ class AuthService(
             emailService.sendEmail(
                 type = EmailType.VerifyMail,
                 to = request.snuMail,
-                subject = "[인턴하샤] 이메일 인증 요청 메일이 도착했습니다.",
+                subject = "[인턴하샤] 이메일 인증 안내",
                 text = emailCode,
             )
         } catch (ex: Exception) {
@@ -322,7 +322,7 @@ class AuthService(
             emailService.sendEmail(
                 type = EmailType.ResetPassword,
                 to = user.email,
-                subject = "[인턴하샤] 임시 비밀번호를 알려드립니다.",
+                subject = "[인턴하샤] 임시 비밀번호 발급 안내",
                 text = newPassword,
             )
         } catch (ex: Exception) {
