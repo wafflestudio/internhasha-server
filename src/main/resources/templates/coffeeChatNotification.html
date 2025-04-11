@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>커피챗 알림 메일 | 인턴하샤</title>
+    <style>
+        .chat-link {
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .chat-link:hover {
+            color: #000;
+        }
+
+        .chat-badge {
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 13px;
+            margin-left: 6px;
+            background-color: #fafafa;
+            transition: background-color 0.2s ease;
+        }
+
+        .chat-link:hover .chat-badge {
+            background-color: #eee;
+        }
+
+        .chat-button {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-decoration: none;
+            background-color: #f8f8f8;
+            color: #444;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .chat-button:hover {
+            background-color: #ececec;
+            border-color: #bbb;
+            color: #222;
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 40px;">
+
+<div style="
+    max-width: 520px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+  ">
+
+    <!-- 헤더 -->
+    <div style="
+  background-color: #f2f4f6;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+  border-bottom: 1px solid #e0e0e0;
+">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>인턴하샤</div>
+            <a th:href="@{'https://' + ${domain} + '/mypage/'}"
+               target="_blank" rel="noopener noreferrer"
+               class="chat-link">
+                대기중인 커피챗
+                <span class="chat-badge">4</span>
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- 본문 -->
+    <div style="padding: 24px 24px 8px 24px; line-height: 1.7; font-size: 15px; color: #444;">
+
+        <!-- 본문 알림 -->
+        <div style="
+              /*border: 1px solid #ddd;*/
+              /*border-radius: 8px;*/
+              padding: 16px;
+              font-size: 18px;
+
+              /*background-color: #f7f7f8;*/
+              /*color: #222;*/
+              margin-bottom: 20px;
+              line-height: 1.6;
+              text-align: center;
+              font-weight: bold;
+            ">
+            지원자가 "<span th:text="${title}">회사가 쓴 공고명</span>"에 대하여<br/>
+            커피챗을 신청하였습니다!
+        </div>
+
+        <!-- 유저 정보 -->
+        <div style="font-size: 14px; margin-bottom: 16px; color: #444;">
+            <strong th:text="${name}">홍길동</strong> <span th:text="${email}" style="color: #888;">hong@snu.ac.kr</span>
+        </div>
+
+        <!-- 커피챗 상세 내용 -->
+        <div th:text="${content}" style="
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          min-height: 100px;
+          padding: 16px;
+          font-size: 14px;
+          background-color: #f9f9f9;
+          color: #555;
+          margin-bottom: 24px;
+        ">
+            커피챗 신청 상세 내용
+        </div>
+
+        <!-- 상세보기 버튼 -->
+        <div style="text-align: center;">
+            <a th:href="@{'https://' + ${domain} + '/coffeeChat/' + ${coffeeChatId}}"
+               target="_blank" rel="noopener noreferrer" class="chat-button">
+                상세한 커피챗 보러 가기
+            </a>
+        </div>
+
+
+        <!-- 하단 우측 텍스트 -->
+        <div style="
+          text-align: right;
+          font-size: 12px;
+          color: #aaa;
+          margin-top: 32px;
+          margin-bottom: 16px;
+        ">
+            <a href="#" class="chat-link"
+               target="_blank" rel="noopener noreferrer">
+                인턴하샤 알림설정
+            </a>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div style="
+      background-color: #f9f9f9;
+      border-top: 1px solid #e0e0e0;
+      padding: 16px 24px;
+      font-size: 12px;
+      color: #999;
+    ">
+        본 메일은 발신전용 메일이므로 회신하셔도 답변을 받지 못할 수 있습니다.<br/>
+        &copy; 2025 인턴하샤 All Rights Reserved.
+    </div>
+
+</div>
+
+</body>
+</html>
