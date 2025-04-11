@@ -28,7 +28,7 @@ class CoffeeChatService(
     private val coffeeChatRepository: CoffeeChatRepository,
     @Lazy private val authService: AuthService,
     @Lazy private val postService: PostService,
-    private val emailService: EmailService,
+    @Lazy private val emailService: EmailService,
 ) {
     @Value("\${custom.page.size:12}")
     private val pageSize: Int = 12
