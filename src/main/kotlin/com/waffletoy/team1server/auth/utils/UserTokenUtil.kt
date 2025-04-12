@@ -1,13 +1,13 @@
 package com.waffletoy.team1server.auth.utils
 
 import com.waffletoy.team1server.auth.dto.User
-import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.http.ResponseCookie
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.*
+import javax.crypto.SecretKey
 
 object UserTokenUtil {
     data class Tokens(
@@ -29,7 +29,7 @@ object UserTokenUtil {
         val accessExpiryDate = Date.from(now.plusSeconds(ACCESS_TOKEN_EXPIRATION_TIME))
 
         return Jwts.builder()
-            .signWith(SECRET_KEY)
+            .signWith(secretKey)
             .setSubject(user.id) // Use user ID for subject
             .claim("role", user.userRole) // Include role as a custom claim
             .setIssuedAt(Date.from(now))
@@ -42,7 +42,7 @@ object UserTokenUtil {
         val refreshExpiryDate = now.plusSeconds(REFRESH_TOKEN_EXPIRATION_TIME)
 
         return Jwts.builder()
-            .signWith(SECRET_KEY)
+            .signWith(secretKey)
             .setSubject(user.id) // Use user ID for subject
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(refreshExpiryDate))
@@ -75,7 +75,7 @@ object UserTokenUtil {
         return try {
             val claims =
                 Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token)
                     .body
@@ -100,17 +100,12 @@ object UserTokenUtil {
     var refreshTokenExpirationTime: Long = REFRESH_TOKEN_EXPIRATION_TIME
         private set
 
-    private val dotenv = Dotenv.load()
-    private val TOKEN_PRIVATE_KEY =
-        dotenv["TOKEN_PRIVATE_KEY"]
-            ?: System.getenv("TOKEN_PRIVATE_KEY")
-            ?: throw RuntimeException("TOKEN_PRIVATE_KEY not found")
-    private val SECRET_KEY =
-        runCatching {
+    private lateinit var secretKey: SecretKey
+
+    fun initFromSpring(tokenPrivateKey: String) {
+        secretKey =
             Keys.hmacShaKeyFor(
-                TOKEN_PRIVATE_KEY.toByteArray(StandardCharsets.UTF_8),
+                tokenPrivateKey.toByteArray(StandardCharsets.UTF_8),
             )
-        }.getOrElse {
-            throw IllegalStateException("Invalid TOKEN_PRIVATE_KEY: ${it.message}")
-        }
+    }
 }

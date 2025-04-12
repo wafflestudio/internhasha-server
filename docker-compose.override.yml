@@ -1,39 +1,15 @@
+# 개발용
 services:
-  # Spring Boot 애플리케이션 설정
   spring-app:
-    # 현재 디렉토리에서 Dockerfile을 사용하여 이미지 빌드
+    # 빌드(DockerFile)
     build:
       context: .
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/survey
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: somepassword
-      IS_SECURE: false
-    depends_on:
-      mysql:
-        condition: service_healthy # MySQL이 healthcheck를 통과해야 시작
-
-  # MySQL 서비스 설정
-  mysql:
-    image: mysql:8.4
-    container_name: mysql-db
-    ports:
-      - "3306:3306"  # DB를 호스트에 연결
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password  # 필요에 맞게 변경
-      MYSQL_DATABASE: survey
-      MYSQL_USER: user
-      MYSQL_PASSWORD: somepassword
-    networks:
-      - app-network  # app-network라는 네트워크 사용
-    volumes:
-      - mysql-data:/var/lib/mysql  # MySQL 데이터 디렉토리 매핑
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-# MySQL 데이터 영속성 볼륨
+      SPRING_PROFILES_ACTIVE: local
+  redis:
+    # 데이터 저장 비활성화
+    volumes: []
+    command: ["redis-server", "--save", ""]
 volumes:
-  mysql-data:
+  redis-data: null
+

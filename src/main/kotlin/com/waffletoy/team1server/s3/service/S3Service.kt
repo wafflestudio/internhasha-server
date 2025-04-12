@@ -33,6 +33,7 @@ class S3Service(
     @Value("\${cloudfront.keyPairId}") private val keyPairId: String,
     @Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
     @Value("\${custom.domain-name}") private val domainName: String,
+    @Value("\${custom.protocol}") private val protocol: String,
 ) {
     // Lazy - 한 번만 파싱하고 이후 재사용하는 구조
     private val tempPrivateKeyFile: File by lazy {
@@ -86,7 +87,7 @@ class S3Service(
             val expiration = calculateExpiration(expirationMinutes)
             generateCloudfrontSignedUrl(s3DownloadReq.s3Key, expiration)
         } else {
-            "https://$domainName/${s3DownloadReq.s3Key}"
+            "$protocol://$domainName/${s3DownloadReq.s3Key}"
         }
     }
 

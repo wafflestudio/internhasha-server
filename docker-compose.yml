@@ -1,39 +1,28 @@
-
 services:
   spring-app:
+    # 이미지를 docker hub pull
     image: endermaru/22-5-team1-server:latest
     container_name: spring-app-container
-    environment:
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_DOC_SWAGGER_UI_ENABLED: "true"
-      SPRING_DOC_SWAGGER_UI_PATH: "/swagger-ui"
-      SPRING_DOC_API_DOCS_ENABLED: "true"
-      SPRING_DOC_API_DOCS_PATH: "/v3/api-docs"
-
-      # Redis 연결 정보
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-
     ports:
       - "8080:8080"
     networks:
       - app-network
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     env_file:
       - .env
-    volumes:
-      - .env:/app/.env
     depends_on:
-      - redis  # Redis 서비스가 먼저 시작되도록 설정
+      - redis
 
   redis:
     image: redis:7.0-alpine
     container_name: redis-container
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - app-network
-    volumes:
-      - redis-data:/data  # 데이터 지속성을 위한 볼륨
 
 networks:
   app-network:

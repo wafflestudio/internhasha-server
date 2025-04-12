@@ -20,6 +20,7 @@ class EmailService(
     private val templateEngine: SpringTemplateEngine,
     @Lazy private val coffeeChatService: CoffeeChatService,
     @Value("\${custom.domain-name}") private val domainName: String,
+    @Value("\${custom.protocol}") private val protocol: String,
 ) {
     @Async
     fun sendEmail(
@@ -48,7 +49,7 @@ class EmailService(
                     templateName = "resetPassword"
                 }
                 EmailType.Notification -> {
-                    context.setVariable("domain", domainName)
+                    context.setVariable("domain", "$protocol://$domainName")
                     if (coffeeChatEntity != null) {
                         context.setVariable("title", coffeeChatEntity.position.positionTitle)
                         context.setVariable("name", coffeeChatEntity.applicant.name)

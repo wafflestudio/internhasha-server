@@ -20,7 +20,7 @@ class CompanyEntity(
     @Column(name = "ID", nullable = false)
     open val id: String = UUID.randomUUID().toString(),
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "USER", nullable = false)
+    @JoinColumn(name = "USER_ID", nullable = false)
     open val user: UserEntity,
     @Column(name = "ESTABLISHED_YEAR")
     open var companyEstablishedYear: Int? = null,

@@ -48,9 +48,6 @@ dependencies {
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
-    // dotenv
-    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
-
     // jsonwebtoken
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
@@ -70,6 +67,9 @@ dependencies {
 
     // thymeleaf
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
+    // h2
+    runtimeOnly("com.h2database:h2")
 }
 
 allOpen {
