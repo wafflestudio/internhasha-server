@@ -93,8 +93,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             cd ~/app
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml down
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker-compose --env-file .env -f docker-compose.yml down
+            docker-compose --env-file .env -f docker-compose.yml pull
             docker image prune -f
-            docker-compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+            docker-compose --env-file .env -f docker-compose.yml up --build -d
           debug: true
