@@ -44,6 +44,27 @@ cloudfront:
     keyPairId: ${CLOUDFRONT_KEYPAIR_ID:""}
     privateKeyText: ${CLOUDFRONT_PRIVATE_KEY:""}
 
+management:
+    endpoint:
+        health:
+            probes:
+                enabled: true
+            show-details: always
+            group:
+                readiness:
+                    include: readinessState
+                    show-components: always
+                liveness:
+                    include: livenessState
+                    show-components: always
+                startup:
+                    include: startupState
+                    show-components: always
+    endpoints:
+        web:
+            exposure:
+                include: health
+
 custom:
     SECRET: ${SECRET:"Hello world"}
     TOKEN_PRIVATE_KEY: ${TOKEN_PRIVATE_KEY:"veryLongLongKeyForSecretKeyGeneration"}
