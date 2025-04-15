@@ -47,23 +47,21 @@ cloudfront:
 management:
     endpoint:
         health:
+            access: read_only
             probes:
                 enabled: true
-            show-details: always
-            group:
-                readiness:
-                    include: readinessState
-                    show-components: always
-                liveness:
-                    include: livenessState
-                    show-components: always
-                startup:
-                    include: startupState
-                    show-components: always
+            show-details: never
+
+        startup:
+            access: read_only
+            cache:
+                time-to-live: 10s
     endpoints:
         web:
             exposure:
-                include: health
+                include:
+                - health
+                - startup
 
 custom:
     SECRET: ${SECRET:"Hello world"}
