@@ -105,7 +105,7 @@ Authorization: Bearer {{access_token_company2}}
   "headcount": 150,
   "location": "Seoul, South Korea",
   "slogan": "Innovating the Future",
-  "detail": "We are a cutting-edge tech company specializing in AI and software solutions.",
+  "detail": "We are a cutting-edge tech comp\nany specializing in AI and software solutions.",
   "profileImageKey": "profile-image-key-123",
   "companyInfoPDFLink": "https://example.com/company-info.pdf",
   "landingPageLink": "https://example.com",

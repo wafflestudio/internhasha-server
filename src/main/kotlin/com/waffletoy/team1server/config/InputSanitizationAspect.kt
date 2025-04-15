@@ -4,6 +4,7 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.*
 import org.aspectj.lang.annotation.Around
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document.OutputSettings
 import org.jsoup.safety.Safelist
 import org.springframework.stereotype.Component
 import kotlin.reflect.full.memberProperties
@@ -21,7 +22,7 @@ class InputSanitizationAspect {
     private fun sanitize(obj: Any?): Any? {
         return when (obj) {
             // 문자열 필터링
-            is String -> Jsoup.clean(obj, Safelist.basic())
+            is String -> Jsoup.clean(obj, "", Safelist.none(), OutputSettings().prettyPrint(false))
             // 리스트 내부 요소 필터링
             is List<*> -> obj.map { sanitize(it) }
             // Map 내부 값 필터링
@@ -41,7 +42,7 @@ class InputSanitizationAspect {
                 field.isAccessible = true
                 val value = field.get(obj) as? String
                 if (value != null) {
-                    field.set(obj, Jsoup.clean(value, Safelist.basic()))
+                    field.set(obj, Jsoup.clean(value, "", Safelist.none(), OutputSettings().prettyPrint(false)))
                 }
             }
         return obj
