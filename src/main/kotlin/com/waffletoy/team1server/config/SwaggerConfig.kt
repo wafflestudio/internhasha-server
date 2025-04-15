@@ -14,13 +14,17 @@ import org.springframework.context.annotation.Profile
 @Configuration
 @Profile("local", "dev", "prod")
 class SwaggerConfig(
-    @Value("\${custom.protocol}") private val protocol: String,
     @Value("\${custom.domain-name}") private val domain: String,
 ) {
     @Bean
     @Primary
     fun customOpenAPI(): OpenAPI {
-        val url = "$protocol://$domain"
+        val servers = listOf(
+            Server().url("https://api.survey-josha.site").description("Prod Server"),
+            Server().url("https://www.api.survey-josha.site").description("Alias Prod Server"),
+            Server().url("https://api.dev.survey-josha.site").description("Dev Server"),
+            Server().url("http://localhost:8080").description("Local Test Server"),
+        )
 
         return OpenAPI()
             .components(
@@ -35,10 +39,6 @@ class SwaggerConfig(
             .addSecurityItem(
                 SecurityRequirement().addList("BearerAuth"),
             )
-            .servers(
-                listOf(
-                    Server().url(url).description("Server URL"),
-                ),
-            )
+            .servers(servers)
     }
 }
