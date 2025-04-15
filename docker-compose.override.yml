@@ -6,10 +6,14 @@ services:
       context: .
     environment:
       SPRING_PROFILES_ACTIVE: local
+    depends_on:
+      - redis
+
   redis:
-    # 데이터 저장 비활성화
-    volumes: []
-    command: ["redis-server", "--save", ""]
-volumes:
-  redis-data: null
+    image: redis:7.0-alpine
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
 

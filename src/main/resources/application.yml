@@ -77,6 +77,11 @@ spring:
         url: ${DEV_DATASOURCE_URL:""}
         username: ${PROD_DATASOURCE_USERNAME:""}
         password: ${PROD_DATASOURCE_PASSWORD:""}
+    data:
+        redis:
+            host: ${REDIS_URL:""}
+            port: 6379
+
 
 custom:
     domain-name: dev.survey-josha.site
@@ -91,6 +96,11 @@ spring:
         url: ${PROD_DATASOURCE_URL:""}
         username: ${PROD_DATASOURCE_USERNAME:""}
         password: ${PROD_DATASOURCE_PASSWORD:""}
+
+    data:
+        redis:
+            host: ${REDIS_URL:""}
+            port: 6379
 
 custom:
     domain-name: www.survey-josha.site
