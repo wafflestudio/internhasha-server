@@ -70,6 +70,9 @@ dependencies {
 
     // h2
     runtimeOnly("com.h2database:h2")
+
+    // Spring boot actuator
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 }
 
 allOpen {
