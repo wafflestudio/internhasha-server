@@ -8,7 +8,7 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: local
     env_file:
       - .env
 
