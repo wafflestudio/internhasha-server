@@ -72,13 +72,14 @@ class PositionSpecification {
                     positions.mapNotNull { positionName ->
                         Category.entries.find { c -> c.name == positionName }
                     }
-                if (positionEnums.isNotEmpty()) {
-                    return criteriaBuilder.or(
-                        *positionEnums.map { positionEnum ->
-                            criteriaBuilder.equal(root.get<String>("category"), positionEnum.name)
-                        }.toTypedArray(),
-                    )
+                if (positionEnums.isEmpty()) {
+                    return criteriaBuilder.disjunction()
                 }
+                return criteriaBuilder.or(
+                    *positionEnums.map { positionEnum ->
+                        criteriaBuilder.equal(root.get<Category>("positionType"), positionEnum)
+                    }.toTypedArray(),
+                )
             }
             return null
         }
@@ -107,14 +108,15 @@ class PositionSpecification {
                             null
                         }
                     }
-                if (domainEnums.isNotEmpty()) {
-                    val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
-                    return criteriaBuilder.or(
-                        *domainEnums.map { domain ->
-                            criteriaBuilder.equal(companyJoin.get<Domain>("domain"), domain)
-                        }.toTypedArray(),
-                    )
+                if (domainEnums.isEmpty()) {
+                    return criteriaBuilder.disjunction() // Always false predicate
                 }
+                val companyJoin = root.join<PositionEntity, CompanyEntity>("company")
+                return criteriaBuilder.or(
+                    *domainEnums.map { domain ->
+                        criteriaBuilder.equal(companyJoin.get<Domain>("domain"), domain)
+                    }.toTypedArray(),
+                )
             }
             return null
         }
