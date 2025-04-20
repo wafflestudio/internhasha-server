@@ -75,7 +75,7 @@ class PositionSpecification {
                 if (positionEnums.isNotEmpty()) {
                     return criteriaBuilder.or(
                         *positionEnums.map { positionEnum ->
-                            criteriaBuilder.equal(root.get<String>("category"), positionEnum.name)
+                            criteriaBuilder.equal(root.get<Category>("positionType"), positionEnum)
                         }.toTypedArray(),
                     )
                 }
