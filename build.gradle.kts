@@ -8,7 +8,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
 }
-group = "com.waffletoy"
+group = "com.internhasha"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -26,53 +26,44 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("com.h2database:h2:2.2.220")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
-    testImplementation("org.glassfish:jakarta.el:5.0.0-M1")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 
-    implementation("org.springframework.boot:spring-boot-starter")
+    // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
+    // MySQL
     implementation("com.mysql:mysql-connector-j:8.2.0")
 
-    // google auth
-//    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-//    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    // AWS SDK
+//    implementation("com.amazonaws:aws-java-sdk:1.12.782")
+    implementation("com.amazonaws:aws-java-sdk-s3:1.12.782")
+    implementation("com.amazonaws:aws-java-sdk-cloudfront:1.12.782")
 
-    // redis
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
-    // jsonwebtoken
+    // JWT
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
-    // email
-    implementation("org.springframework.boot:spring-boot-starter-mail")
-
-    // s3
-    implementation("com.amazonaws:aws-java-sdk-s3:1.12.540")
-
-    // jsoup
+    // HTML Parser
     implementation("org.jsoup:jsoup:1.18.3")
 
-    implementation("com.amazonaws:aws-java-sdk:1.12.779")
+    // Test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
-    // thymeleaf
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    // H2
+    implementation("com.h2database:h2:2.2.220")
 
-    // h2
-    runtimeOnly("com.h2database:h2")
-
-    // Spring boot actuator
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // Devtools
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+//    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+//    testImplementation("org.glassfish:jakarta.el:5.0.0-M1")
 }
 
 allOpen {
