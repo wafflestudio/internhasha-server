@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+# 태그 기반 push
+# # git tag v1.0.0
+# # git push origin v1.0.0
+#on:
+#  push:
+#    tags:
+#      - 'v*.*.*'    # 예: v1.0.0, v2.3.5 등
 
 jobs:
   build-and-push:
@@ -53,12 +60,14 @@ jobs:
         run: |
           docker build --build-arg JAR_FILE=build/libs/*.jar -t endermaru/22-5-team1-server:latest .
           docker tag endermaru/22-5-team1-server:latest endermaru/22-5-team1-server:${{ github.run_number }}
+        # docker tag endermaru/22-5-team1-server:latest endermaru/22-5-team1-server:${{ github.ref_name }}
 
       # 8. Push the Docker image to Docker Hub
       - name: Push Docker image
         run: |
           docker push endermaru/22-5-team1-server:latest
           docker push endermaru/22-5-team1-server:${{ github.run_number }}
+        # docker push endermaru/22-5-team1-server:${{ github.ref_name }}
 
   deploy:
     runs-on: ubuntu-latest
