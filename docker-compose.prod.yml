@@ -1,0 +1,10 @@
+services:
+  spring-app:
+    image: endermaru/22-5-team1-server:latest
+    container_name: spring-app-prod
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    env_file:
+      - .env

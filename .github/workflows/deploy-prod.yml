@@ -3,7 +3,7 @@ name: Docker Publish
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build-and-push:
@@ -13,7 +13,7 @@ jobs:
       # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
       - name: Debug workspace
         run: ls ./
 
@@ -65,25 +65,25 @@ jobs:
     needs: build-and-push
 
     steps:
-    
+
       # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
       - name: Check workspace files
         run: ls -al ${GITHUB_WORKSPACE}
-        
-      # 1. Send docker-compose.dev.yml to EC2 server
+
+      # 1. Send docker-compose.prod.yml to EC2 server
       - name: Copy docker-compose files to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "./docker-compose.dev.yml"
+          source: "./docker-compose.prod.yml"
           target: "/home/ubuntu"
           debug: true
-          
+
       # 2. Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
@@ -93,8 +93,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             cd ~
-            docker-compose --env-file .env -f docker-compose.dev.yml down
-            docker-compose --env-file .env -f docker-compose.dev.yml pull
+            docker-compose --env-file .env -f docker-compose.yml down
+            docker-compose --env-file .env -f docker-compose.yml pull
             docker image prune -f
-            docker-compose --env-file .env -f docker-compose.dev.yml up --build -d
+            docker-compose --env-file .env -f docker-compose.yml up --build -d
           debug: true
