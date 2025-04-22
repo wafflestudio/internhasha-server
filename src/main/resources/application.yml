@@ -60,6 +60,9 @@ management:
             exposure:
                 include: health
 
+server:
+    port: 8080
+
 custom:
     SECRET: ${SECRET:"Hello world"}
     TOKEN_PRIVATE_KEY: ${TOKEN_PRIVATE_KEY:"veryLongLongKeyForSecretKeyGeneration"}
@@ -98,6 +101,8 @@ spring:
             host: ${REDIS_URL:""}
             port: 6379
 
+server:
+    port: 8081
 
 custom:
     domain-name: dev.survey-josha.site
@@ -123,4 +128,5 @@ custom:
     protocol: https
     is-secure: true
 
-
+server:
+    port: 8080
