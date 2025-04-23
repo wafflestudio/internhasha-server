@@ -64,7 +64,7 @@ server:
     port: 8080
 
 custom:
-    SECRET: ${SECRET:"Hello world"}
+    DEV_SECRET: ${SECRET_FOR_INTERNHASHA:"Hello world"}
     TOKEN_PRIVATE_KEY: ${TOKEN_PRIVATE_KEY:"veryLongLongKeyForSecretKeyGeneration"}
 
     domain-name: localhost:8080

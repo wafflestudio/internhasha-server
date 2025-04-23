@@ -449,6 +449,6 @@ class PostService(
         positionRepository.save(positionEntity)
     }
 
-    @Value("\${custom.SECRET}")
+    @Value("\${custom.DEV_SECRET}")
     private lateinit var devSecret: String
 }
