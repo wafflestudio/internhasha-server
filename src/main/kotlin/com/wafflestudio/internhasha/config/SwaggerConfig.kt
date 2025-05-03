@@ -21,8 +21,9 @@ class SwaggerConfig(
     fun customOpenAPI(): OpenAPI {
         val servers =
             listOf(
-                Server().url("https://api-internhasha.wafflestudio.com").description("Prod Server"),
-                Server().url("https://dev-api-internhasha.wafflestudio.com").description("Dev Server"),
+                Server().url("https://api.survey-josha.site").description("Prod Server"),
+                Server().url("https://www.api.survey-josha.site").description("Alias Prod Server"),
+                Server().url("https://api.dev.survey-josha.site").description("Dev Server"),
                 Server().url("http://localhost:8080").description("Local Test Server"),
             )
 

@@ -52,9 +52,9 @@ management:
                 enabled: true
             show-details: never
             group:
-              startup:
-                  include:
-                      - livenessState
+                startup:
+                    include:
+                        - livenessState
     endpoints:
         web:
             exposure:
@@ -105,7 +105,7 @@ server:
     port: 8081
 
 custom:
-    domain-name: dev-internhasha.wafflestudio.com
+    domain-name: dev.survey-josha.site
     protocol: https
     is-secure: true
 ---
@@ -124,7 +124,7 @@ spring:
             port: 6379
 
 custom:
-    domain-name: internhasha.wafflestudio.com
+    domain-name: www.survey-josha.site
     protocol: https
     is-secure: true
 
