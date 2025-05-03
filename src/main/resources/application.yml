@@ -11,7 +11,7 @@ spring:
     mail:
         host: smtp.gmail.com
         port: 587
-        username: ${EMAIL_SRC:""}
+        username: internhasha.official@gmail.com
         password: ${EMAIL_PASSWORD:""}
         properties:
             mail:
@@ -94,18 +94,19 @@ spring:
             on-profile: dev
     datasource:
         url: ${DEV_DATASOURCE_URL:""}
-        username: ${PROD_DATASOURCE_USERNAME:""}
-        password: ${PROD_DATASOURCE_PASSWORD:""}
+        username: ${DEV_DATASOURCE_USERNAME:""}
+        password: ${DEV_DATASOURCE_PASSWORD:""}
     data:
         redis:
             host: ${REDIS_URL:""}
             port: 6379
+            database: 4
 
 server:
-    port: 8081
+    port: 8080
 
 custom:
-    domain-name: dev.survey-josha.site
+    domain-name: dev-internhasha.wafflestudio.com
     protocol: https
     is-secure: true
 ---
@@ -122,9 +123,10 @@ spring:
         redis:
             host: ${REDIS_URL:""}
             port: 6379
+            database: 4
 
 custom:
-    domain-name: www.survey-josha.site
+    domain-name: internhasha.wafflestudio.com
     protocol: https
     is-secure: true
 
