@@ -18,6 +18,20 @@ java {
 }
 
 repositories {
+    // spring-waffle code artifact
+    maven {
+        val authToken =
+            properties["codeArtifactAuthToken"] as String? ?: ProcessBuilder(
+                "aws", "codeartifact", "get-authorization-token",
+                "--domain", "wafflestudio", "--domain-owner", "405906814034",
+                "--query", "authorizationToken", "--region", "ap-northeast-1", "--output", "text",
+            ).start().inputStream.bufferedReader().readText().trim()
+        url = uri("https://wafflestudio-405906814034.d.codeartifact.ap-northeast-1.amazonaws.com/maven/spring-waffle/")
+        credentials {
+            username = "aws"
+            password = authToken
+        }
+    }
     mavenCentral()
     gradlePluginPortal()
 }
@@ -60,6 +74,9 @@ dependencies {
     // H2
     implementation("com.h2database:h2:2.2.220")
 
+    // spring-waffle for secrets
+    implementation("com.wafflestudio.spring:spring-boot-starter-waffle:1.0.2")
+
     // Devtools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 //    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -79,6 +96,10 @@ kotlin {
 }
 
 tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
+tasks.test {
     useJUnitPlatform()
 }
 

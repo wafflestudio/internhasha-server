@@ -38,21 +38,38 @@ jobs:
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
 
-      # 5. Build the application with Gradle
+      # 5. Get Code Artifact token
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Get and save Auth Token for CodeArtifact
+        id: get-save-codeartifact-auth-token
+        run: |
+          aws codeartifact get-authorization-token --domain wafflestudio --domain-owner 405906814034 --query authorizationToken --region ap-northeast-1 --output text > .codeartifact-auth-token
+
+      - name: Export CodeArtifact Auth Token
+        run: |
+          echo "CODEARTIFACT_AUTH_TOKEN=$(cat .codeartifact-auth-token)" >> $GITHUB_ENV
+
+      # 6. Build the application with Gradle
       - name: Build with Gradle
         run: ./gradlew build
 
-      # 6. Log in to Amazon ECR
+      # 7. Log in to Amazon ECR
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 7. Build and tag the Docker image
+      # 8. Build and tag the Docker image
       - name: Build Docker image
         run: |
           docker build --build-arg JAR_FILE=build/libs/*.jar -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest .
           docker tag ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:${{ github.ref_name }}
 
-      # 8. Push the Docker image to Docker Hub
+      # 9. Push the Docker image to Docker Hub
       - name: Push Docker image
         run: |
           docker push ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest
