@@ -105,7 +105,7 @@ server:
     port: 8081
 
 custom:
-    domain-name: dev.survey-josha.site
+    domain-name: dev-internhasha.wafflestudio.com
     protocol: https
     is-secure: true
 ---
@@ -124,7 +124,7 @@ spring:
             port: 6379
 
 custom:
-    domain-name: www.survey-josha.site
+    domain-name: internhasha.wafflestudio.com
     protocol: https
     is-secure: true
 
