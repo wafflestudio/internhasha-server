@@ -3,6 +3,7 @@ package com.wafflestudio.internhasha.auth.service
 import com.wafflestudio.internhasha.auth.utils.UserTokenUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
@@ -10,12 +11,17 @@ import java.util.concurrent.TimeUnit
 @Service
 class AuthRedisCacheService(
     private val redisTemplate: RedisTemplate<String, String>,
+    @Value("\${auth.redis.prefix}") private val profilePrefix: String,
 ) {
     companion object {
         const val PREFIX_REFRESH_TOKEN_BY_USER_ID = "auth:refreshToken:byUserId"
         const val PREFIX_USER_ID_BY_REFRESH_TOKEN = "auth:userId:byRefreshToken"
         const val PREFIX_EMAIL_CODE_BY_SNUMAIL = "signup:emailCode:bySnuMail"
         const val PREFIX_EMAIL_CODE_SUCCESS = "signup:emailCode:success"
+    }
+
+    private fun fullKey(prefix: String): String {
+        return "$profilePrefix:$prefix"
     }
 
     private val logger: Logger = LoggerFactory.getLogger(AuthRedisCacheService::class.java)
@@ -32,7 +38,7 @@ class AuthRedisCacheService(
         deleteRefreshTokenByUserId(userId)
 
         // userId -> refreshToken 저장
-        val userIdKey = "$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId"
+        val userIdKey = fullKey("$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId")
         redisTemplate.opsForValue().set(
             userIdKey,
             refreshToken,
@@ -41,7 +47,7 @@ class AuthRedisCacheService(
         )
 
         // refreshToken -> userId 저장
-        val tokenKey = "$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken"
+        val tokenKey = fullKey("$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken")
         redisTemplate.opsForValue().set(
             tokenKey,
             userId,
@@ -52,21 +58,21 @@ class AuthRedisCacheService(
 
     // Refresh Token 조회(계정ID)
     fun getRefreshTokenByUserId(userId: String): String? {
-        val userIdKey = "$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId"
+        val userIdKey = fullKey("$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId")
         return redisTemplate.opsForValue().get(userIdKey)
     }
 
     // Refresh Token 조회(token값)
     fun getUserIdByRefreshToken(refreshToken: String): String? {
-        return redisTemplate.opsForValue().get("$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken")
+        return redisTemplate.opsForValue().get(fullKey("$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken"))
     }
 
     // Refresh Token 삭제
     // pair 모두 삭제
     fun deleteRefreshTokenByUserId(userId: String): Boolean {
-        val userIdKey = "$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId"
+        val userIdKey = fullKey("$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId")
         val refreshToken = redisTemplate.opsForValue().get(userIdKey) // 기존 refreshToken 조회
-        val tokenKey = "$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken"
+        val tokenKey = fullKey("$PREFIX_USER_ID_BY_REFRESH_TOKEN:$refreshToken")
 
         val userKeyDeleted = redisTemplate.delete(userIdKey)
         val tokenKeyDeleted = if (refreshToken != null) redisTemplate.delete(tokenKey) else false
@@ -79,7 +85,7 @@ class AuthRedisCacheService(
         userId: String,
         token: String,
     ): Boolean {
-        val userIdKey = "$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId"
+        val userIdKey = fullKey("$PREFIX_REFRESH_TOKEN_BY_USER_ID:$userId")
         val savedToken = redisTemplate.opsForValue().get(userIdKey)
         return savedToken == token
     }
@@ -96,7 +102,7 @@ class AuthRedisCacheService(
         // 기존 동일 스누메일의 email token 삭제
         deleteEmailCode(snuMail)
 
-        val key = "$PREFIX_EMAIL_CODE_BY_SNUMAIL:$snuMail"
+        val key = fullKey("$PREFIX_EMAIL_CODE_BY_SNUMAIL:$snuMail")
         redisTemplate.opsForValue().set(
             key,
             emailCode,
@@ -107,13 +113,13 @@ class AuthRedisCacheService(
 
     // 이메일 인증 토큰 조회
     fun getEmailCode(snuMail: String): String? {
-        val key = "$PREFIX_EMAIL_CODE_BY_SNUMAIL:$snuMail"
+        val key = fullKey("$PREFIX_EMAIL_CODE_BY_SNUMAIL:$snuMail")
         return redisTemplate.opsForValue().get(key)
     }
 
     // 이메일 인증 토큰 삭제
     fun deleteEmailCode(snuMail: String): Boolean {
-        val key = "$PREFIX_EMAIL_CODE_BY_SNUMAIL:$String"
+        val key = fullKey("$PREFIX_EMAIL_CODE_BY_SNUMAIL:$snuMail")
         return redisTemplate.delete(key)
     }
 
@@ -121,7 +127,7 @@ class AuthRedisCacheService(
     fun saveSuccessCode(
         successCode: String,
     ) {
-        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
+        val key = fullKey("$PREFIX_EMAIL_CODE_SUCCESS:$successCode")
         redisTemplate.opsForValue().set(
             key,
             true.toString(),
@@ -132,13 +138,13 @@ class AuthRedisCacheService(
 
     // 이메일 인증 성공 토큰 조회
     fun getSuccessCode(successCode: String): Boolean {
-        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
+        val key = fullKey("$PREFIX_EMAIL_CODE_SUCCESS:$successCode")
         return redisTemplate.hasKey(key)
     }
 
     // 이메일 인증 성공 토큰 삭제
     fun deleteSuccessCode(successCode: String): Boolean {
-        val key = "$PREFIX_EMAIL_CODE_SUCCESS:$successCode"
+        val key = fullKey("$PREFIX_EMAIL_CODE_SUCCESS:$successCode")
         return redisTemplate.delete(key)
     }
 }
