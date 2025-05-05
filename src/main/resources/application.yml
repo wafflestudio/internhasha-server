@@ -63,6 +63,10 @@ management:
 server:
     port: 8080
 
+auth:
+    redis:
+        prefix: internhasha:local
+
 custom:
     DEV_SECRET: ${SECRET_FOR_INTERNHASHA:"Hello world"}
     TOKEN_PRIVATE_KEY: ${TOKEN_PRIVATE_KEY:"veryLongLongKeyForSecretKeyGeneration"}
@@ -104,6 +108,10 @@ spring:
 server:
     port: 8081
 
+auth:
+    redis:
+        prefix: internhasha:dev
+
 custom:
     domain-name: dev.survey-josha.site
     protocol: https
@@ -127,6 +135,10 @@ custom:
     domain-name: www.survey-josha.site
     protocol: https
     is-secure: true
+
+auth:
+    redis:
+        prefix: internhasha:prod
 
 server:
     port: 8080
