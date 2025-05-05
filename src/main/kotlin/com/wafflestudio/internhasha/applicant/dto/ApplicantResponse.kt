@@ -12,7 +12,7 @@ data class ApplicantResponse(
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?,
     val userRole: UserRole,
-    val email: String,
+    var email: String? = null,
     val enrollYear: Int? = null,
     val department: String? = null,
     val positions: List<String>? = null,

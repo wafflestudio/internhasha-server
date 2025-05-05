@@ -63,26 +63,34 @@ data class CoffeeChatCompany(
     companion object {
         fun fromEntity(
             entity: CoffeeChatEntity,
-        ) = CoffeeChatCompany(
-            id = entity.id,
-            postId = entity.position.id,
-            title = entity.position.positionTitle,
-            company = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
-            coffeeChatStatus = entity.coffeeChatStatus,
-            changed = entity.changed,
-            content = entity.content,
-            applicant =
-                entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
-                    ?: ApplicantResponse(
-                        id = entity.applicant.id,
-                        name = entity.applicant.name,
-                        createdAt = entity.applicant.createdAt,
-                        updatedAt = entity.applicant.updatedAt,
-                        userRole = entity.applicant.userRole,
-                        email = entity.applicant.email,
-                    ),
-        )
+        ): CoffeeChatCompany {
+            val applicantResponse = entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
+                ?: ApplicantResponse(
+                    id = entity.applicant.id,
+                    name = entity.applicant.name,
+                    createdAt = entity.applicant.createdAt,
+                    updatedAt = entity.applicant.updatedAt,
+                    userRole = entity.applicant.userRole,
+                    email = entity.applicant.email,
+                )
+
+            // 성사 조건에 따라 이메일 필터링
+            if (entity.coffeeChatStatus != CoffeeChatStatus.ACCEPTED) {
+                applicantResponse.email = null
+            }
+
+            return CoffeeChatCompany(
+                id = entity.id,
+                postId = entity.position.id,
+                title = entity.position.positionTitle,
+                company = entity.position.company.user.let { CoffeeChatUserInfo.fromEntity(it) },
+                createdAt = entity.createdAt,
+                updatedAt = entity.updatedAt,
+                coffeeChatStatus = entity.coffeeChatStatus,
+                changed = entity.changed,
+                content = entity.content,
+                applicant = applicantResponse,
+            )
+        }
     }
 }
