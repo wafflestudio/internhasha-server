@@ -64,15 +64,16 @@ data class CoffeeChatCompany(
         fun fromEntity(
             entity: CoffeeChatEntity,
         ): CoffeeChatCompany {
-            val applicantResponse = entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
-                ?: ApplicantResponse(
-                    id = entity.applicant.id,
-                    name = entity.applicant.name,
-                    createdAt = entity.applicant.createdAt,
-                    updatedAt = entity.applicant.updatedAt,
-                    userRole = entity.applicant.userRole,
-                    email = entity.applicant.email,
-                )
+            val applicantResponse =
+                entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
+                    ?: ApplicantResponse(
+                        id = entity.applicant.id,
+                        name = entity.applicant.name,
+                        createdAt = entity.applicant.createdAt,
+                        updatedAt = entity.applicant.updatedAt,
+                        userRole = entity.applicant.userRole,
+                        email = entity.applicant.email,
+                    )
 
             // 성사 조건에 따라 이메일 필터링
             if (entity.coffeeChatStatus != CoffeeChatStatus.ACCEPTED) {
