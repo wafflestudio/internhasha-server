@@ -1,5 +1,4 @@
 # 개발용
-
 services:
   spring-app:
     build:

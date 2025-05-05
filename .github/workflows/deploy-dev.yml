@@ -1,10 +1,9 @@
-name: Docker Publish
+name: Docker Publish (Dev)
 
 on:
   push:
     branches:
-      - dev
-#      - main
+      - main
 
 jobs:
   build-and-push:
@@ -38,64 +37,80 @@ jobs:
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
 
-      # 5. Build the application with Gradle
+      # 5. Get Code Artifact token
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Get and save Auth Token for CodeArtifact
+        id: get-save-codeartifact-auth-token
+        run: |
+          aws codeartifact get-authorization-token --domain wafflestudio --domain-owner 405906814034 --query authorizationToken --region ap-northeast-1 --output text > .codeartifact-auth-token
+
+      - name: Export CodeArtifact Auth Token
+        run: |
+          echo "CODEARTIFACT_AUTH_TOKEN=$(cat .codeartifact-auth-token)" >> $GITHUB_ENV
+
+      # 6. Build the application with Gradle
       - name: Build with Gradle
         run: ./gradlew build
+        env:
+          codeArtifactAuthToken: ${{ env.CODEARTIFACT_AUTH_TOKEN }}
 
-      # 6. Log in to Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # 7. Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # 7. Build and tag the Docker image
+      # 8. Build and tag the Docker image
       - name: Build Docker image
         run: |
-          docker build --build-arg JAR_FILE=build/libs/*.jar -t endermaru/22-5-team1-server:latest .
-          docker tag endermaru/22-5-team1-server:latest endermaru/22-5-team1-server:${{ github.run_number }}
+          docker build --build-arg JAR_FILE=build/libs/*.jar -t ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:latest .
+          docker tag ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:latest ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:${{ github.run_number }}
 
-      # 8. Push the Docker image to Docker Hub
+      # 9. Push the Docker image to Docker Hub
       - name: Push Docker image
         run: |
-          docker push endermaru/22-5-team1-server:latest
-          docker push endermaru/22-5-team1-server:${{ github.run_number }}
+          docker push ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:latest
+          docker push ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:${{ github.run_number }}
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-
-    steps:
-    
-      # 1. Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        
-      - name: Check workspace files
-        run: ls -al ${GITHUB_WORKSPACE}
-        
-      # 1. Send docker-compose.dev.yml to EC2 server
-      - name: Copy docker-compose files to EC2
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "./docker-compose.dev.yml"
-          target: "/home/ubuntu"
-          debug: true
-          
-      # 2. Deploy to EC2 via SSH
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            cd ~
-            docker-compose --env-file .env -f docker-compose.dev.yml down
-            docker-compose --env-file .env -f docker-compose.dev.yml pull
-            docker image prune -f
-            docker-compose --env-file .env -f docker-compose.dev.yml up --build -d
-          debug: true
+#  deploy:
+#    runs-on: ubuntu-latest
+#    needs: build-and-push
+#
+#    steps:
+#
+#      # 1. Checkout the repository
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#
+#      - name: Check workspace files
+#        run: ls -al ${GITHUB_WORKSPACE}
+#
+#      # 1. Send docker-compose.dev.yml to EC2 server
+#      - name: Copy docker-compose files to EC2
+#        uses: appleboy/scp-action@master
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USER }}
+#          key: ${{ secrets.EC2_PRIVATE_KEY }}
+#          source: "./docker-compose.dev.yml"
+#          target: "/home/ubuntu"
+#          debug: true
+#
+#      # 2. Deploy to EC2 via SSH
+#      - name: Deploy to EC2
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.EC2_HOST }}
+#          username: ${{ secrets.EC2_USER }}
+#          key: ${{ secrets.EC2_PRIVATE_KEY }}
+#          script: |
+#            cd ~
+#            docker-compose --env-file .env -f docker-compose.dev.yml down
+#            docker-compose --env-file .env -f docker-compose.dev.yml pull
+#            docker image prune -f
+#            docker-compose --env-file .env -f docker-compose.dev.yml up --build -d
+#          debug: true
