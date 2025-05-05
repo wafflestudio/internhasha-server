@@ -10,6 +10,8 @@ enum class Category {
     DESIGN,
     PLANNER,
     MARKETING,
+    GAME,
+    AI,
     ;
 
     fun displayName(): String {
@@ -22,6 +24,8 @@ enum class Category {
             DESIGN -> "디자인"
             PLANNER -> "기획"
             MARKETING -> "마케팅"
+            GAME -> "게임"
+            AI -> "AI"
         }
     }
 }
