@@ -122,7 +122,7 @@ Content-Type: application/json
 GET http://localhost:8080/api/coffeeChat/count
 Authorization: Bearer {{access_token_company2}}
 
-### 15. 회사 - 커피챗 승인
+### 15. 회사 - 커피챗 수락
 PATCH http://localhost:8080/api/coffeeChat
 Authorization: Bearer {{access_token_company2}}
 Content-Type: application/json

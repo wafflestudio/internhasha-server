@@ -61,6 +61,18 @@ class EmailService(
 
                     templateName = "coffeeChatNotification"
                 }
+                EmailType.Result -> {
+                    context.setVariable("domain", "$protocol://$domainName")
+                    if (coffeeChatEntity != null) {
+                        context.setVariable("title", coffeeChatEntity.position.positionTitle)
+                        context.setVariable("content", coffeeChatEntity.content)
+                        context.setVariable("coffeeChatId", coffeeChatEntity.id)
+                        context.setVariable("status", coffeeChatEntity.coffeeChatStatus.toString())
+                        context.setVariable("companyName", coffeeChatEntity.position.company.user.name)
+                    }
+
+                    templateName = "coffeeChatResult"
+                }
             }
 
             // Thymeleaf 템플릿
