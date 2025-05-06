@@ -24,7 +24,10 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         @Param("excludedStatus") excludedStatus: CoffeeChatStatus,
     ): List<CoffeeChatEntity>
 
-    fun deleteAllByApplicantId(applicantId: String)
+    @Query("DELETE FROM CoffeeChatEntity c WHERE c.applicant.id = :applicantId")
+    fun deleteAllByApplicantId(
+        @Param("applicantId") applicantId: String,
+    )
 
     // 지원자 - isChanged 개수 가져오기
     fun countByApplicantIdAndChangedTrue(applicantId: String): Long
