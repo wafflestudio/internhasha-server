@@ -31,7 +31,6 @@ Content-Type: application/json
   "headCount": 5,
   "salary": 7000,
   "employmentEndDate": "2025-12-31T23:59:59",
-  "isActive": true,
   "companyId": "{{company_id2}}"
 }
 > {%

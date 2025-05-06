@@ -16,7 +16,6 @@ data class CreatePositionRequest(
     val headCount: Int,
     val salary: Int? = null,
     val employmentEndDate: LocalDateTime? = null,
-    val isActive: Boolean = true,
     @field:NotBlank(message = "Company ID is required.")
     val companyId: String,
 )

@@ -75,7 +75,7 @@ class PostService(
         positions: List<String>?,
         page: Int = 0,
         order: Int = 0,
-        isActive: Boolean?,
+        isActive: Boolean,
         domains: List<String>?,
     ): Page<Post> {
         val specification =
@@ -244,7 +244,6 @@ class PostService(
                         positionType = category,
                         detail = "Detail of $category",
                         headCount = (1..3).random(),
-                        isActive = true,
                         employmentEndDate = LocalDateTime.now().plusHours((-15..15).random().toLong()),
                         company = companyEntity,
                         salary = 10,
@@ -312,7 +311,7 @@ class PostService(
         positions: List<String>?,
         page: Int = 0,
         order: Int = 0,
-        isActive: Boolean?,
+        isActive: Boolean,
         domains: List<String>?,
     ): Page<Post> {
         if (user.userRole != UserRole.COMPANY) {
@@ -375,7 +374,6 @@ class PostService(
                 headCount = request.headCount,
                 salary = request.salary,
                 employmentEndDate = request.employmentEndDate,
-                isActive = request.isActive,
                 company = company,
             )
 
@@ -410,7 +408,6 @@ class PostService(
         positionEntity.headCount = request.headCount
         positionEntity.salary = request.salary
         positionEntity.employmentEndDate = request.employmentEndDate
-        positionEntity.isActive = request.isActive
         return positionEntity
     }
 
@@ -444,7 +441,6 @@ class PostService(
             throw NotAuthorizedException()
         }
 
-        positionEntity.isActive = false
         positionEntity.employmentEndDate = LocalDateTime.now()
         positionRepository.save(positionEntity)
     }
