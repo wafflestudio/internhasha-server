@@ -2,6 +2,7 @@ package com.wafflestudio.internhasha.coffeeChat.persistence
 
 import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatus
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -24,6 +25,7 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         @Param("excludedStatus") excludedStatus: CoffeeChatStatus,
     ): List<CoffeeChatEntity>
 
+    @Modifying
     @Query("DELETE FROM CoffeeChatEntity c WHERE c.applicant.id = :applicantId")
     fun deleteAllByApplicantId(
         @Param("applicantId") applicantId: String,
