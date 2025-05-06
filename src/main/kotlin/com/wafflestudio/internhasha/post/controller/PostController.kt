@@ -178,7 +178,7 @@ class PostController(
         @PathVariable("position_id") positionId: String,
     ): ResponseEntity<Void> {
         postService.closePosition(user, positionId)
-        return ResponseEntity.noContent().build()
+        return ResponseEntity.ok().build()
     }
 }
 
