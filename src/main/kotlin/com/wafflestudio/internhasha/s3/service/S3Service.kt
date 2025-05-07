@@ -6,6 +6,7 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import com.wafflestudio.internhasha.auth.dto.User
 import com.wafflestudio.internhasha.s3.*
 import com.wafflestudio.internhasha.s3.controller.S3DownloadReq
@@ -67,7 +68,7 @@ class S3Service(
         val expiration = calculateExpiration(expirationMinutes)
 
         return Pair(
-            generateS3PresignedUrl(bucketName, s3Key, expiration, HttpMethod.PUT),
+            generateS3PresignedUrl(bucketName, s3Key, expiration, HttpMethod.PUT, s3UploadReq.fileName),
             s3Key,
         )
     }
@@ -96,9 +97,25 @@ class S3Service(
         s3Key: String,
         expiration: Date,
         httpMethod: HttpMethod,
+        fileName: String,
     ): String {
         try {
-            return amazonS3.generatePresignedUrl(bucketName, s3Key, expiration, httpMethod).toString()
+            val generatePresignedUrlRequest: GeneratePresignedUrlRequest =
+                GeneratePresignedUrlRequest(bucketName, s3Key, httpMethod)
+                    .withExpiration(expiration)
+
+            generatePresignedUrlRequest.addRequestParameter(
+                "response-content-disposition",
+                "attachment; filename=\"$fileName\"",
+            )
+
+            generatePresignedUrlRequest.putCustomRequestHeader(
+                "Content-Disposition",
+                "attachment; filename=\"$fileName\"",
+            )
+
+            return amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString()
+//            return amazonS3.generatePresignedUrl(bucketName, s3Key, expiration, httpMethod).toString()
         } catch (e: AmazonS3Exception) {
             throw S3UrlGenerationFailedException()
         } catch (e: SdkClientException) {
