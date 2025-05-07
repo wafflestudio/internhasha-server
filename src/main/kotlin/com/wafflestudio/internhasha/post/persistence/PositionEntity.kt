@@ -33,8 +33,6 @@ class PositionEntity(
     open var updatedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "EMPLOYMENT_END_DATE", nullable = true)
     open var employmentEndDate: LocalDateTime? = null,
-    @Column(name = "IS_ACTIVE", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    open var isActive: Boolean = false,
     @Column(name = "SALARY", nullable = true)
     open var salary: Int? = null,
     // 특정 Company에 join

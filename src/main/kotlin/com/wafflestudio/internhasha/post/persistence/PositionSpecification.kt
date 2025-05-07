@@ -15,7 +15,7 @@ class PositionSpecification {
             order: Int,
             company: UserEntity? = null,
             currentDateTime: LocalDateTime = LocalDateTime.now(),
-            isActive: Boolean?,
+            isActive: Boolean,
             domains: List<String>?,
         ): Specification<PositionEntity> {
             return Specification { root, query, criteriaBuilder ->
@@ -29,7 +29,7 @@ class PositionSpecification {
                     listOfNotNull(
                         buildCategoryPredicate(root, criteriaBuilder, positions),
                         buildCompanyPredicate(root, criteriaBuilder, company),
-                        buildIsActivePredicate(root, criteriaBuilder, isActive),
+                        buildIsActivePredicate(root, criteriaBuilder, isActive, currentDateTime, endDay),
                         buildDomainPredicate(root, criteriaBuilder, domains),
                     )
 
@@ -37,7 +37,7 @@ class PositionSpecification {
                 query.distinct(true)
 
                 // 정렬 추가
-                sortPredicate(root, criteriaBuilder, query, order, currentDateTime)
+                sortPredicate(root, criteriaBuilder, query, order, currentDateTime, endDay)
 
                 // where 조건 설정
                 if (predicates.isNotEmpty()) {
@@ -87,10 +87,19 @@ class PositionSpecification {
         private fun buildIsActivePredicate(
             root: Root<PositionEntity>,
             criteriaBuilder: CriteriaBuilder,
-            isActive: Boolean?,
+            isActive: Boolean,
+            currentDateTime: LocalDateTime,
+            endDay: LocalDateTime,
         ): Predicate? {
-            return isActive?.let {
-                criteriaBuilder.equal(root.get<Boolean>("isActive"), it)
+            val employmentEndDate =
+                criteriaBuilder.coalesce(
+                    root.get<LocalDateTime>("employmentEndDate"),
+                    endDay,
+                )
+            return if (isActive) {
+                criteriaBuilder.greaterThan(employmentEndDate, currentDateTime)
+            } else {
+                null
             }
         }
 
@@ -127,25 +136,45 @@ class PositionSpecification {
             query: CriteriaQuery<T>,
             order: Int,
             currentDateTime: LocalDateTime,
+            endDay: LocalDateTime,
         ) {
             val employmentEndDate =
                 criteriaBuilder.coalesce(
                     root.get<LocalDateTime>("employmentEndDate"),
-                    LocalDateTime.of(2099, 12, 31, 23, 59),
+                    endDay,
                 )
 
             val orderList = mutableListOf<Order>()
 
             when (order) {
                 1 -> {
-                    // 마감순 정렬 (CASE WHEN을 Criteria API로 구현)
+                    // 마감순 정렬: 마감 안 된 건 오름차순, 마감된 건 내림차순
                     val caseExpression =
                         criteriaBuilder.selectCase<Int>()
                             .`when`(criteriaBuilder.greaterThan(employmentEndDate, currentDateTime), criteriaBuilder.literal(1))
                             .otherwise(criteriaBuilder.literal(2))
 
-                    orderList.add(criteriaBuilder.asc(caseExpression))
-                    orderList.add(criteriaBuilder.asc(employmentEndDate))
+                    // 그룹 1: 마감 안 된 공고 → employmentEndDate ASC
+                    val openSort =
+                        criteriaBuilder.selectCase<LocalDateTime>()
+                            .`when`(
+                                criteriaBuilder.greaterThan(employmentEndDate, currentDateTime),
+                                employmentEndDate,
+                            )
+                            .otherwise(criteriaBuilder.nullLiteral(LocalDateTime::class.java))
+
+                    // 그룹 2: 마감된 공고 → employmentEndDate DESC
+                    val closedSort =
+                        criteriaBuilder.selectCase<LocalDateTime>()
+                            .`when`(
+                                criteriaBuilder.lessThanOrEqualTo(employmentEndDate, currentDateTime),
+                                employmentEndDate,
+                            )
+                            .otherwise(criteriaBuilder.nullLiteral(LocalDateTime::class.java))
+
+                    orderList.add(criteriaBuilder.asc(caseExpression)) // 그룹 우선순위 (1, 2)
+                    orderList.add(criteriaBuilder.asc(openSort)) // 마감 안 된 건 오름차순
+                    orderList.add(criteriaBuilder.desc(closedSort)) // 마감된 건 내림차순
                 }
                 else -> {
                     // 최신순 정렬 (updatedAt 기준)

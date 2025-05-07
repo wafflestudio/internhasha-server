@@ -237,6 +237,13 @@ class CoffeeChatService(
                         coffeeChatEntity.coffeeChatStatus = coffeeChatStatusReq.coffeeChatStatus
                         coffeeChatEntity.changed = true
                         succeeded.add(CoffeeChatCompany.fromEntity(coffeeChatEntity))
+                        emailService.sendEmail(
+                            type = EmailType.Result,
+                            to = coffeeChatEntity.applicant.email,
+                            subject = "[인턴하샤] 커피챗 지원 결과 안내",
+                            text = "",
+                            coffeeChatEntity = coffeeChatEntity,
+                        )
                     }
                 }
             }

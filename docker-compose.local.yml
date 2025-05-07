@@ -13,6 +13,8 @@ services:
       - redis
     networks:
       - app-network
+    env_file:
+      - .env
 
   redis:
     image: redis:7.0-alpine
