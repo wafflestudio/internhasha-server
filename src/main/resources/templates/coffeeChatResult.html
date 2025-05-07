@@ -20,14 +20,14 @@
 
         <!-- 본문 알림: 수락 -->
         <div th:if="${status == 'ACCEPTED'}" style="padding: 16px; font-size: 18px; margin-bottom: 20px;
-                line-height: 1.6; text-align: center; font-weight: bold;">
+                line-height: 1.6; text-align: center; font-weight: bold;color: black">
             신청하신 "<span th:text="${title}">공고 제목</span>" 커피챗이<br/>
             <span style="font-weight:bolder;">성사</span>되었습니다.
         </div>
 
         <!-- 본문 알림: 거절 -->
         <div th:if="${status == 'REJECTED'}" style="padding: 16px; font-size: 18px; margin-bottom: 20px;
-                line-height: 1.6; text-align: center; font-weight: bold;">
+                line-height: 1.6; text-align: center; font-weight: bold;color: black">
             신청하신 "<span th:text="${title}">공고 제목</span>" 커피챗이<br/>
             <span style="font-weight:bolder;">거절</span>되었습니다.
         </div>
@@ -54,7 +54,7 @@
 
         <!-- 상세보기 버튼 -->
         <div style="text-align: center;">
-            <a th:href="@{'https://' + ${domain} + '/coffeeChat/' + ${coffeeChatId}}"
+            <a th:href="@{${domain} + '/coffeeChat/' + ${coffeeChatId}}"
                target="_blank" rel="noopener noreferrer"
                style="display:inline-block; padding:12px 20px; font-size:14px; border:1px solid #ddd;
                       border-radius:8px; text-decoration:none; background-color:#444;
