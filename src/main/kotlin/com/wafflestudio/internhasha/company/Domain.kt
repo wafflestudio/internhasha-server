@@ -10,7 +10,6 @@ enum class Domain {
     CONTENTS,
     B2B,
     FOODTECH,
-    HUMANRESOURCE,
     ;
 
     fun displayName(): String {
@@ -24,7 +23,6 @@ enum class Domain {
             CONTENTS -> "콘텐츠"
             B2B -> "기업간 거래 (B2B)"
             FOODTECH -> "식품기술"
-            HUMANRESOURCE -> "인사"
         }
     }
 }
