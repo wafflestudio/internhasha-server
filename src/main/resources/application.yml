@@ -11,8 +11,7 @@ spring:
     mail:
         host: smtp.gmail.com
         port: 587
-        username: ${EMAIL_SRC:""}
-        password: ${EMAIL_PASSWORD:""}
+        username: internhasha.official@gmail.com
         properties:
             mail:
                 smtp:
@@ -34,15 +33,15 @@ springdoc:
 
 amazon:
     aws:
-        accessKey: ${S3_ACCESS_KEY:""}
-        secretKey: ${S3_SECRET_KEY:""}
-        region: ${S3REGION:""}
-        bucketPublic: ${S3_BUCKET_PUBLIC:""}
-        bucketPrivate: ${S3_BUCKET_PRIVATE:""}
+        accessKey: ""
+        secretKey: ""
+        region: ""
+        bucketPublic: ""
+        bucketPrivate: ""
 
 cloudfront:
-    keyPairId: ${CLOUDFRONT_KEYPAIR_ID:""}
-    privateKeyText: ${CLOUDFRONT_PRIVATE_KEY:""}
+    keyPairId: ""
+    privateKeyText: ""
 
 management:
     endpoint:
@@ -68,8 +67,8 @@ auth:
         prefix: internhasha:local
 
 custom:
-    DEV_SECRET: ${SECRET_FOR_INTERNHASHA:"Hello world"}
-    TOKEN_PRIVATE_KEY: ${TOKEN_PRIVATE_KEY:"veryLongLongKeyForSecretKeyGeneration"}
+    DEV_SECRET: "Hello world"
+    TOKEN_PRIVATE_KEY: "veryLongLongKeyForSecretKeyGeneration"
 
     domain-name: localhost:8080
     protocol: http
@@ -91,54 +90,94 @@ spring:
             path: /h2-console
             settings:
                 web-allow-others: true
+    mail:
+        password: ""
 ---
+secret-names: dev/internhasha
+
 spring:
     config:
         activate:
             on-profile: dev
     datasource:
-        url: ${DEV_DATASOURCE_URL:""}
-        username: ${PROD_DATASOURCE_USERNAME:""}
-        password: ${PROD_DATASOURCE_PASSWORD:""}
+        url:
+        username:
+        password:
     data:
         redis:
-            host: ${REDIS_URL:""}
+            host:
             port: 6379
+            database: 4
+    mail:
+        password:
 
-server:
-    port: 8081
+amazon:
+    aws:
+        accessKey:
+        secretKey:
+        region:
+        bucketPublic:
+        bucketPrivate:
+
+cloudfront:
+    keyPairId:
+    privateKeyText:
+
+auth:
+    redis:
+        prefix: internhasha:dev
 
 auth:
     redis:
         prefix: internhasha:dev
 
 custom:
-    domain-name: dev.survey-josha.site
+    DEV_SECRET:
+    TOKEN_PRIVATE_KEY:
+
+    domain-name: dev-internhasha.wafflestudio.com
     protocol: https
     is-secure: true
 ---
+secret-names: prod/internhasha
+
 spring:
     config:
         activate:
             on-profile: prod
     datasource:
-        url: ${PROD_DATASOURCE_URL:""}
-        username: ${PROD_DATASOURCE_USERNAME:""}
-        password: ${PROD_DATASOURCE_PASSWORD:""}
+        url:
+        username:
+        password:
 
     data:
         redis:
-            host: ${REDIS_URL:""}
+            host:
             port: 6379
+            database: 4
+    mail:
+        password:
 
-custom:
-    domain-name: www.survey-josha.site
-    protocol: https
-    is-secure: true
+amazon:
+    aws:
+        accessKey:
+        secretKey:
+        region:
+        bucketPublic:
+        bucketPrivate:
+
+cloudfront:
+    keyPairId:
+    privateKeyText:
 
 auth:
     redis:
         prefix: internhasha:prod
 
-server:
-    port: 8080
+custom:
+    DEV_SECRET:
+    TOKEN_PRIVATE_KEY:
+
+    domain-name: internhasha.wafflestudio.com
+    protocol: https
+    is-secure: true
