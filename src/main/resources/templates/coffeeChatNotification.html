@@ -18,7 +18,7 @@
                     인턴하샤
                 </td>
                 <td align="right" style="font-size:13px;">
-                    <a th:href="@{'https://' + ${domain} + '/mypage/'}"
+                    <a th:href="@{${domain} + '/mypage/'}"
                        target="_blank" rel="noopener noreferrer"
                        style="font-size:13px; font-weight:bold; color:#666; text-decoration:none;">
                         대기중인 커피챗
@@ -38,27 +38,26 @@
 
         <!-- 본문 알림 -->
         <div style="padding: 16px; font-size: 18px; margin-bottom: 20px;
-                    line-height: 1.6; text-align: center; font-weight: bold;">
+                    line-height: 1.6; text-align: center; font-weight: bold; color: black">
             지원자가 "<span th:text="${title}">공고 제목</span>" 공고에<br/>
-            커피챗을 신청하였습니다!
+            커피챗을 신청하였습니다.
         </div>
 
         <!-- 유저 정보 -->
         <div style="font-size: 14px; margin-bottom: 16px; color: #444;">
             <strong th:text="${name}">홍길동</strong>
-            <span th:text="${email}" style="color: #888;">hong@snu.ac.kr</span>
         </div>
 
         <!-- 커피챗 상세 내용 -->
-        <div th:text="${content}" style="border: 1px solid #ddd; border-radius: 8px; min-height: 100px;
+        <div th:utext="${content}" style="border: 1px solid #ddd; border-radius: 8px; min-height: 100px;
                     padding: 16px; font-size: 14px; background-color: #f9f9f9;
-                    color: #555; margin-bottom: 24px;">
+                    margin-bottom: 24px;color: black !important">
             커피챗 신청 상세 내용
         </div>
 
         <!-- 상세보기 버튼 -->
         <div style="text-align: center;">
-            <a th:href="@{'https://' + ${domain} + '/coffeeChat/' + ${coffeeChatId}}"
+            <a th:href="@{${domain} + '/coffeeChat/' + ${coffeeChatId}}"
                target="_blank" rel="noopener noreferrer"
                style="display:inline-block; padding:12px 20px; font-size:14px; border:1px solid #ddd;
                       border-radius:8px; text-decoration:none; background-color:#444;

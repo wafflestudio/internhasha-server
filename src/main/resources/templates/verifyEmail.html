@@ -34,11 +34,11 @@
             <strong style="font-size: 16px;">이메일 인증 안내</strong>
         </p>
 
-        <p>안녕하세요, <strong th:text="${email}">email@snu.ac.kr</strong> 회원님.</p>
+        <p>안녕하세요, 회원님.</p>
         <p>
-            이메일 계정으로 인턴하샤 서비스에 가입하기 위한 인증 절차를 진행합니다.<br/>
+            <strong th:text="${email}">email@snu.ac.kr</strong> 계정으로 인턴하샤 서비스에 가입하기 위한 인증 절차를 진행합니다.
             아래의 인증 번호를 입력하여 인증을 완료해주세요.<br/>
-            <span style="color: #d32f2f;">※ 개인정보 보호를 위해 인증번호는 3분 간 유효합니다.</span>
+            <span style="color: #d32f2f; font-weight: bold">※ 개인정보 보호를 위해 인증번호는 3분 간 유효합니다.</span>
         </p>
 
         <!-- 인증번호 -->
