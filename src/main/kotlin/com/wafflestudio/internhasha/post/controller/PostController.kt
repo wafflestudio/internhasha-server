@@ -36,7 +36,7 @@ class PostController(
         // User 토큰이 들어올 수도, 아닐 수도 있음
         @Parameter(hidden = true) @AuthUserOrNull user: User?,
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) status: Boolean?,
+        @RequestParam(required = false) isActive: Boolean?,
         @RequestParam(required = false) domains: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
@@ -47,7 +47,7 @@ class PostController(
                 positions = roles,
                 page = page ?: 0,
                 order = order ?: 0,
-                isActive = status,
+                isActive = isActive ?: false,
                 domains = domains,
             )
 
@@ -144,7 +144,7 @@ class PostController(
     fun getPostByCompany(
         @Parameter(hidden = true) @AuthUser user: User,
         @RequestParam(required = false) roles: List<String>?,
-        @RequestParam(required = false) status: Boolean?,
+        @RequestParam(required = false) isActive: Boolean?,
         @RequestParam(required = false) domains: List<String>?,
         @RequestParam(required = false) @Min(0) page: Int?,
         @RequestParam(required = false) @Min(0) @Max(1) order: Int?,
@@ -155,7 +155,7 @@ class PostController(
                 positions = roles,
                 page = page ?: 0,
                 order = order ?: 0,
-                isActive = status,
+                isActive = isActive ?: false,
                 domains = domains,
             )
 
@@ -178,7 +178,7 @@ class PostController(
         @PathVariable("position_id") positionId: String,
     ): ResponseEntity<Void> {
         postService.closePosition(user, positionId)
-        return ResponseEntity.noContent().build()
+        return ResponseEntity.ok().build()
     }
 }
 

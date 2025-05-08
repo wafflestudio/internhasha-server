@@ -127,6 +127,10 @@ auth:
     redis:
         prefix: internhasha:dev
 
+auth:
+    redis:
+        prefix: internhasha:dev
+
 custom:
     DEV_SECRET:
     TOKEN_PRIVATE_KEY:

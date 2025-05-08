@@ -37,6 +37,21 @@ class EmailService(
 
             val templateName: String
 
+            var modifiedContent: String?
+            if (coffeeChatEntity != null) {
+                val content = coffeeChatEntity.content
+                modifiedContent =
+                    (
+                        if (content.length > 500) {
+                            content.substring(0, 500) + "......<br/><br/><strong>[전체 내용은 마이페이지에서 확인해주세요]</strong>"
+                        } else {
+                            content
+                        }
+                    ).replace("\n", "<br/>")
+            } else {
+                modifiedContent = ""
+            }
+
             when (type) {
                 EmailType.VerifyMail -> {
                     context.setVariable("emailCode", text)
@@ -54,12 +69,24 @@ class EmailService(
                         context.setVariable("title", coffeeChatEntity.position.positionTitle)
                         context.setVariable("name", coffeeChatEntity.applicant.name)
                         context.setVariable("email", coffeeChatEntity.applicant.email)
-                        context.setVariable("content", coffeeChatEntity.content)
+                        context.setVariable("content", modifiedContent)
                         context.setVariable("coffeeChatId", coffeeChatEntity.id)
                         context.setVariable("waiting", coffeeChatService.countCoffeeChatBadges(User.fromEntity(coffeeChatEntity.position.company.user)).toString())
                     }
 
                     templateName = "coffeeChatNotification"
+                }
+                EmailType.Result -> {
+                    context.setVariable("domain", "$protocol://$domainName")
+                    if (coffeeChatEntity != null) {
+                        context.setVariable("title", coffeeChatEntity.position.positionTitle)
+                        context.setVariable("content", modifiedContent)
+                        context.setVariable("coffeeChatId", coffeeChatEntity.id)
+                        context.setVariable("status", coffeeChatEntity.coffeeChatStatus.toString())
+                        context.setVariable("companyName", coffeeChatEntity.position.company.user.name)
+                    }
+
+                    templateName = "coffeeChatResult"
                 }
             }
 
