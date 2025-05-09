@@ -4,7 +4,7 @@ name: Docker Publish (Prod)
 on:
   push:
     tags:
-      - 'v\.[0-9]{6}' # 예시 v.250930
+      - 'v.*' # 예시 v.250930
 
 jobs:
   build-and-push:
