@@ -70,6 +70,11 @@ class CoffeeChatService(
         val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
         // 작성자가 아니면 403
         checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.APPLICANT)
+
+        if (coffeeChatEntity.changed) {
+            coffeeChatUpdateService.updateChangedFlagsAsync(listOf(coffeeChatEntity))
+        }
+
         return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
     }
 
@@ -260,7 +265,6 @@ class CoffeeChatService(
         )
     }
 
-    @Transactional
     fun getCoffeeChatListApplicant(
         user: User,
     ): List<CoffeeChatBrief> {
