@@ -73,6 +73,7 @@ data class CoffeeChatCompany(
                         updatedAt = entity.applicant.updatedAt,
                         userRole = entity.applicant.userRole,
                         email = entity.applicant.email,
+                        cvKey = entity.applicant.applicant?.cvKey?: "",
                     )
 
             // 성사 조건에 따라 이메일 필터링

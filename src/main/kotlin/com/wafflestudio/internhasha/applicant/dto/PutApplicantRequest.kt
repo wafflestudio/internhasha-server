@@ -22,8 +22,9 @@ data class PutApplicantRequest(
         >? = null,
     @field:Size(max = 512, message = "imageKey cannot be more than 512 characters")
     val imageKey: String? = null,
+    @field:NotNull(message = "cvKey is required")
     @field:Size(max = 512, message = "cvKey cannot be more than 512 characters")
-    val cvKey: String? = null,
+    val cvKey: String,
     @field:Size(max = 512, message = "portfolioKey cannot be more than 512 characters")
     val portfolioKey: String? = null,
     @field:Size(max = 5, message = "the number of links cannot be more than 5")

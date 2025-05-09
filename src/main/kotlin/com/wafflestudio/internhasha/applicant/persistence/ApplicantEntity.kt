@@ -48,7 +48,7 @@ class ApplicantEntity(
     @Column(name = "profile_image_key")
     var profileImageKey: String? = null,
     @Column(name = "cv_key")
-    var cvKey: String? = null,
+    var cvKey: String,
     @Column(name = "portfolio_key")
     var portfolioKey: String? = null,
     @Column(name = "links", length = 10500)

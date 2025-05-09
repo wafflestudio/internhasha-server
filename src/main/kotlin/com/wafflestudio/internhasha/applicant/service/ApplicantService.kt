@@ -66,7 +66,7 @@ class ApplicantService(
         // 기존 s3 object 삭제
 
         applicantEntity?.let { applicant ->
-            applicant.cvKey?.let { if (it != request.cvKey) s3Service.deleteS3File(it) }
+            applicant.cvKey.let { if (it != request.cvKey) s3Service.deleteS3File(it) }
             applicant.profileImageKey?.let { if (it != request.imageKey) s3Service.deleteS3File(it) }
             applicant.portfolioKey?.let { if (it != request.portfolioKey) s3Service.deleteS3File(it) }
         }
