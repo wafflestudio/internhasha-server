@@ -279,7 +279,7 @@ class CoffeeChatService(
 
         // changed == true 인 것만 비동기로 업데이트
         coffeeChatUpdateService.updateChangedFlagsAsync(
-            coffeeChatEntityList.filter { it.changed }
+            coffeeChatEntityList.filter { it.changed },
         )
 
         return ret

@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional
 class CoffeeChatUpdateService(
     private val coffeeChatRepository: CoffeeChatRepository,
 ) {
-
     @Async
     @Transactional
     fun updateChangedFlagsAsync(changedList: List<CoffeeChatEntity>) {
