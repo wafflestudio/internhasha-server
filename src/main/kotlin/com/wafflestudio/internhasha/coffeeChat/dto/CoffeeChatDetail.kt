@@ -2,6 +2,7 @@ package com.wafflestudio.internhasha.coffeeChat.dto
 
 import com.wafflestudio.internhasha.applicant.dto.ApplicantResponse
 import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatus
+import com.wafflestudio.internhasha.coffeeChat.CoffeeChatUserForbiddenException
 import com.wafflestudio.internhasha.coffeeChat.persistence.CoffeeChatEntity
 import java.time.LocalDateTime
 
@@ -66,13 +67,8 @@ data class CoffeeChatCompany(
         ): CoffeeChatCompany {
             val applicantResponse =
                 entity.applicant.applicant?.let { ApplicantResponse.fromEntity(it) }
-                    ?: ApplicantResponse(
-                        id = entity.applicant.id,
-                        name = entity.applicant.name,
-                        createdAt = entity.applicant.createdAt,
-                        updatedAt = entity.applicant.updatedAt,
-                        userRole = entity.applicant.userRole,
-                        email = entity.applicant.email,
+                    ?: throw CoffeeChatUserForbiddenException(
+                        details = mapOf("applicantId" to entity.applicant.id, "user.applicant" to "No Profile"),
                     )
 
             // 성사 조건에 따라 이메일 필터링

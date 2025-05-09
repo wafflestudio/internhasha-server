@@ -20,7 +20,7 @@ data class ApplicantResponse(
     val explanation: String? = null,
     val stacks: List<String>? = null,
     val imageKey: String? = null,
-    val cvKey: String? = null,
+    val cvKey: String,
     val portfolioKey: String? = null,
     val links: List<Link>? = null,
 ) {

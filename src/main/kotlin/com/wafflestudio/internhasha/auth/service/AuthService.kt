@@ -286,7 +286,7 @@ class AuthService(
 
         // s3 object 삭제
         userEntity.applicant?.let { applicant ->
-            applicant.cvKey?.let { s3Service.deleteS3File(it) }
+            applicant.cvKey.let { s3Service.deleteS3File(it) }
             applicant.profileImageKey?.let { s3Service.deleteS3File(it) }
             applicant.portfolioKey?.let { s3Service.deleteS3File(it) }
         }
