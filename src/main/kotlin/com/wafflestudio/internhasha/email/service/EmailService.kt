@@ -5,6 +5,8 @@ import com.wafflestudio.internhasha.coffeeChat.persistence.CoffeeChatEntity
 import com.wafflestudio.internhasha.coffeeChat.service.CoffeeChatService
 import com.wafflestudio.internhasha.email.EmailSendFailureException
 import com.wafflestudio.internhasha.email.EmailType
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Lazy
 import org.springframework.mail.javamail.JavaMailSender
@@ -22,6 +24,8 @@ class EmailService(
     @Value("\${custom.domain-name}") private val domainName: String,
     @Value("\${custom.protocol}") private val protocol: String,
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(EmailService::class.java)
+
     @Async
     fun sendEmail(
         type: EmailType,
@@ -100,6 +104,7 @@ class EmailService(
 
             mailSender.send(message)
         } catch (ex: Exception) {
+            logger.error("이메일 전송 실패: 대상 = $to, 타입 = $type", ex)
             throw EmailSendFailureException()
         }
     }
