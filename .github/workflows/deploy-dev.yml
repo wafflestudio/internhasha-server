@@ -73,7 +73,7 @@ jobs:
       # 9. Push the Docker image to Docker Hub
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:latest
+#          docker push ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:latest
           docker push ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:${{ github.run_number }}
 
 #  deploy:
