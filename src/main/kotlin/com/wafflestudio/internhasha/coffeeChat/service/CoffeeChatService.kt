@@ -26,6 +26,7 @@ import java.time.LocalDateTime
 @Service
 class CoffeeChatService(
     private val coffeeChatRepository: CoffeeChatRepository,
+    private val coffeeChatUpdateService: CoffeeChatUpdateService,
     @Lazy private val authService: AuthService,
     @Lazy private val postService: PostService,
     @Lazy private val emailService: EmailService,
@@ -95,6 +96,11 @@ class CoffeeChatService(
             )
         }
         val userEntity = getUserEntityOrThrow(user.id)
+        if (userEntity.applicant == null) {
+            throw CoffeeChatUserForbiddenException(
+                details = mapOf("userId" to user.id, "user.applicant" to "No Profile"),
+            )
+        }
         val positionEntity = getPositionEntityOrThrow(postId)
 
         // 이미 대기 중인 커피챗이 있는지 확인
@@ -254,77 +260,6 @@ class CoffeeChatService(
         )
     }
 
-//    private fun cancelCoffeeChat(
-//        user: User,
-//        coffeeChatId: String,
-//    ): CoffeeChatApplicant {
-//        // 커피챗 찾기
-//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-//        // 작성자가 아니면 403
-//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.APPLICANT)
-//        // 업데이트
-//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.CANCELED
-//        } else {
-//            throw CoffeeChatStatusForbiddenException(
-//                details =
-//                    mapOf(
-//                        "coffeeChatId" to coffeeChatId,
-//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-//                    ),
-//            )
-//        }
-//        return CoffeeChatApplicant.fromEntity(coffeeChatEntity)
-//    }
-//
-//    private fun acceptCoffeeChat(
-//        user: User,
-//        coffeeChatId: String,
-//    ): CoffeeChatCompany {
-//        // 커피챗 찾기
-//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-//        // 대상 회사가 아니면 403
-//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
-//        // 업데이트
-//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.ACCEPTED
-//            coffeeChatEntity.changed = true
-//        } else {
-//            throw CoffeeChatStatusForbiddenException(
-//                details =
-//                    mapOf(
-//                        "coffeeChatId" to coffeeChatId,
-//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-//                    ),
-//            )
-//        }
-//        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
-//    }
-//
-//    private fun rejectCoffeeChat(
-//        user: User,
-//        coffeeChatId: String,
-//    ): CoffeeChatCompany {
-//        // 커피챗 찾기
-//        val coffeeChatEntity = getCoffeeChatEntity(coffeeChatId)
-//        // 대상 회사가 아니면 403
-//        checkCoffeeChatAuthority(coffeeChatEntity, user, UserRole.COMPANY)
-//        // 업데이트
-//        if (coffeeChatEntity.coffeeChatStatus == CoffeeChatStatus.WAITING) {
-//            coffeeChatEntity.coffeeChatStatus = CoffeeChatStatus.REJECTED
-//            coffeeChatEntity.changed = true
-//        } else {
-//            throw CoffeeChatStatusForbiddenException(
-//                details =
-//                    mapOf(
-//                        "coffeeChatId" to coffeeChatId,
-//                        "status" to coffeeChatEntity.coffeeChatStatus.toString(),
-//                    ),
-//            )
-//        }
-//        return CoffeeChatCompany.fromEntity(coffeeChatEntity)
-//    }
-
     @Transactional
     fun getCoffeeChatListApplicant(
         user: User,
@@ -335,15 +270,14 @@ class CoffeeChatService(
             )
         }
         val coffeeChatEntityList = coffeeChatRepository.findAllByApplicantId(user.id)
-
         // 커피챗 DTO를 준비(changed 반영)
         val ret = coffeeChatEntityList.map { CoffeeChatBrief.fromEntity(it) }
 
-        // changed 값을 false로 변경, 저장
-        coffeeChatEntityList.filter { it.changed }.forEach {
-            it.changed = false
-            coffeeChatRepository.save(it)
-        }
+        // changed == true 인 것만 비동기로 업데이트
+        coffeeChatUpdateService.updateChangedFlagsAsync(
+            coffeeChatEntityList.filter { it.changed }
+        )
+
         return ret
     }
 
