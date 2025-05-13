@@ -131,7 +131,7 @@ class AuthRedisCacheService(
         redisTemplate.opsForValue().set(
             key,
             true.toString(),
-            UserTokenUtil.emailTokenExpirationTime * 1000,
+            UserTokenUtil.accessTokenExpirationTime * 1000,
             TimeUnit.MILLISECONDS,
         )
     }
