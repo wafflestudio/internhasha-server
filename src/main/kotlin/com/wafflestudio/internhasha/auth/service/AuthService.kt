@@ -220,6 +220,12 @@ class AuthService(
 
     // Email verification
     fun sendSnuMailVerification(request: SnuMailRequest) {
+        if (userRepository.existsByEmail(request.snuMail)) {
+            throw UserDuplicateSnuMailException(
+                details = mapOf("email" to request.snuMail),
+            )
+        }
+
         val emailCode = (100000..999999).random().toString()
         val encryptedEmailCode = BCrypt.hashpw(emailCode, BCrypt.gensalt())
 
