@@ -178,7 +178,7 @@ class PositionSpecification {
                 }
                 else -> {
                     // 공고 생성순 정렬 (createdAt 기준)
-                    orderList.add(criteriaBuilder.desc(root.get<LocalDateTime>("createdAt")))
+                    orderList.add(criteriaBuilder.asc(root.get<LocalDateTime>("createdAt")))
                 }
             }
 
