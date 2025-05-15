@@ -177,8 +177,8 @@ class PositionSpecification {
                     orderList.add(criteriaBuilder.desc(closedSort)) // 마감된 건 내림차순
                 }
                 else -> {
-                    // 최신순 정렬 (updatedAt 기준)
-                    orderList.add(criteriaBuilder.desc(root.get<LocalDateTime>("updatedAt")))
+                    // 공고 생성순 정렬 (createdAt 기준)
+                    orderList.add(criteriaBuilder.asc(root.get<LocalDateTime>("createdAt")))
                 }
             }
 
