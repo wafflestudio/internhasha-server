@@ -10,6 +10,7 @@ import java.util.*
 class Application
 
 fun main(args: Array<String>) {
+    // 서울 타임존 설정
     TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
     runApplication<Application>(*args)
 }
