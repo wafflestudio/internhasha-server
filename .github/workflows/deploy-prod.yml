@@ -1,10 +1,11 @@
 name: Docker Publish (Prod)
 
-# 태그 기반 push
+# This workflow is triggered on a push to a tag matching 'v.*'
+# Example: v.250930
 on:
   push:
     tags:
-      - 'v.*' # 예시 v.250930
+      - 'v.*'
 
 jobs:
   build-and-push:
@@ -65,52 +66,20 @@ jobs:
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 8. Build and tag the Docker image
-      - name: Build Docker image
-        run: |
-          docker build --build-arg JAR_FILE=build/libs/*.jar -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest .
-          docker tag ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:${{ github.ref_name }}
+      # 8. Set up QEMU for multi-architecture builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      # 9. Push the Docker image to Docker Hub
-      - name: Push Docker image
-        run: |
-          docker push ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:${{ github.ref_name }}
+      # 9. Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-#  deploy:
-#    runs-on: ubuntu-latest
-#    needs: build-and-push
-#
-#    steps:
-#
-#      # 1. Checkout the repository
-#      - name: Checkout repository
-#        uses: actions/checkout@v3
-#
-#      - name: Check workspace files
-#        run: ls -al ${GITHUB_WORKSPACE}
-#
-#      # 1. Send docker-compose.prod.yml to EC2 server
-#      - name: Copy docker-compose files to EC2
-#        uses: appleboy/scp-action@master
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ${{ secrets.EC2_USER }}
-#          key: ${{ secrets.EC2_PRIVATE_KEY }}
-#          source: "./docker-compose.prod.yml"
-#          target: "/home/ubuntu"
-#          debug: true
-#
-#      # 2. Deploy to EC2 via SSH
-#      - name: Deploy to EC2
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ${{ secrets.EC2_USER }}
-#          key: ${{ secrets.EC2_PRIVATE_KEY }}
-#          script: |
-#            cd ~
-#            docker-compose --env-file .env -f docker-compose.prod.yml down
-#            docker-compose --env-file .env -f docker-compose.prod.yml pull
-#            docker image prune -f
-#            docker-compose --env-file .env -f docker-compose.prod.yml up --build -d
-#          debug: true
+      # 10. Build and push multi-architecture Docker image
+      - name: Build and push multi-architecture image to ECR
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg JAR_FILE=build/libs/*.jar \
+            -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest \
+            -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:${{ github.ref_name }} \
+            --push .
