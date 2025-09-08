@@ -71,7 +71,6 @@ jobs:
           docker buildx build \
             --build-arg JAR_FILE=build/libs/*.jar \
             -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:${{ github.ref_name }} \
-            -t ${{ secrets.ECR_URI }}/internhasha-prod/internhasha-server:latest \
             --push \
             .
 
