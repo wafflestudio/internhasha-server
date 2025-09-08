@@ -1,4 +1,4 @@
-name: Docker Publish (Dev ARM64)
+name: Docker Publish (Dev ARM)
 
 on:
   push:
@@ -7,26 +7,26 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-arm64
 
     steps:
       # 1. Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Debug workspace
         run: ls ./
 
       # 2. Set up JDK 17
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'corretto'
 
       # 3. Cache Gradle dependencies
       - name: Cache Gradle dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
@@ -39,7 +39,7 @@ jobs:
 
       # 5. Get Code Artifact token
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -64,17 +64,10 @@ jobs:
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 8. Docker Buildx configuration for arm64
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # 9. arm64 single image build & push
+      # 8. arm64 single image build & push
       - name: Build and push arm64 image
         run: |
           docker buildx build \
-            --platform linux/arm64 \
             --build-arg JAR_FILE=build/libs/*.jar \
             -t ${{ secrets.ECR_URI }}/internhasha-dev/internhasha-server:${{ github.run_number }} \
             --push \
