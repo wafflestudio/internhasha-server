@@ -79,14 +79,15 @@ class AuthService(
             )
         }
 
-        // 성공 코드 확인(실제로 메일 인증으로 발급한 성공 코드 or 비밀코드)
-        if (info.successCode != devSecret) {
-            if (authRedisCacheService.getSuccessCode(info.successCode)) {
-                authRedisCacheService.deleteSuccessCode(info.successCode)
-            } else {
-                throw UserSuccessCodeException(details = mapOf("user" to info.name, "successCode" to info.successCode))
-            }
-        }
+        // 이메일 인증에 따른 성공 코드 체크 비활성화
+//        // 성공 코드 확인(실제로 메일 인증으로 발급한 성공 코드 or 비밀코드)
+//        if (info.successCode != devSecret) {
+//            if (authRedisCacheService.getSuccessCode(info.successCode)) {
+//                authRedisCacheService.deleteSuccessCode(info.successCode)
+//            } else {
+//                throw UserSuccessCodeException(details = mapOf("user" to info.name, "successCode" to info.successCode))
+//            }
+//        }
 
         // 새로운 사용자 생성
         val user =

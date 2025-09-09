@@ -42,7 +42,7 @@ data class SignUpRequest(
             message = "Password must be between 8 and 64 characters.",
         )
         val password: String,
-        val successCode: String,
+        val successCode: String? = null,
     ) : Info()
 
     @JsonTypeName("COMPANY")
