@@ -1,5 +1,7 @@
 package com.wafflestudio.internhasha.company.dto
 
+import com.wafflestudio.internhasha.common.TagVo
+
 data class Tag(
     val tag: String,
 ) {

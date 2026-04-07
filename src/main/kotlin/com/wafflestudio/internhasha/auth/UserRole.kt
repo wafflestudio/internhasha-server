@@ -1,6 +1,6 @@
 package com.wafflestudio.internhasha.auth
 
 enum class UserRole {
-    APPLICANT,
-    COMPANY,
+    ROLE_APPLICANT,
+    ROLE_COMPANY,
 }

@@ -1,4 +1,4 @@
-package com.wafflestudio.internhasha.company.dto
+package com.wafflestudio.internhasha.common
 
 import jakarta.persistence.Embeddable
 

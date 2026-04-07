@@ -1,4 +1,4 @@
-package com.wafflestudio.internhasha.company.dto
+package com.wafflestudio.internhasha.common
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
@@ -9,5 +9,3 @@ data class LinkVo(
     @Column(length = 2048)
     val link: String,
 )
-
-// 표시할 텍스트가 없으면 링크 자체로 표시

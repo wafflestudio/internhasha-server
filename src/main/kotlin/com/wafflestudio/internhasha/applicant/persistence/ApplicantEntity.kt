@@ -1,87 +1,60 @@
 package com.wafflestudio.internhasha.applicant.persistence
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.wafflestudio.internhasha.applicant.dto.Link
 import com.wafflestudio.internhasha.auth.UserRole
 import com.wafflestudio.internhasha.auth.persistence.UserEntity
-import jakarta.persistence.*
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
-import java.util.UUID
+import com.wafflestudio.internhasha.common.LinkVo
+import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.Table
 
-@Entity(name = "applicants")
-@EntityListeners(AuditingEntityListener::class)
+@Entity
+@Table(name = "applicants")
+@DiscriminatorValue(value = "applicant")
 class ApplicantEntity(
-    @Id
-    @Column(name = "id", nullable = false, updatable = false, length = 36)
-    val id: String = UUID.randomUUID().toString(),
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    val user: UserEntity,
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-    @Enumerated(EnumType.STRING)
-    @Column(name = "user_role", nullable = false)
-    val userRole: UserRole = UserRole.APPLICANT,
-    // MySQL SMALLINT는 -32768~32767
-    @Column(name = "enroll_year", columnDefinition = "SMALLINT")
+    name: String,
+    email: String,
+    passwordHash: String? = null,
     var enrollYear: Int? = null,
-    @Column(name = "dept")
     var dept: String? = null,
-    @Column(name = "positions")
-    @Convert(converter = StringListConverter::class)
-    var positions: List<String>? = null,
-    @Column(name = "slogan")
     var slogan: String? = null,
-    @Column(name = "explanation", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     var explanation: String? = null,
-    @Column(name = "stacks", length = 512)
-    @Convert(converter = StringListConverter::class)
-    var stacks: List<String>? = null,
-    @Column(name = "profile_image_key")
     var profileImageKey: String? = null,
-    @Column(name = "cv_key")
-    var cvKey: String,
-    @Column(name = "portfolio_key")
+    var cvKey: String? = null,
     var portfolioKey: String? = null,
-    @Column(name = "links", length = 10500)
-    @Convert(converter = LinkListConverter::class)
-    var links: List<Link>? = null,
-)
+) : UserEntity(
+        name = name,
+        email = email,
+        passwordHash = passwordHash,
+    ) {
+    @ElementCollection
+    @CollectionTable(
+        name = "applicant_positions",
+        joinColumns = [JoinColumn(name = "applicant_id")],
+    )
+    @Column(name = "position_name")
+    var positions: MutableList<String> = mutableListOf()
+        protected set
 
-@Converter(autoApply = false)
-class StringListConverter : AttributeConverter<List<String>?, String?> {
-    private val objectMapper = jacksonObjectMapper()
+    @ElementCollection
+    @CollectionTable(
+        name = "applicant_stacks",
+        joinColumns = [JoinColumn(name = "applicant_id")],
+    )
+    var stacks: MutableList<String> = mutableListOf()
+        protected set
 
-    override fun convertToDatabaseColumn(attribute: List<String>?): String? {
-        return attribute?.let { objectMapper.writeValueAsString(it) }
-    }
+    @ElementCollection
+    @CollectionTable(
+        name = "applicant_links",
+        joinColumns = [JoinColumn(name = "applicant_id")],
+    )
+    var links: MutableList<LinkVo> = mutableListOf()
+        protected set
 
-    override fun convertToEntityAttribute(str: String?): List<String>? {
-        return str?.let {
-            objectMapper.readValue(it, object : TypeReference<List<String>>() {})
-        }
-    }
-}
-
-@Converter(autoApply = false)
-class LinkListConverter : AttributeConverter<List<Link>?, String?> {
-    private val objectMapper = jacksonObjectMapper()
-
-    override fun convertToDatabaseColumn(attribute: List<Link>?): String? {
-        return attribute?.let { objectMapper.writeValueAsString(it) }
-    }
-
-    override fun convertToEntityAttribute(str: String?): List<Link>? {
-        return str?.let {
-            objectMapper.readValue(it, object : TypeReference<List<Link>>() {})
-        }
-    }
+    override fun getRole() = UserRole.ROLE_APPLICANT
 }

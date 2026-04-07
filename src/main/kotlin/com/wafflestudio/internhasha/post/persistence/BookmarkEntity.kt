@@ -1,24 +1,42 @@
 package com.wafflestudio.internhasha.post.persistence
 
-import com.wafflestudio.internhasha.auth.persistence.UserEntity
-import jakarta.persistence.*
-import java.util.*
+import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
+import com.wafflestudio.internhasha.common.BaseEntity
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 
 @Entity
 @Table(
     name = "bookmarks",
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["USER_ID", "POSTION_ID"]),
+        UniqueConstraint(columnNames = ["applicant_id", "position_id"]),
     ],
 )
 class BookmarkEntity(
+    applicantEntity: ApplicantEntity,
+    positionEntity: PositionEntity,
+) : BaseEntity() {
     @Id
-    @Column(name = "ID", nullable = false)
-    open val id: String = UUID.randomUUID().toString(),
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "bookmark_id")
+    var id: String? = null
+        protected set
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "USER_ID", nullable = false)
-    open val user: UserEntity,
+    @JoinColumn(name = "applicant_id")
+    var user: ApplicantEntity = applicantEntity
+        protected set
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "POSITION_ID", nullable = false)
-    open val position: PositionEntity,
-)
+    @JoinColumn(name = "position_id")
+    var position: PositionEntity = positionEntity
+        protected set
+}

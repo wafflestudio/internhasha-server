@@ -17,11 +17,11 @@ data class User(
             entity: UserEntity,
         ): User =
             User(
-                id = entity.id,
+                id = requireNotNull(entity.id) { "UserEntity id must not be null" },
                 name = entity.name,
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
-                userRole = entity.userRole,
+                userRole = entity.getRole(),
                 email = entity.email,
             )
     }

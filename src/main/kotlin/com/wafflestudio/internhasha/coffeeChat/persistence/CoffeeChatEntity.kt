@@ -1,43 +1,51 @@
 package com.wafflestudio.internhasha.coffeeChat.persistence
 
-import com.wafflestudio.internhasha.auth.persistence.UserEntity
+import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
 import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatus
+import com.wafflestudio.internhasha.common.BaseEntity
 import com.wafflestudio.internhasha.post.persistence.PositionEntity
-import jakarta.persistence.*
-import java.time.LocalDateTime
-import java.util.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 
 @Entity
-@Table(name = "coffeeChats")
 class CoffeeChatEntity(
+    @Column(columnDefinition = "TEXT")
+    var content: String,
+    applicantEntity: ApplicantEntity,
+    positionEntity: PositionEntity,
+) : BaseEntity() {
     @Id
-    @Column(name = "ID", nullable = false)
-    open val id: String = UUID.randomUUID().toString(),
-    @Column(name = "CREATED_AT", nullable = false, updatable = false)
-    open var createdAt: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "UPDATED_AT", nullable = false)
-    open var updatedAt: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "CONTENT", columnDefinition = "TEXT", nullable = false)
-    open var content: String,
-    @Column(name = "COFFEE_CHAT_STATUS", nullable = false)
-    open var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING,
-    @Column(name = "CHANGED", nullable = false)
-    open var changed: Boolean = false,
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "POSITION_ID", nullable = false)
-    open var position: PositionEntity,
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "APPLICANT_ID", nullable = false)
-    open val applicant: UserEntity,
-) {
-    @PrePersist
-    fun onCreate() {
-        createdAt = LocalDateTime.now()
-        updatedAt = createdAt
-    }
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "coffeechat_id")
+    var id: String? = null
+        protected set
 
-    @PreUpdate
-    fun onUpdate() {
-        updatedAt = LocalDateTime.now()
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "applicant_id")
+    var applicant: ApplicantEntity = applicantEntity
+        protected set
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "position_id")
+    var position: PositionEntity = positionEntity
+        protected set
+
+    @Enumerated(EnumType.STRING)
+    var coffeeChatStatus: CoffeeChatStatus = CoffeeChatStatus.WAITING
+        protected set
+    var changed: Boolean = false
+        protected set
+
+    fun updateStatus(newStatus: CoffeeChatStatus) {
+        coffeeChatStatus = newStatus
+        changed = true
     }
 }
