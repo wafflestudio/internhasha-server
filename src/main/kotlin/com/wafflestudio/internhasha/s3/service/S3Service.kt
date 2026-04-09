@@ -6,10 +6,15 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
-import com.wafflestudio.internhasha.auth.dto.User
+import com.wafflestudio.internhasha.auth.domain.User
 import com.wafflestudio.internhasha.s3.*
 import com.wafflestudio.internhasha.s3.controller.S3DownloadReq
 import com.wafflestudio.internhasha.s3.controller.S3UploadReq
+import com.wafflestudio.internhasha.s3.dto.S3Files
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -35,6 +40,8 @@ class S3Service(
     @Value("\${custom.domain-name}") private val domainName: String,
     @Value("\${custom.protocol}") private val protocol: String,
 ) {
+    private val logger = LoggerFactory.getLogger(S3Service::class.java)
+
     // Lazy - 한 번만 파싱하고 이후 재사용하는 구조
     private val tempPrivateKeyFile: File by lazy {
         createPrivateKeyFile()
@@ -130,16 +137,22 @@ class S3Service(
         }
     }
 
-    fun deleteS3File(s3Key: String) {
+    suspend fun deleteS3Files(s3Files: S3Files) =
+        withContext(Dispatchers.IO) {
+            s3Files.cvKey?.let { launch { deleteS3File(it) } }
+            s3Files.profileImageKey?.let { launch { deleteS3File(it) } }
+            s3Files.portfolioKey?.let { launch { deleteS3File(it) } }
+            s3Files.companyInfoPDFKey?.let { launch { deleteS3File(it) } }
+        }
+
+    private fun deleteS3File(s3Key: String) {
         val isPrivate = s3Key.startsWith("static/private/")
         val bucketName = if (isPrivate) bucketPrivate else bucketPublic
 
         try {
             amazonS3.deleteObject(bucketName, s3Key)
-        } catch (e: AmazonS3Exception) {
-            throw S3DeleteFailedException()
-        } catch (e: SdkClientException) {
-            throw S3SDKClientFailedException()
+        } catch (e: Exception) {
+            logger.error("S3 파일 삭제 실패 - Key: $s3Key, Reason: ${e.message}")
         }
     }
 

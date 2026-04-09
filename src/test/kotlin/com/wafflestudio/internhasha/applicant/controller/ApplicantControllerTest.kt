@@ -4,15 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import com.wafflestudio.internhasha.applicant.ApplicantNotFoundException
 import com.wafflestudio.internhasha.applicant.ApplicantUserForbiddenException
-import com.wafflestudio.internhasha.applicant.dto.ApplicantResponse
-import com.wafflestudio.internhasha.applicant.dto.Link
-import com.wafflestudio.internhasha.applicant.dto.PutApplicantRequest
+import com.wafflestudio.internhasha.applicant.application.service.ApplicantService
 import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
-import com.wafflestudio.internhasha.applicant.service.ApplicantService
-import com.wafflestudio.internhasha.auth.UserRole
-import com.wafflestudio.internhasha.auth.dto.User
+import com.wafflestudio.internhasha.applicant.web.dto.ApplicantResponse
+import com.wafflestudio.internhasha.applicant.web.dto.PutApplicantRequest
+import com.wafflestudio.internhasha.auth.application.service.AuthService
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.domain.UserRole
 import com.wafflestudio.internhasha.auth.persistence.UserEntity
-import com.wafflestudio.internhasha.auth.service.AuthService
+import com.wafflestudio.internhasha.common.domain.Link
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.verify
@@ -93,6 +93,8 @@ class ApplicantControllerTest {
             links = listOf(Link(description = "GitHub", link = "https://github.com/example")),
         )
 
+    private val applicantResponse = ApplicantResponse.fromEntity(applicantEntity)
+
     @BeforeEach
     fun setUp() {
         clearMocks(applicantService, authService)
@@ -102,7 +104,7 @@ class ApplicantControllerTest {
     @Test
     @DisplayName("지원자 조회 - 성공하면 ApplicantResponse를 반환한다")
     fun getApplicantSuccess() {
-        every { applicantService.getApplicant(applicantUser) } returns applicantEntity
+        every { applicantService.getApplicant(applicantUser) } returns applicantResponse
 
         mockMvc.perform(withAuth(get("/api/applicant/me")))
             .andExpect(status().isOk)

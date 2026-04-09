@@ -1,12 +1,11 @@
 package com.wafflestudio.internhasha.company.persistence
 
-import com.wafflestudio.internhasha.auth.UserRole
+import com.wafflestudio.internhasha.auth.domain.UserRole
 import com.wafflestudio.internhasha.auth.persistence.UserEntity
-import com.wafflestudio.internhasha.common.LinkVo
-import com.wafflestudio.internhasha.common.TagVo
-import com.wafflestudio.internhasha.company.Domain
+import com.wafflestudio.internhasha.common.persistence.LinkVo
+import com.wafflestudio.internhasha.common.persistence.TagVo
+import com.wafflestudio.internhasha.company.domain.Domain
 import com.wafflestudio.internhasha.post.persistence.PositionEntity
-import jakarta.persistence.CascadeType
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
@@ -14,6 +13,7 @@ import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -45,24 +45,24 @@ class CompanyEntity(
         email = email,
         passwordHash = passwordHash,
     ) {
-    @OneToMany(mappedBy = "company", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var positions: MutableList<PositionEntity> = mutableListOf()
+    @OneToMany(mappedBy = "company")
+    var positions: MutableSet<PositionEntity> = mutableSetOf()
         protected set
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "company_links",
         joinColumns = [JoinColumn(name = "company_id")],
     )
-    var links: MutableList<LinkVo> = mutableListOf()
+    var links: MutableSet<LinkVo> = mutableSetOf()
         protected set
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "company_tags",
         joinColumns = [JoinColumn(name = "company_id")],
     )
-    var tags: MutableList<TagVo> = mutableListOf()
+    var tags: MutableSet<TagVo> = mutableSetOf()
         protected set
 
     override fun getRole() = UserRole.ROLE_COMPANY

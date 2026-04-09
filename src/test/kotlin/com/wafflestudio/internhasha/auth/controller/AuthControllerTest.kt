@@ -2,15 +2,20 @@ package com.wafflestudio.internhasha.auth.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import com.wafflestudio.internhasha.auth.UserDuplicateSnuMailException
-import com.wafflestudio.internhasha.auth.UserEmailVerificationInvalidException
-import com.wafflestudio.internhasha.auth.UserNotFoundException
-import com.wafflestudio.internhasha.auth.UserRole
-import com.wafflestudio.internhasha.auth.dto.SignInRequest
-import com.wafflestudio.internhasha.auth.dto.SignUpRequest
-import com.wafflestudio.internhasha.auth.dto.User
-import com.wafflestudio.internhasha.auth.service.AuthService
-import com.wafflestudio.internhasha.auth.utils.UserTokenUtil
+import com.wafflestudio.internhasha.auth.application.service.AuthService
+import com.wafflestudio.internhasha.auth.domain.Tokens
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.domain.UserDuplicateSnuMailException
+import com.wafflestudio.internhasha.auth.domain.UserEmailVerificationInvalidException
+import com.wafflestudio.internhasha.auth.domain.UserNotFoundException
+import com.wafflestudio.internhasha.auth.domain.UserRole
+import com.wafflestudio.internhasha.auth.domain.UserSimple
+import com.wafflestudio.internhasha.auth.web.dto.ChangePasswordRequest
+import com.wafflestudio.internhasha.auth.web.dto.CheckSnuMailVerificationRequest
+import com.wafflestudio.internhasha.auth.web.dto.EmailRequest
+import com.wafflestudio.internhasha.auth.web.dto.SignInRequest
+import com.wafflestudio.internhasha.auth.web.dto.SignUpRequest
+import com.wafflestudio.internhasha.auth.web.dto.SnuMailRequest
 import com.wafflestudio.internhasha.email.EmailSendFailureException
 import com.wafflestudio.internhasha.exceptions.InvalidCredentialsException
 import com.wafflestudio.internhasha.exceptions.InvalidRefreshTokenException
@@ -62,12 +67,22 @@ class AuthControllerTest {
             userRole = UserRole.ROLE_APPLICANT,
             email = "applicant@snu.ac.kr",
         )
+    private val applicantUserSimple =
+        UserSimple(
+            id = "user-1",
+            userRole = UserRole.ROLE_APPLICANT,
+        )
     private val companyUser =
         User(
             id = "user-2",
             name = "기업회원",
             userRole = UserRole.ROLE_COMPANY,
             email = "company@example.com",
+        )
+    private val companyUserSimple =
+        UserSimple(
+            id = "user-2",
+            userRole = UserRole.ROLE_COMPANY,
         )
 
     @BeforeEach
@@ -87,9 +102,10 @@ class AuthControllerTest {
                         name = "홍길동",
                         email = "hong@snu.ac.kr",
                         password = "Password123!",
+                        successCode = "Hello world",
                     ),
             )
-        val tokens = UserTokenUtil.Tokens(accessToken = "access-token", refreshToken = "refresh-token")
+        val tokens = Tokens(accessToken = "access-token", refreshToken = "refresh-token")
         every { authService.signUp(any()) } returns (applicantUser to tokens)
 
         performJsonPost("/api/auth/user", request)
@@ -119,7 +135,7 @@ class AuthControllerTest {
                         vcRecommendation = "추천서",
                     ),
             )
-        val tokens = UserTokenUtil.Tokens(accessToken = "access-token", refreshToken = "refresh-token")
+        val tokens = Tokens(accessToken = "access-token", refreshToken = "refresh-token")
         every { authService.signUp(any()) } returns (companyUser to tokens)
 
         performJsonPost("/api/auth/user", request)
@@ -143,6 +159,7 @@ class AuthControllerTest {
                         name = "",
                         email = "invalid-email",
                         password = "short",
+                        successCode = "Hello world",
                     ),
             )
 
@@ -168,6 +185,7 @@ class AuthControllerTest {
                         name = "홍길동",
                         email = "hong@snu.ac.kr",
                         password = "Password123!",
+                        successCode = "Hello world",
                     ),
             )
         every { authService.signUp(any()) } throws UserDuplicateSnuMailException(details = mapOf("email" to "hong@snu.ac.kr"))
@@ -207,8 +225,8 @@ class AuthControllerTest {
     @DisplayName("로그인 - 성공하면 access token과 refresh cookie를 반환한다")
     fun signInSuccess() {
         val request = SignInRequest(email = "applicant@snu.ac.kr", password = "Password123!")
-        val tokens = UserTokenUtil.Tokens(accessToken = "access-token", refreshToken = "refresh-token")
-        every { authService.signIn(match { it.email == request.email && it.password == request.password }) } returns (applicantUser to tokens)
+        val tokens = Tokens(accessToken = "access-token", refreshToken = "refresh-token")
+        every { authService.signIn(match { it.email == request.email && it.password == request.password }) } returns (applicantUserSimple to tokens)
 
         performJsonPost("/api/auth/user/session", request)
             .andExpect(status().isOk)
@@ -303,7 +321,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("토큰 재발급 - 성공하면 새 access token과 refresh cookie를 반환한다")
     fun refreshAccessTokenSuccess() {
-        val tokens = UserTokenUtil.Tokens(accessToken = "new-access-token", refreshToken = "new-refresh-token")
+        val tokens = Tokens(accessToken = "new-access-token", refreshToken = "new-refresh-token")
         every { authService.refreshAccessToken("refresh-token") } returns tokens
 
         mockMvc.perform(

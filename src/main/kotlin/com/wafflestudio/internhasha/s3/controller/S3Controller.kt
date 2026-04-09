@@ -1,7 +1,7 @@
 package com.wafflestudio.internhasha.s3.controller
 
-import com.wafflestudio.internhasha.auth.AuthUser
-import com.wafflestudio.internhasha.auth.dto.User
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.web.AuthUser
 import com.wafflestudio.internhasha.s3.S3FileType
 import com.wafflestudio.internhasha.s3.service.S3Service
 import io.swagger.v3.oas.annotations.Parameter

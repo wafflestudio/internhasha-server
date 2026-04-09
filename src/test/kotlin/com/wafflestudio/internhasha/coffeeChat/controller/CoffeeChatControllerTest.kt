@@ -1,22 +1,25 @@
 package com.wafflestudio.internhasha.coffeeChat.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.wafflestudio.internhasha.applicant.dto.ApplicantResponse
-import com.wafflestudio.internhasha.auth.UserRole
-import com.wafflestudio.internhasha.auth.dto.User
-import com.wafflestudio.internhasha.auth.service.AuthService
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatDuplicationException
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatNotFoundException
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatPostExpiredException
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatus
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatusForbiddenException
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatUserForbiddenException
-import com.wafflestudio.internhasha.coffeeChat.dto.CoffeeChatApplicant
-import com.wafflestudio.internhasha.coffeeChat.dto.CoffeeChatBrief
-import com.wafflestudio.internhasha.coffeeChat.dto.CoffeeChatCompany
-import com.wafflestudio.internhasha.coffeeChat.dto.CoffeeChatUserInfo
-import com.wafflestudio.internhasha.coffeeChat.service.CoffeeChatService
-import com.wafflestudio.internhasha.post.PostNotFoundException
+import com.wafflestudio.internhasha.applicant.web.dto.ApplicantResponse
+import com.wafflestudio.internhasha.auth.application.service.AuthService
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.domain.UserRole
+import com.wafflestudio.internhasha.coffeeChat.application.domain.CoffeeChatApplicant
+import com.wafflestudio.internhasha.coffeeChat.application.domain.CoffeeChatCompany
+import com.wafflestudio.internhasha.coffeeChat.application.service.CoffeeChatService
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatBrief
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatDuplicationException
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatNotFoundException
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatPostExpiredException
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatus
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatusForbiddenException
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatUserForbiddenException
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatUserInfo
+import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatContent
+import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatDetailList
+import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatStatusReq
+import com.wafflestudio.internhasha.post.domain.PostNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -77,7 +80,7 @@ class CoffeeChatControllerTest {
             id = "chat-1",
             postId = "post-1",
             title = "백엔드 개발자",
-            company = CoffeeChatUserInfo(name = companyUser.name, imageKey = "company-image-key"),
+            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
             createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
             updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
             coffeeChatStatus = CoffeeChatStatus.WAITING,
@@ -89,7 +92,7 @@ class CoffeeChatControllerTest {
             id = "chat-1",
             postId = "post-1",
             title = "백엔드 개발자",
-            company = CoffeeChatUserInfo(name = companyUser.name, imageKey = "company-image-key"),
+            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
             createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
             updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
             coffeeChatStatus = CoffeeChatStatus.ACCEPTED,
@@ -111,12 +114,12 @@ class CoffeeChatControllerTest {
             id = "chat-1",
             postId = "post-1",
             positionType = "백엔드 개발",
-            company = CoffeeChatUserInfo(name = companyUser.name, imageKey = "company-image-key"),
+            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
             createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
             updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
             coffeeChatStatus = CoffeeChatStatus.WAITING,
             changed = false,
-            applicant = CoffeeChatUserInfo(name = applicantUser.name, imageKey = "applicant-image-key"),
+            applicant = CoffeeChatUserInfo(name = applicantUser.name, profileImageKey = "applicant-image-key"),
         )
 
     @BeforeEach
@@ -332,7 +335,8 @@ class CoffeeChatControllerTest {
     @DisplayName("상태 변경 - 지원자는 취소만 가능하다")
     fun changeCoffeeChatStatusApplicantSuccess() {
         authenticateAs(applicantUser)
-        val request = CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.CANCELED, coffeeChatList = listOf("chat-1"))
+        val request =
+            CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.CANCELED, coffeeChatList = listOf("chat-1"))
         val response = CoffeeChatDetailList(succeeded = listOf(sampleApplicantDetail), failed = emptyList())
         given(coffeeChatService.changeCoffeeChatStatus(applicantUser, request)).willReturn(response)
 
@@ -348,7 +352,8 @@ class CoffeeChatControllerTest {
     @DisplayName("상태 변경 - 회사는 수락/거절만 가능하다")
     fun changeCoffeeChatStatusCompanySuccess() {
         authenticateAs(companyUser)
-        val request = CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
+        val request =
+            CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
         val response = CoffeeChatDetailList(succeeded = listOf(sampleCompanyDetail), failed = emptyList())
         given(coffeeChatService.changeCoffeeChatStatus(companyUser, request)).willReturn(response)
 
@@ -387,7 +392,8 @@ class CoffeeChatControllerTest {
     @DisplayName("상태 변경 - 지원자에게 허용되지 않은 상태면 권한 없음 에러를 반환한다")
     fun changeCoffeeChatStatusApplicantForbiddenFailure() {
         authenticateAs(applicantUser)
-        val request = CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
+        val request =
+            CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
         given(coffeeChatService.changeCoffeeChatStatus(applicantUser, request))
             .willThrow(
                 CoffeeChatUserForbiddenException(
@@ -405,35 +411,35 @@ class CoffeeChatControllerTest {
     @DisplayName("커피챗 목록 조회 - 지원자 계정이면 지원자용 목록을 반환한다")
     fun getCoffeeChatListApplicantSuccess() {
         authenticateAs(applicantUser)
-        given(coffeeChatService.getCoffeeChatListApplicant(applicantUser)).willReturn(listOf(sampleBrief))
+        given(coffeeChatService.getCoffeeChatList(applicantUser)).willReturn(listOf(sampleBrief))
 
         mockMvc.perform(withAuth(get("/api/coffeeChat")))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.coffeeChatList[0].id").value("chat-1"))
             .andExpect(jsonPath("$.coffeeChatList[0].changed").value(false))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatListApplicant(applicantUser)
+        then(coffeeChatService).should(times(1)).getCoffeeChatList(applicantUser)
     }
 
     @Test
     @DisplayName("커피챗 목록 조회 - 회사 계정이면 회사용 목록을 반환한다")
     fun getCoffeeChatListCompanySuccess() {
         authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatListCompany(companyUser)).willReturn(listOf(sampleBrief))
+        given(coffeeChatService.getCoffeeChatList(companyUser)).willReturn(listOf(sampleBrief))
 
         mockMvc.perform(withAuth(get("/api/coffeeChat")))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.coffeeChatList[0].id").value("chat-1"))
             .andExpect(jsonPath("$.coffeeChatList[0].company.name").value(companyUser.name))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatListCompany(companyUser)
+        then(coffeeChatService).should(times(1)).getCoffeeChatList(companyUser)
     }
 
     @Test
     @DisplayName("커피챗 목록 조회 - 권한이 없으면 에러를 반환한다")
     fun getCoffeeChatListForbiddenFailure() {
         authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatListCompany(companyUser))
+        given(coffeeChatService.getCoffeeChatList(companyUser))
             .willThrow(
                 CoffeeChatUserForbiddenException(
                     details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole),

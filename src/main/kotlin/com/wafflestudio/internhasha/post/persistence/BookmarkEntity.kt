@@ -1,7 +1,7 @@
 package com.wafflestudio.internhasha.post.persistence
 
 import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
-import com.wafflestudio.internhasha.common.BaseEntity
+import com.wafflestudio.internhasha.common.persistence.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -32,7 +32,7 @@ class BookmarkEntity(
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "applicant_id")
-    var user: ApplicantEntity = applicantEntity
+    var applicant: ApplicantEntity = applicantEntity
         protected set
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

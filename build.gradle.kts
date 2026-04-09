@@ -1,12 +1,13 @@
 
 plugins {
-    kotlin("jvm") version "1.9.25"
-    kotlin("plugin.spring") version "1.9.25"
-    kotlin("plugin.jpa") version "1.9.25"
+    kotlin("jvm") version "2.0.0"
+    kotlin("plugin.spring") version "2.0.0"
+    kotlin("plugin.jpa") version "2.0.0"
     id("org.springframework.boot") version "3.4.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
+    id("org.jetbrains.kotlin.plugin.allopen") version "2.0.0"
+    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
 }
 group = "com.internhasha"
 version = "0.0.1-SNAPSHOT"
@@ -38,6 +39,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
@@ -46,6 +48,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
@@ -67,9 +71,15 @@ dependencies {
     // HTML Parser
     implementation("org.jsoup:jsoup:1.18.3")
 
+    // QueryDSL
+    implementation("io.github.openfeign.querydsl:querydsl-jpa:7.0")
+    ksp("io.github.openfeign.querydsl:querydsl-ksp-codegen:7.0")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.mockk:mockk:1.13.14")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
 
     // H2
     implementation("com.h2database:h2:2.2.220")

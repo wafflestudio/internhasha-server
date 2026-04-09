@@ -2,25 +2,25 @@ package com.wafflestudio.internhasha.post.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import com.wafflestudio.internhasha.auth.UserNotFoundException
-import com.wafflestudio.internhasha.auth.UserRole
-import com.wafflestudio.internhasha.auth.dto.User
-import com.wafflestudio.internhasha.auth.service.AuthService
-import com.wafflestudio.internhasha.company.Domain
-import com.wafflestudio.internhasha.company.dto.Company
+import com.wafflestudio.internhasha.auth.application.service.AuthService
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.domain.UserNotFoundException
+import com.wafflestudio.internhasha.auth.domain.UserRole
+import com.wafflestudio.internhasha.company.domain.Company
+import com.wafflestudio.internhasha.company.domain.Domain
+import com.wafflestudio.internhasha.company.domain.Tag
 import com.wafflestudio.internhasha.company.dto.Link
-import com.wafflestudio.internhasha.company.dto.Tag
 import com.wafflestudio.internhasha.exceptions.NotAuthorizedException
-import com.wafflestudio.internhasha.post.Category
-import com.wafflestudio.internhasha.post.PostBookmarkNotFoundException
-import com.wafflestudio.internhasha.post.PostCompanyNotFoundException
-import com.wafflestudio.internhasha.post.PostNotFoundException
-import com.wafflestudio.internhasha.post.PostPositionNotFoundException
-import com.wafflestudio.internhasha.post.dto.AuthorBrief
-import com.wafflestudio.internhasha.post.dto.CreatePositionRequest
-import com.wafflestudio.internhasha.post.dto.Position
-import com.wafflestudio.internhasha.post.dto.Post
-import com.wafflestudio.internhasha.post.service.PostService
+import com.wafflestudio.internhasha.post.application.service.PostService
+import com.wafflestudio.internhasha.post.domain.AuthorBrief
+import com.wafflestudio.internhasha.post.domain.Category
+import com.wafflestudio.internhasha.post.domain.Position
+import com.wafflestudio.internhasha.post.domain.Post
+import com.wafflestudio.internhasha.post.domain.PostBookmarkNotFoundException
+import com.wafflestudio.internhasha.post.domain.PostCompanyNotFoundException
+import com.wafflestudio.internhasha.post.domain.PostNotFoundException
+import com.wafflestudio.internhasha.post.domain.PostPositionNotFoundException
+import com.wafflestudio.internhasha.post.web.dto.CreatePositionRequest
 import io.mockk.Runs
 import io.mockk.clearMocks
 import io.mockk.every
@@ -477,50 +477,6 @@ class PostControllerTest {
         every { postService.updatePosition(any(), "missing-position", any()) } throws PostPositionNotFoundException(details = mapOf("positionId" to "missing-position"))
 
         performJsonPut("/api/post/position/missing-position", request)
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.code").value("POST_009"))
-            .andExpect(jsonPath("$.details.positionId").value("missing-position"))
-    }
-
-    @Test
-    @DisplayName("공고 삭제 - 성공하면 200을 반환한다")
-    fun deletePositionSuccess() {
-        authenticateAs(companyUser)
-        every { postService.deletePosition(companyUser, "position-1") } just Runs
-
-        mockMvc.perform(
-            delete("/api/post/position/position-1")
-                .header("Authorization", "Bearer access-token"),
-        )
-            .andExpect(status().isOk)
-
-        verify(exactly = 1) { postService.deletePosition(companyUser, "position-1") }
-    }
-
-    @Test
-    @DisplayName("공고 삭제 - 권한이 없으면 에러를 반환한다")
-    fun deletePositionForbiddenFailure() {
-        authenticateAs(applicantUser)
-        every { postService.deletePosition(any(), any()) } throws NotAuthorizedException()
-
-        mockMvc.perform(
-            delete("/api/post/position/position-1")
-                .header("Authorization", "Bearer access-token"),
-        )
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.code").value("AUTH_007"))
-    }
-
-    @Test
-    @DisplayName("공고 삭제 - 공고가 없으면 not found 에러를 반환한다")
-    fun deletePositionNotFoundFailure() {
-        authenticateAs(companyUser)
-        every { postService.deletePosition(any(), "missing-position") } throws PostPositionNotFoundException(details = mapOf("positionId" to "missing-position"))
-
-        mockMvc.perform(
-            delete("/api/post/position/missing-position")
-                .header("Authorization", "Bearer access-token"),
-        )
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.code").value("POST_009"))
             .andExpect(jsonPath("$.details.positionId").value("missing-position"))

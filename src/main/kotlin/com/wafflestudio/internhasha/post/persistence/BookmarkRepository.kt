@@ -1,27 +1,38 @@
 package com.wafflestudio.internhasha.post.persistence
 
-import com.wafflestudio.internhasha.auth.persistence.UserEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
-import org.springframework.stereotype.Repository
 
-@Repository
 interface BookmarkRepository : JpaRepository<BookmarkEntity, String> {
-    fun findByUserAndPosition(
-        user: UserEntity,
-        position: PositionEntity,
+    fun findByApplicantIdAndPositionId(
+        applicantId: String,
+        positionId: String,
     ): BookmarkEntity?
 
-    fun findByUser(user: UserEntity): List<BookmarkEntity>
+    fun existsByApplicantIdAndPositionId(
+        applicantId: String,
+        positionId: String,
+    ): Boolean
 
-    @Query("SELECT b.position FROM BookmarkEntity b WHERE b.user = :user")
-    fun findPositionsByUser(
-        @Param("user") user: UserEntity,
+    fun findAllByApplicantId(applicantId: String): List<BookmarkEntity>
+
+    @Query(
+        """
+        select b from BookmarkEntity b
+        join fetch b.position p
+        join fetch p.company c
+        where b.applicant.id = :applicantId
+    """,
+    )
+    fun findAllByApplicantIdWithFetchJoin(
+        applicantId: String,
         pageable: Pageable,
-    ): Page<PositionEntity>
+    ): Page<BookmarkEntity>
 
-    fun deleteAllByUser(user: UserEntity)
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM BookmarkEntity b WHERE b.user.id = :user")
+    fun deleteAllByUserId(userId: String)
 }

@@ -1,8 +1,8 @@
 package com.wafflestudio.internhasha.post.persistence
 
-import com.wafflestudio.internhasha.common.BaseEntity
+import com.wafflestudio.internhasha.common.persistence.BaseEntity
 import com.wafflestudio.internhasha.company.persistence.CompanyEntity
-import com.wafflestudio.internhasha.post.Category
+import com.wafflestudio.internhasha.post.domain.Category
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

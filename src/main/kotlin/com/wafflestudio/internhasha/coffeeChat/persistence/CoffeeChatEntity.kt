@@ -1,8 +1,8 @@
 package com.wafflestudio.internhasha.coffeeChat.persistence
 
 import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
-import com.wafflestudio.internhasha.coffeeChat.CoffeeChatStatus
-import com.wafflestudio.internhasha.common.BaseEntity
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatus
+import com.wafflestudio.internhasha.common.persistence.BaseEntity
 import com.wafflestudio.internhasha.post.persistence.PositionEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -47,5 +47,9 @@ class CoffeeChatEntity(
     fun updateStatus(newStatus: CoffeeChatStatus) {
         coffeeChatStatus = newStatus
         changed = true
+    }
+
+    fun markAsRead() {
+        changed = false
     }
 }

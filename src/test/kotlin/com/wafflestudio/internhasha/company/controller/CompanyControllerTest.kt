@@ -2,17 +2,17 @@ package com.wafflestudio.internhasha.company.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import com.wafflestudio.internhasha.auth.UserNotFoundException
-import com.wafflestudio.internhasha.auth.UserRole
-import com.wafflestudio.internhasha.auth.dto.User
-import com.wafflestudio.internhasha.auth.service.AuthService
-import com.wafflestudio.internhasha.company.CompanyNotFoundException
-import com.wafflestudio.internhasha.company.Domain
-import com.wafflestudio.internhasha.company.dto.Company
-import com.wafflestudio.internhasha.company.dto.CreateCompanyRequest
+import com.wafflestudio.internhasha.auth.application.service.AuthService
+import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.auth.domain.UserNotFoundException
+import com.wafflestudio.internhasha.auth.domain.UserRole
+import com.wafflestudio.internhasha.company.application.service.CompanyService
+import com.wafflestudio.internhasha.company.domain.Company
+import com.wafflestudio.internhasha.company.domain.CompanyNotFoundException
+import com.wafflestudio.internhasha.company.domain.Domain
+import com.wafflestudio.internhasha.company.domain.Tag
 import com.wafflestudio.internhasha.company.dto.Link
-import com.wafflestudio.internhasha.company.dto.Tag
-import com.wafflestudio.internhasha.company.service.CompanyService
+import com.wafflestudio.internhasha.company.web.dto.CreateCompanyRequest
 import com.wafflestudio.internhasha.exceptions.NotAuthorizedException
 import io.mockk.clearMocks
 import io.mockk.every

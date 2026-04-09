@@ -6,6 +6,7 @@ spring:
             ddl-auto: update
         properties:
             hibernate:
+                default_batch_fetch_size: 100
                 jdbc:
                     timezone: Asia/Seoul
     mail:
