@@ -1,9 +1,8 @@
 package com.wafflestudio.internhasha.auth.security
 
-import com.wafflestudio.internhasha.auth.application.port.TokenProviderPort
-import com.wafflestudio.internhasha.auth.domain.Tokens
 import com.wafflestudio.internhasha.auth.domain.UserRole
-import com.wafflestudio.internhasha.auth.domain.UserSimple
+import com.wafflestudio.internhasha.auth.service.dto.Tokens
+import com.wafflestudio.internhasha.auth.service.dto.UserSimple
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -16,14 +15,14 @@ import java.util.*
 @Component
 class TokenProvider(
     @Value("\${custom.TOKEN_PRIVATE_KEY}") private val tokenPrivateKey: String,
-) : TokenProviderPort {
+) {
     private val secretKey =
         Keys.hmacShaKeyFor(
             tokenPrivateKey.toByteArray(StandardCharsets.UTF_8),
         )
 
     // 토큰 생성(access & refresh)
-    override fun generateTokens(user: UserSimple): Tokens {
+    fun generateTokens(user: UserSimple): Tokens {
         return Tokens(
             generateAccessToken(user),
             generateRefreshToken(user),
@@ -51,11 +50,11 @@ class TokenProvider(
             .compact()
     }
 
-    override fun getUserIdFromToken(token: String): String? {
+    fun getUserIdFromToken(token: String): String? {
         return getClaim(token)?.subject
     }
 
-    override fun getUserRoleFromToken(token: String): UserRole? {
+    fun getUserRoleFromToken(token: String): UserRole? {
         val roleString = getClaim(token)?.get("role", String::class.java) ?: return null
         return UserRole.entries.find { it.value == roleString }
     }

@@ -6,11 +6,10 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
-import com.wafflestudio.internhasha.auth.domain.User
+import com.wafflestudio.internhasha.common.dto.S3Files
 import com.wafflestudio.internhasha.s3.*
-import com.wafflestudio.internhasha.s3.controller.S3DownloadReq
-import com.wafflestudio.internhasha.s3.controller.S3UploadReq
-import com.wafflestudio.internhasha.s3.dto.S3Files
+import com.wafflestudio.internhasha.s3.service.dto.S3DownloadCommand
+import com.wafflestudio.internhasha.s3.service.dto.S3UploadCommand
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,19 +57,18 @@ class S3Service(
 
     // 업로드는 presigned url 사용
     fun generateUploadUrl(
-        user: User,
-        s3UploadReq: S3UploadReq,
+        command: S3UploadCommand,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): Pair<String, String> {
         val (bucketName, isPrivate) =
-            when (s3UploadReq.fileType) {
+            when (command.fileType) {
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> bucketPrivate to true
                 S3FileType.COMPANY_THUMBNAIL -> bucketPublic to false
             }
 
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
-        val s3Key = "static/${if (isPrivate) "private" else "public"}/${s3UploadReq.fileType}/${randomString}_$today/${s3UploadReq.fileName}"
+        val s3Key = "static/${if (isPrivate) "private" else "public"}/${command.fileType}/${randomString}_$today/${command.fileName}"
         val expiration = calculateExpiration(expirationMinutes)
 
         return Pair(
@@ -81,20 +79,19 @@ class S3Service(
 
     // 다운로드는 공개 url & signed url
     fun generateDownloadUrl(
-        user: User,
-        s3DownloadReq: S3DownloadReq,
+        command: S3DownloadCommand,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         val isPrivate =
-            when (s3DownloadReq.fileType) {
+            when (command.fileType) {
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> true
                 S3FileType.COMPANY_THUMBNAIL -> false
             }
         return if (isPrivate) {
             val expiration = calculateExpiration(expirationMinutes)
-            generateCloudfrontSignedUrl(s3DownloadReq.s3Key, expiration)
+            generateCloudfrontSignedUrl(command.s3Key, expiration)
         } else {
-            "$protocol://$domainName/${s3DownloadReq.s3Key}"
+            "$protocol://$domainName/${command.s3Key}"
         }
     }
 

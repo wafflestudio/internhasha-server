@@ -105,6 +105,12 @@ kotlin {
     }
 }
 
+ktlint {
+    filter {
+        exclude { it.file.path.contains("generated") }
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

@@ -1,7 +1,8 @@
 package com.wafflestudio.internhasha.common.config
 
-import com.wafflestudio.internhasha.auth.application.service.AuthService
 import com.wafflestudio.internhasha.auth.security.JwtAuthenticationFilter
+import com.wafflestudio.internhasha.auth.service.AuthService
+import com.wafflestudio.internhasha.auth.service.TokenService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 @EnableMethodSecurity
 class SecurityConfig(
     private val authService: AuthService,
+    private val tokenService: TokenService,
     private val handlerExceptionResolver: HandlerExceptionResolver,
     @Value("\${custom.protocol}://\${custom.domain}")
     private val origin: String,
@@ -44,7 +46,7 @@ class SecurityConfig(
                     .anyRequest().authenticated()
             }
             .addFilterBefore(
-                JwtAuthenticationFilter(authService, handlerExceptionResolver),
+                JwtAuthenticationFilter(authService, tokenService, handlerExceptionResolver),
                 UsernamePasswordAuthenticationFilter::class.java,
             )
 

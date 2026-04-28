@@ -1,8 +1,9 @@
 package com.wafflestudio.internhasha.auth.security
 
-import com.wafflestudio.internhasha.auth.application.service.AuthService
 import com.wafflestudio.internhasha.auth.domain.RoleValue
 import com.wafflestudio.internhasha.auth.domain.UserRole
+import com.wafflestudio.internhasha.auth.service.AuthService
+import com.wafflestudio.internhasha.auth.service.TokenService
 import com.wafflestudio.internhasha.exceptions.BadAuthorizationHeaderException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 
 class JwtAuthenticationFilter(
     private val authService: AuthService,
+    private val tokenService: TokenService,
     private val handlerExceptionResolver: HandlerExceptionResolver,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
@@ -39,7 +41,7 @@ class JwtAuthenticationFilter(
             }
 
             val token = authHeader.substring(7)
-            val user = authService.authenticate(token)
+            val user = tokenService.authenticate(token)
             val authentication =
                 when (user.userRole) {
                     UserRole.ROLE_APPLICANT -> UsernamePasswordAuthenticationToken(user, null, listOf(SimpleGrantedAuthority(RoleValue.ROLE_APPLICANT)))

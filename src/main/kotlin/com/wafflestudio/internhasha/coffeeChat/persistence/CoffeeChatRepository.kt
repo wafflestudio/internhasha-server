@@ -1,5 +1,6 @@
 package com.wafflestudio.internhasha.coffeeChat.persistence
 
+import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChat
 import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -8,21 +9,21 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
+interface CoffeeChatRepository : JpaRepository<CoffeeChat, String> {
     @Query(
         """
-        SELECT cc FROM CoffeeChatEntity cc
+        SELECT cc FROM CoffeeChat cc
         JOIN FETCH cc.position p
         JOIN FETCH p.company c
         JOIN FETCH cc.applicant a
         WHERE cc.id = :coffeeChatId
     """,
     )
-    fun findByIdOrNull(coffeeChatId: String): CoffeeChatEntity?
+    fun findByIdOrNull(coffeeChatId: String): CoffeeChat?
 
     @Query(
         """
-        SELECT cc FROM CoffeeChatEntity cc
+        SELECT cc FROM CoffeeChat cc
         JOIN FETCH cc.position p
         JOIN FETCH p.company c
         JOIN FETCH cc.applicant a
@@ -35,7 +36,7 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
         applicantId: String,
         positionId: String,
         status: CoffeeChatStatus,
-    ): CoffeeChatEntity?
+    ): CoffeeChat?
 
     fun existsByApplicantIdAndPositionIdAndCoffeeChatStatus(
         applicantId: String,
@@ -45,20 +46,20 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
 
     @Query(
         """
-        SELECT cc FROM CoffeeChatEntity cc
+        SELECT cc FROM CoffeeChat cc
         JOIN FETCH cc.position p
         JOIN FETCH p.company c
         JOIN FETCH cc.applicant a
         WHERE a.id = :applicantId
     """,
     )
-    fun findAllByApplicantId(applicantId: String): List<CoffeeChatEntity>
+    fun findAllByApplicantId(applicantId: String): List<CoffeeChat>
 
     // 취소된 커피챗 제외, 대상 회사의 모든 커피챗을 가져오기
     @Query(
         """
         SELECT cc
-        FROM CoffeeChatEntity cc
+        FROM CoffeeChat cc
         JOIN FETCH cc.position p
         JOIN FETCH p.company c
         JOIN FETCH cc.applicant a
@@ -69,7 +70,7 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
     fun findAllExceptStatusByCompanyId(
         @Param("companyId") companyId: String,
         @Param("excludedStatus") excludedStatus: CoffeeChatStatus,
-    ): List<CoffeeChatEntity>
+    ): List<CoffeeChat>
 
     // 지원자 - isChanged 개수 가져오기
     fun countByApplicantIdAndChangedTrue(applicantId: String): Long
@@ -78,7 +79,7 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
     @Query(
         """
         SELECT COUNT(cc) 
-        FROM CoffeeChatEntity cc
+        FROM CoffeeChat cc
         WHERE cc.position.company.id = :companyId
         AND cc.coffeeChatStatus = :status
     """,
@@ -89,7 +90,7 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChatEntity, String> {
     ): Long
 
     @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM CoffeeChatEntity c WHERE c.applicant.id = :applicantId")
+    @Query("DELETE FROM CoffeeChat c WHERE c.applicant.id = :applicantId")
     fun deleteAllByApplicantId(
         @Param("applicantId") applicantId: String,
     )

@@ -1,5 +1,6 @@
 package com.wafflestudio.internhasha.coffeeChat.domain
 
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatUserInfo
 import java.time.LocalDateTime
 
 class CoffeeChatWithBadgeCount(
@@ -14,25 +15,4 @@ class CoffeeChatWithBadgeCount(
     var changed: Boolean,
     val content: String,
     val badgeCount: Long,
-) {
-    companion object {
-        fun fromCoffeeChat(
-            coffeeChat: CoffeeChat,
-            badgeCount: Long,
-        ): CoffeeChatWithBadgeCount {
-            return CoffeeChatWithBadgeCount(
-                id = coffeeChat.id,
-                postId = coffeeChat.positionId,
-                title = coffeeChat.positionTitle,
-                company = coffeeChat.company,
-                applicant = coffeeChat.applicant,
-                createdAt = coffeeChat.createdAt,
-                updatedAt = coffeeChat.updatedAt,
-                coffeeChatStatus = coffeeChat.coffeeChatStatus,
-                changed = coffeeChat.changed,
-                content = coffeeChat.content,
-                badgeCount = badgeCount,
-            )
-        }
-    }
-}
+)
