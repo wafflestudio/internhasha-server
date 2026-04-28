@@ -12,16 +12,14 @@ object PasswordGenerator {
     private val allChars = upper + lower + digits + specialChars
     private val random = SecureRandom().asKotlinRandom()
 
-    fun generateRandomPassword(length: Int = 10): String {
-        return (
+    fun generateRandomPassword(length: Int = 10): String =
+        (
             listOf(
                 upper.random(random),
                 lower.random(random),
                 digits.random(random),
                 specialChars.random(random),
             ) + List(length - 4) { allChars.random(random) }
-        )
-            .shuffled()
+        ).shuffled()
             .joinToString("")
-    }
 }

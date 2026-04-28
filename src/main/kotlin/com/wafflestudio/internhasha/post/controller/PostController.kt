@@ -10,7 +10,6 @@ import com.wafflestudio.internhasha.post.controller.dto.response.PositionRespons
 import com.wafflestudio.internhasha.post.controller.dto.response.PostBriefResponse
 import com.wafflestudio.internhasha.post.controller.dto.response.PostBriefResponseWithPage
 import com.wafflestudio.internhasha.post.controller.dto.response.PostResponse
-import com.wafflestudio.internhasha.post.service.BookmarkService
 import com.wafflestudio.internhasha.post.service.PostService
 import com.wafflestudio.internhasha.post.service.dto.PositionSearchCond
 import io.swagger.v3.oas.annotations.Parameter
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*
 @Validated
 class PostController(
     private val postService: PostService,
-    private val bookmarkService: BookmarkService,
 ) {
     // 채용 공고 상세 페이지 불러오기
     @GetMapping("/{post_id}")
@@ -100,9 +98,9 @@ class PostController(
     }
 
     @Deprecated("삭제 대신 마감 기능")
+    @PreAuthorize("hasAuthority('${RoleValue.ROLE_COMPANY}')")
     @DeleteMapping("/position/{position_id}")
     fun deletePosition(
-        @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @PathVariable("position_id") positionId: String,
     ): ResponseEntity<Void> {
         // val position = postService.deletePosition(user, positionId)

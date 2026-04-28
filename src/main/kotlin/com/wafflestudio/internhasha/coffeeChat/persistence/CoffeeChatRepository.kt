@@ -21,23 +21,6 @@ interface CoffeeChatRepository : JpaRepository<CoffeeChat, String> {
     )
     fun findByIdOrNull(coffeeChatId: String): CoffeeChat?
 
-    @Query(
-        """
-        SELECT cc FROM CoffeeChat cc
-        JOIN FETCH cc.position p
-        JOIN FETCH p.company c
-        JOIN FETCH cc.applicant a
-        WHERE a.id = :applicantId
-          AND p.id = :positionId
-          AND cc.coffeeChatStatus = :status
-    """,
-    )
-    fun findCoffeeChatByFilter(
-        applicantId: String,
-        positionId: String,
-        status: CoffeeChatStatus,
-    ): CoffeeChat?
-
     fun existsByApplicantIdAndPositionIdAndCoffeeChatStatus(
         applicantId: String,
         positionId: String,

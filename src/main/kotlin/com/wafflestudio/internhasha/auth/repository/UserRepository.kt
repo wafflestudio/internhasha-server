@@ -9,6 +9,4 @@ interface UserRepository : JpaRepository<User, String> {
     fun findByEmailAndDeletedAtIsNull(email: String): User?
 
     fun existsByEmailAndDeletedAtIsNull(email: String): Boolean
-
-    fun deleteUserEntityById(id: String)
 }

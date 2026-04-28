@@ -1,7 +1,6 @@
 package com.wafflestudio.internhasha.common.config
 
 import com.wafflestudio.internhasha.auth.security.JwtAuthenticationFilter
-import com.wafflestudio.internhasha.auth.service.AuthService
 import com.wafflestudio.internhasha.auth.service.TokenService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -21,10 +20,9 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 @EnableWebSecurity
 @EnableMethodSecurity
 class SecurityConfig(
-    private val authService: AuthService,
     private val tokenService: TokenService,
     private val handlerExceptionResolver: HandlerExceptionResolver,
-    @Value("\${custom.protocol}://\${custom.domain}")
+    @param:Value("\${custom.protocol}://\${custom.domain}")
     private val origin: String,
 ) {
     @Bean
@@ -43,10 +41,10 @@ class SecurityConfig(
                         "/v3/api-docs/**",
                         "/actuator/health",
                     ).permitAll()
-                    .anyRequest().authenticated()
-            }
-            .addFilterBefore(
-                JwtAuthenticationFilter(authService, tokenService, handlerExceptionResolver),
+                    .anyRequest()
+                    .authenticated()
+            }.addFilterBefore(
+                JwtAuthenticationFilter(tokenService, handlerExceptionResolver),
                 UsernamePasswordAuthenticationFilter::class.java,
             )
 

@@ -12,8 +12,8 @@ enum class Domain {
     FOODTECH,
     ;
 
-    fun displayName(): String {
-        return when (this) {
+    fun displayName(): String =
+        when (this) {
             FINTECH -> "금융기술"
             HEALTHTECH -> "헬스케어 기술"
             EDUCATION -> "교육"
@@ -24,7 +24,6 @@ enum class Domain {
             B2B -> "기업간 거래 (B2B)"
             FOODTECH -> "식품기술"
         }
-    }
 
     companion object {
         private val map = entries.associateBy { it.name }

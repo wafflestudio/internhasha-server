@@ -1,13 +1,15 @@
 
 plugins {
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.spring") version "2.0.0"
-    kotlin("plugin.jpa") version "2.0.0"
-    id("org.springframework.boot") version "3.4.1"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
+    kotlin("plugin.jpa") version "2.2.21"
+
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
-    id("org.jetbrains.kotlin.plugin.allopen") version "2.0.0"
-    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+
+    id("org.jetbrains.kotlin.plugin.allopen") version "2.2.21"
+    id("com.google.devtools.ksp") version "2.2.21-2.0.4"
 }
 group = "com.internhasha"
 version = "0.0.1-SNAPSHOT"
@@ -23,9 +25,19 @@ repositories {
     maven {
         val authToken =
             properties["codeArtifactAuthToken"] as String? ?: ProcessBuilder(
-                "aws", "codeartifact", "get-authorization-token",
-                "--domain", "wafflestudio", "--domain-owner", "405906814034",
-                "--query", "authorizationToken", "--region", "ap-northeast-1", "--output", "text",
+                "aws",
+                "codeartifact",
+                "get-authorization-token",
+                "--domain",
+                "wafflestudio",
+                "--domain-owner",
+                "405906814034",
+                "--query",
+                "authorizationToken",
+                "--region",
+                "ap-northeast-1",
+                "--output",
+                "text",
             ).start().inputStream.bufferedReader().readText().trim()
         url = uri("https://wafflestudio-405906814034.d.codeartifact.ap-northeast-1.amazonaws.com/maven/spring-waffle/")
         credentials {
@@ -52,7 +64,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     // MySQL
     implementation("com.mysql:mysql-connector-j:8.2.0")
@@ -64,9 +76,9 @@ dependencies {
 
     // JWT
     implementation("org.mindrot:jbcrypt:0.4")
-    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
-    implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+    implementation("io.jsonwebtoken:jjwt-impl:0.13.0")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
     // HTML Parser
     implementation("org.jsoup:jsoup:1.18.3")
@@ -107,7 +119,9 @@ kotlin {
 
 ktlint {
     filter {
-        exclude { it.file.path.contains("generated") }
+        exclude { element ->
+            element.file.invariantSeparatorsPath.contains("/build/generated/")
+        }
     }
 }
 

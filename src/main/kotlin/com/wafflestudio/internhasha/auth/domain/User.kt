@@ -42,7 +42,5 @@ abstract class User(
     // Role-based access control
     abstract fun getRole(): UserRole
 
-    fun requireId(): String {
-        return requireNotNull(id) { "Entity Id must not be null" }
-    }
+    fun requireId(): String = requireNotNull(id) { "Entity Id must not be null" }
 }

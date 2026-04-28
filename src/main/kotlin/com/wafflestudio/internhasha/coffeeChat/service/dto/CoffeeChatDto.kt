@@ -19,8 +19,8 @@ data class CoffeeChatDto(
     val content: String,
 ) {
     companion object {
-        fun fromEntity(entity: CoffeeChat): CoffeeChatDto {
-            return CoffeeChatDto(
+        fun fromEntity(entity: CoffeeChat): CoffeeChatDto =
+            CoffeeChatDto(
                 id = requireNotNull(entity.id) { "CoffeeChatEntity id must not be null" },
                 positionId = requireNotNull(entity.position.id) { "PositionEntity id must not be null" },
                 positionTitle = entity.position.positionTitle,
@@ -33,6 +33,5 @@ data class CoffeeChatDto(
                 content = entity.content,
                 applicant = entity.applicant.let { CoffeeChatUserInfo.fromEntity(it) },
             )
-        }
     }
 }

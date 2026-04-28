@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -30,14 +29,13 @@ import java.util.*
 
 @Service
 class S3Service(
-    @Autowired
     private val amazonS3: AmazonS3,
-    @Value("\${amazon.aws.bucketPublic}") private val bucketPublic: String,
-    @Value("\${amazon.aws.bucketPrivate}") private val bucketPrivate: String,
-    @Value("\${cloudfront.keyPairId}") private val keyPairId: String,
-    @Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
-    @Value("\${custom.domain-name}") private val domainName: String,
-    @Value("\${custom.protocol}") private val protocol: String,
+    @param:Value("\${amazon.aws.bucketPublic}") private val bucketPublic: String,
+    @param:Value("\${amazon.aws.bucketPrivate}") private val bucketPrivate: String,
+    @param:Value("\${cloudfront.keyPairId}") private val keyPairId: String,
+    @param:Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
+    @param:Value("\${custom.domain-name}") private val domainName: String,
+    @param:Value("\${custom.protocol}") private val protocol: String,
 ) {
     private val logger = LoggerFactory.getLogger(S3Service::class.java)
 
@@ -67,7 +65,12 @@ class S3Service(
             }
 
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
+        val randomString =
+            UUID
+                .randomUUID()
+                .toString()
+                .replace("-", "")
+                .take(10)
         val s3Key = "static/${if (isPrivate) "private" else "public"}/${command.fileType}/${randomString}_$today/${command.fileName}"
         val expiration = calculateExpiration(expirationMinutes)
 
@@ -104,9 +107,9 @@ class S3Service(
         try {
             return amazonS3.generatePresignedUrl(bucketName, s3Key, expiration, httpMethod).toString()
         } catch (e: AmazonS3Exception) {
-            throw S3UrlGenerationFailedException()
+            throw S3UrlGenerationFailedException(e)
         } catch (e: SdkClientException) {
-            throw S3SDKClientFailedException()
+            throw S3SDKClientFailedException(e)
         }
     }
 
@@ -127,7 +130,7 @@ class S3Service(
         } catch (e: Exception) {
             when (e) {
                 is InvalidKeySpecException, is IOException -> {
-                    throw S3CloudFrontKeyFailedException()
+                    throw S3CloudFrontKeyFailedException(e)
                 }
                 else -> throw e
             }
@@ -153,9 +156,7 @@ class S3Service(
         }
     }
 
-    private fun calculateExpiration(expirationMinutes: Long): Date {
-        return Date.from(Instant.now().plus(Duration.ofMinutes(expirationMinutes)))
-    }
+    private fun calculateExpiration(expirationMinutes: Long): Date = Date.from(Instant.now().plus(Duration.ofMinutes(expirationMinutes)))
 
     companion object {
         const val EXPIRATION_MINUTES: Long = 10L

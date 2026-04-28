@@ -10,22 +10,20 @@ import java.util.concurrent.Executor
 @EnableAsync
 class AsyncConfig {
     @Bean("mailExecutor")
-    fun mailExecutor(): Executor {
-        return ThreadPoolTaskExecutor().apply {
+    fun mailExecutor(): Executor =
+        ThreadPoolTaskExecutor().apply {
             corePoolSize = 5
             maxPoolSize = 10
             queueCapacity = 100
             initialize()
         }
-    }
 
     @Bean("s3Executor")
-    fun s3Executor(): Executor {
-        return ThreadPoolTaskExecutor().apply {
+    fun s3Executor(): Executor =
+        ThreadPoolTaskExecutor().apply {
             corePoolSize = 10
             maxPoolSize = 20
             queueCapacity = 200
             initialize()
         }
-    }
 }

@@ -9,7 +9,6 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 
 data class SignUpRequest(
-    @field:NotNull(message = "authType is required")
     val authType: UserRole,
     @field:JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

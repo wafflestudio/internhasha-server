@@ -15,8 +15,8 @@ enum class Category {
     HUMANRESOURCE,
     ;
 
-    fun displayName(): String {
-        return when (this) {
+    fun displayName(): String =
+        when (this) {
             FRONT -> "프론트엔드 개발"
             APP -> "앱 개발"
             BACKEND -> "백엔드 개발"
@@ -29,7 +29,6 @@ enum class Category {
             AI -> "AI"
             HUMANRESOURCE -> "인사"
         }
-    }
 
     companion object {
         private val map = Category.entries.associateBy { it.name }

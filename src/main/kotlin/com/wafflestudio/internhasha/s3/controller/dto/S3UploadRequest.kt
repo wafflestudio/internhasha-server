@@ -3,14 +3,12 @@ package com.wafflestudio.internhasha.s3.controller.dto
 import com.wafflestudio.internhasha.s3.S3FileType
 import com.wafflestudio.internhasha.s3.service.dto.S3UploadCommand
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 data class S3UploadRequest(
     @field:NotBlank(message = "파일 이름은 필수입니다.")
     @field:Size(min = 1, max = 255, message = "File name must be between 1 and 255 characters.")
     val fileName: String,
-    @field:NotNull(message = "파일 타입은 필수입니다.")
     val fileType: S3FileType,
 ) {
     fun toCommand() =

@@ -19,8 +19,8 @@ class InputSanitizationAspect {
         return joinPoint.proceed(args)
     }
 
-    private fun sanitize(obj: Any?): Any? {
-        return when (obj) {
+    private fun sanitize(obj: Any?): Any? =
+        when (obj) {
             // 문자열 필터링
             is String -> Jsoup.clean(obj, "", Safelist.none(), OutputSettings().prettyPrint(false))
             // 리스트 내부 요소 필터링
@@ -31,10 +31,10 @@ class InputSanitizationAspect {
             is Any -> sanitizeObjectFields(obj)
             else -> obj
         }
-    }
 
     private fun sanitizeObjectFields(obj: Any): Any {
-        obj::class.memberProperties
+        obj::class
+            .memberProperties
             // 문자열 필드만 필터링
             .filter { it.returnType.classifier == String::class }
             .forEach {

@@ -7,11 +7,10 @@ data class CoffeeChatDetailListResponse(
     val failed: List<CoffeeChatResponse>,
 ) {
     companion object {
-        fun fromDto(dto: CoffeeChatDetailList): CoffeeChatDetailListResponse {
-            return CoffeeChatDetailListResponse(
+        fun fromDto(dto: CoffeeChatDetailList): CoffeeChatDetailListResponse =
+            CoffeeChatDetailListResponse(
                 succeeded = dto.succeeded.map { CoffeeChatResponse.fromDto(it) },
                 failed = dto.failed.map { CoffeeChatResponse.fromDto(it) },
             )
-        }
     }
 }

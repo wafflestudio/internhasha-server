@@ -8,10 +8,8 @@ import com.wafflestudio.internhasha.auth.service.dto.UserSimple
 import com.wafflestudio.internhasha.auth.service.dto.UserWithTokens
 import com.wafflestudio.internhasha.exceptions.*
 import org.mindrot.jbcrypt.BCrypt
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 @Transactional(readOnly = true)
@@ -19,7 +17,6 @@ class AuthService(
     private val userRepository: UserRepository,
     private val authRedisRepository: AuthRedisRepository,
     private val tokenProvider: TokenProvider,
-    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     // 로그인
     fun signIn(command: SignInCommand): UserWithTokens {

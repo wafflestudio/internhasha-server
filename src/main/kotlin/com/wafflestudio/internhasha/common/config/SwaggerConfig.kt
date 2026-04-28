@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile
 @Configuration
 @Profile("local", "dev", "prod")
 class SwaggerConfig(
-    @Value("\${custom.domain-name}") private val domain: String,
+    @param:Value("\${custom.domain-name}") private val domain: String,
 ) {
     @Bean
     @Primary
@@ -35,10 +35,8 @@ class SwaggerConfig(
                         .scheme("bearer")
                         .bearerFormat("JWT"),
                 ),
-            )
-            .addSecurityItem(
+            ).addSecurityItem(
                 SecurityRequirement().addList("BearerAuth"),
-            )
-            .servers(servers)
+            ).servers(servers)
     }
 }

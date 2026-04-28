@@ -17,8 +17,8 @@ data class PostDto(
             isBookmarked: Boolean,
             coffeeChatCount: Long,
             isLoggedIn: Boolean = false,
-        ): PostDto {
-            return when (isLoggedIn) {
+        ): PostDto =
+            when (isLoggedIn) {
                 true ->
                     PostDto(
                         position = PositionDto.fromEntity(entity),
@@ -41,6 +41,5 @@ data class PostDto(
                     )
                 }
             }
-        }
     }
 }

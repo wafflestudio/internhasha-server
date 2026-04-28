@@ -42,7 +42,9 @@ data class PostBriefResponse(
                 updatedAt = postDto.position.updatedAt,
                 positionType = postDto.position.positionType.displayName(),
                 headCount = postDto.position.headCount,
-                domain = postDto.position.company.domain?.displayName(),
+                domain =
+                    postDto.position.company.domain
+                        ?.displayName(),
                 slogan = postDto.position.company.slogan,
                 detailSummary = postDto.position.detail.take(100),
                 isBookmarked = postDto.isBookmarked,

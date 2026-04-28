@@ -40,7 +40,5 @@ class Bookmark(
     var position: Position = position
         protected set
 
-    fun requireId(): String {
-        return requireNotNull(id) { "Entity Id must not be null" }
-    }
+    fun requireId(): String = requireNotNull(id) { "Entity Id must not be null" }
 }

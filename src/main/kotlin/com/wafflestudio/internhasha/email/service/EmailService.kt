@@ -21,8 +21,8 @@ class EmailService(
     private val mailSender: JavaMailSender,
     private val templateEngine: SpringTemplateEngine,
     private val applicationScope: CoroutineScope,
-    @Value("\${custom.domain-name}") private val domainName: String,
-    @Value("\${custom.protocol}") private val protocol: String,
+    @param:Value("\${custom.domain-name}") private val domainName: String,
+    @param:Value("\${custom.protocol}") private val protocol: String,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(EmailService::class.java)
 

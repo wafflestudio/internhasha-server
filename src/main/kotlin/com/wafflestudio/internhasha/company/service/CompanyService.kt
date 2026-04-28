@@ -61,10 +61,9 @@ class CompanyService(
     }
 
     @Transactional
-    fun getCompany(userId: String): CompanyDto {
-        return companyRepository.findByIdAndDeletedAtIsNull(userId)?.let { CompanyDto.fromEntity(it) }
+    fun getCompany(userId: String): CompanyDto =
+        companyRepository.findByIdAndDeletedAtIsNull(userId)?.let { CompanyDto.fromEntity(it) }
             ?: throw CompanyNotFoundException()
-    }
 
     private fun deleteS3File(filesToDelete: S3Files) {
         if (filesToDelete.hasAnyFile()) {

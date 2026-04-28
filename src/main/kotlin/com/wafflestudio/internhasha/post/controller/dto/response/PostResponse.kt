@@ -16,8 +16,8 @@ data class PostResponse(
     val coffeeChatCount: Long,
 ) {
     companion object {
-        fun fromDto(postDto: PostDto): PostResponse {
-            return PostResponse(
+        fun fromDto(postDto: PostDto): PostResponse =
+            PostResponse(
                 id = postDto.position.id,
                 company = CompanyResponse.fromDto(postDto.position.company),
                 position =
@@ -34,7 +34,6 @@ data class PostResponse(
                 isBookmarked = postDto.isBookmarked,
                 coffeeChatCount = postDto.coffeeChatCount,
             )
-        }
     }
 }
 

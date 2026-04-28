@@ -13,7 +13,8 @@ object UserTokenResponseFactory {
     ): ResponseEntity<UserTokenResponse> {
         val refreshTokenCookie = createRefreshTokenCookie(userWithTokens.tokens.refreshToken, isSecure = isSecure)
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .header("Set-Cookie", refreshTokenCookie.toString())
             .body(
                 UserTokenResponse(
@@ -28,7 +29,8 @@ object UserTokenResponseFactory {
         isSecure: Boolean = true,
     ): ResponseEntity<TokenResponse> {
         val refreshTokenCookie = createRefreshTokenCookie(tokens.refreshToken, isSecure = isSecure)
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .header("Set-Cookie", refreshTokenCookie.toString())
             .body(
                 TokenResponse(
@@ -41,7 +43,8 @@ object UserTokenResponseFactory {
         isSecure: Boolean = true,
     ): ResponseEntity<Void> {
         val deleteCookie = createEmptyRefreshTokenCookie(isSecure = isSecure)
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .header("Set-Cookie", deleteCookie.toString())
             .build()
     }
@@ -49,23 +52,23 @@ object UserTokenResponseFactory {
     fun createRefreshTokenCookie(
         refreshToken: String,
         isSecure: Boolean = true,
-    ): ResponseCookie {
-        return ResponseCookie.from("refresh_token", refreshToken)
+    ): ResponseCookie =
+        ResponseCookie
+            .from("refresh_token", refreshToken)
             .httpOnly(true)
             .secure(isSecure) // HTTPS 사용 시 활성화
             .path("/")
             .maxAge(TokenExpirationTime.REFRESH_TOKEN_EXPIRATION_TIME) // 7일
             .sameSite("None")
             .build()
-    }
 
-    fun createEmptyRefreshTokenCookie(isSecure: Boolean = true): ResponseCookie {
-        return ResponseCookie.from("refresh_token", "")
+    fun createEmptyRefreshTokenCookie(isSecure: Boolean = true): ResponseCookie =
+        ResponseCookie
+            .from("refresh_token", "")
             .httpOnly(true)
             .secure(isSecure)
             .path("/")
             .maxAge(0)
             .sameSite("None")
             .build()
-    }
 }

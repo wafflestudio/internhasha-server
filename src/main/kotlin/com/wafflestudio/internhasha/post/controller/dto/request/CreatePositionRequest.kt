@@ -8,7 +8,6 @@ import java.time.LocalDateTime
 data class CreatePositionRequest(
     @field:NotBlank(message = "Position title is required.")
     val positionTitle: String,
-    @field:NotNull(message = "Position type (category) is required.")
     val positionType: Category,
     @field:NotBlank(message = "Position detail is required.")
     val detail: String,

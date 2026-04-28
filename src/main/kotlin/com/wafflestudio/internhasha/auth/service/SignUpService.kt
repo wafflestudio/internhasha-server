@@ -22,7 +22,7 @@ class SignUpService(
     private val userRepository: UserRepository,
     private val authRedisRepository: AuthRedisRepository,
     private val tokenProvider: TokenProvider,
-    @Value("\${custom.DEV_SECRET}")
+    @param:Value("\${custom.DEV_SECRET}")
     private val devSecret: String,
 ) {
     @Transactional

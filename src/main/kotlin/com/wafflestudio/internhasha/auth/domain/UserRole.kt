@@ -1,6 +1,8 @@
 package com.wafflestudio.internhasha.auth.domain
 
-enum class UserRole(val value: String) {
+enum class UserRole(
+    val value: String,
+) {
     ROLE_APPLICANT(RoleValue.ROLE_APPLICANT),
     ROLE_COMPANY(RoleValue.ROLE_COMPANY),
 }

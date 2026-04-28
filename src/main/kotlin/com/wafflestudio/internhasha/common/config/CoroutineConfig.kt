@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class CoroutineConfig {
     @Bean
-    fun applicationScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    }
+    fun applicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @PreDestroy
     fun destroy() {

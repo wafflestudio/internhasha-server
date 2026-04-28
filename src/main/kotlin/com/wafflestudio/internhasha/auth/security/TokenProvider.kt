@@ -14,7 +14,7 @@ import java.util.*
 
 @Component
 class TokenProvider(
-    @Value("\${custom.TOKEN_PRIVATE_KEY}") private val tokenPrivateKey: String,
+    @param:Value("\${custom.TOKEN_PRIVATE_KEY}") private val tokenPrivateKey: String,
 ) {
     private val secretKey =
         Keys.hmacShaKeyFor(
@@ -22,37 +22,36 @@ class TokenProvider(
         )
 
     // 토큰 생성(access & refresh)
-    fun generateTokens(user: UserSimple): Tokens {
-        return Tokens(
+    fun generateTokens(user: UserSimple): Tokens =
+        Tokens(
             generateAccessToken(user),
             generateRefreshToken(user),
         )
-    }
 
     private fun generateAccessToken(user: UserSimple): String {
         val now = Instant.now()
-        return Jwts.builder()
-            .setSubject(user.id)
+        return Jwts
+            .builder()
+            .subject(user.id)
             .claim("role", user.userRole)
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now.plusSeconds(TokenExpirationTime.ACCESS_TOKEN_EXPIRATION_TIME)))
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plusSeconds(TokenExpirationTime.ACCESS_TOKEN_EXPIRATION_TIME)))
             .signWith(secretKey)
             .compact()
     }
 
     private fun generateRefreshToken(user: UserSimple): String {
         val now = Instant.now()
-        return Jwts.builder()
-            .setSubject(user.id)
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now.plusSeconds(TokenExpirationTime.REFRESH_TOKEN_EXPIRATION_TIME)))
+        return Jwts
+            .builder()
+            .subject(user.id)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plusSeconds(TokenExpirationTime.REFRESH_TOKEN_EXPIRATION_TIME)))
             .signWith(secretKey)
             .compact()
     }
 
-    fun getUserIdFromToken(token: String): String? {
-        return getClaim(token)?.subject
-    }
+    fun getUserIdFromToken(token: String): String? = getClaim(token)?.subject
 
     fun getUserRoleFromToken(token: String): UserRole? {
         val roleString = getClaim(token)?.get("role", String::class.java) ?: return null
@@ -60,15 +59,15 @@ class TokenProvider(
     }
 
     // JWT 토큰 파싱으로 유효성 검증, 유저 식별
-    private fun getClaim(token: String): Claims? {
-        return try {
-            Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+    private fun getClaim(token: String): Claims? =
+        try {
+            Jwts
+                .parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .body
-        } catch (e: Exception) {
+                .parseSignedClaims(token)
+                .payload
+        } catch (_: Exception) {
             null // 유효하지 않거나 만료된 경우
         }
-    }
 }

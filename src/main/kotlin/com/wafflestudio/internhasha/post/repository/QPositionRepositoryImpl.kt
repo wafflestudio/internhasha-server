@@ -47,14 +47,14 @@ class QPositionRepositoryImpl(
         val content =
             queryFactory
                 .selectFrom(position)
-                .innerJoin(position.company, company).fetchJoin()
+                .innerJoin(position.company, company)
+                .fetchJoin()
                 .where(
                     categoryIn(cond.positions),
                     companyIdEq(cond.companyId),
                     isActiveCond(cond.isActive, cond.currentDateTime),
                     domainIn(cond.domains),
-                )
-                .orderBy(*createOrderSpecifiers(cond.order, cond.currentDateTime))
+                ).orderBy(*createOrderSpecifiers(cond.order, cond.currentDateTime))
                 .offset(pageable.offset)
                 .limit(pageable.pageSize.toLong())
                 .fetch()
@@ -70,9 +70,7 @@ class QPositionRepositoryImpl(
         return if (enums.isEmpty()) null else position.positionType.`in`(enums)
     }
 
-    private fun companyIdEq(companyId: String?): BooleanExpression? {
-        return companyId?.let { position.company.id.eq(it) }
-    }
+    private fun companyIdEq(companyId: String?): BooleanExpression? = companyId?.let { position.company.id.eq(it) }
 
     private fun isActiveCond(
         isActive: Boolean,
@@ -100,12 +98,15 @@ class QPositionRepositoryImpl(
                 // 1. 마감 여부 우선순위 (마감 전=1, 마감 후=2)
                 val statusStep =
                     CaseBuilder()
-                        .`when`(endDate.gt(now)).then(1).otherwise(2)
+                        .`when`(endDate.gt(now))
+                        .then(1)
+                        .otherwise(2)
 
                 // 2. 마감 전인 건 마감일 오름차순(가까운 마감일 순)
                 val detailSort =
                     CaseBuilder()
-                        .`when`(endDate.gt(now)).then(endDate)
+                        .`when`(endDate.gt(now))
+                        .then(endDate)
                         .otherwise(null as LocalDateTime?) // 마감 후는 정렬 제외
 
                 // 그룹 우선순위

@@ -19,16 +19,15 @@ class AwsS3Config {
     @Value("\${amazon.aws.region}")
     private val s3RegionName: String? = null
 
-    @get:Bean
-    val amazonS3Client: AmazonS3
-        get() {
-            val basicAWSCredentials: BasicAWSCredentials = BasicAWSCredentials(accessKeyId, accessKeySecret)
+    @Bean
+    fun amazonS3Client(): AmazonS3 {
+        val basicAWSCredentials = BasicAWSCredentials(accessKeyId, accessKeySecret)
 
-            // Get Amazon S3 client and return the s3 client object
-            return AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(AWSStaticCredentialsProvider(basicAWSCredentials))
-                .withRegion(s3RegionName)
-                .build()
-        }
+        // Get Amazon S3 client and return the s3 client object
+        return AmazonS3ClientBuilder
+            .standard()
+            .withCredentials(AWSStaticCredentialsProvider(basicAWSCredentials))
+            .withRegion(s3RegionName)
+            .build()
+    }
 }

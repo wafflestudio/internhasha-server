@@ -31,11 +31,10 @@ class CoffeeChatController(
     fun getCoffeeChatDetail(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @PathVariable coffeeChatId: String,
-    ): ResponseEntity<CoffeeChatResponse> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatResponse> =
+        ResponseEntity.ok(
             CoffeeChatResponse.fromDto(coffeeChatService.getCoffeeChatDetail(user, coffeeChatId)),
         )
-    }
 
     // 지원자 - 이미 대기 중 커피챗 있는지 확인
     @PreAuthorize("hasAuthority('${RoleValue.ROLE_APPLICANT}')")
@@ -43,13 +42,12 @@ class CoffeeChatController(
     fun checkIsSubmitted(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @PathVariable postId: String,
-    ): ResponseEntity<CoffeeChatIsSubmitted> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatIsSubmitted> =
+        ResponseEntity.ok(
             CoffeeChatIsSubmitted(
                 coffeeChatService.checkIsSubmitted(user, postId),
             ),
         )
-    }
 
     // 지원자 - 커피챗 신청하기
     @PreAuthorize("hasAuthority('${RoleValue.ROLE_APPLICANT}')")
@@ -58,8 +56,8 @@ class CoffeeChatController(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @PathVariable postId: String,
         @RequestBody coffeeChatContent: CoffeeChatContent,
-    ): ResponseEntity<CoffeeChatResponse> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatResponse> =
+        ResponseEntity.ok(
             CoffeeChatResponse.fromDto(
                 coffeeChatService.applyCoffeeChat(
                     CoffeeChatCreateCommand(
@@ -70,7 +68,6 @@ class CoffeeChatController(
                 ),
             ),
         )
-    }
 
     // 지원자 - 커피챗 수정하기
     @PreAuthorize("hasAuthority('${RoleValue.ROLE_APPLICANT}')")
@@ -79,8 +76,8 @@ class CoffeeChatController(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @PathVariable coffeeChatId: String,
         @RequestBody coffeeChatContent: CoffeeChatContent,
-    ): ResponseEntity<CoffeeChatResponse> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatResponse> =
+        ResponseEntity.ok(
             CoffeeChatResponse.fromDto(
                 coffeeChatService.editCoffeeChat(
                     user,
@@ -89,7 +86,6 @@ class CoffeeChatController(
                 ),
             ),
         )
-    }
 
     // 커피챗 상태 변경
     @PreAuthorize("isAuthenticated()")
@@ -97,8 +93,8 @@ class CoffeeChatController(
     fun changeCoffeeChatStatus(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
         @Valid @RequestBody coffeeChatStatusReq: CoffeeChatStatusReq,
-    ): ResponseEntity<CoffeeChatDetailListResponse> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatDetailListResponse> =
+        ResponseEntity.ok(
             CoffeeChatDetailListResponse.fromDto(
                 coffeeChatService.changeCoffeeChatStatus(
                     user,
@@ -106,7 +102,6 @@ class CoffeeChatController(
                 ),
             ),
         )
-    }
 
     // 커피챗 목록 불러오기
     @PreAuthorize("isAuthenticated()")
@@ -123,11 +118,10 @@ class CoffeeChatController(
     @GetMapping("/count")
     fun countCoffeeChatBadges(
         @Parameter(hidden = true) @AuthUser user: AuthUserPrincipal,
-    ): ResponseEntity<CoffeeChatCount> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<CoffeeChatCount> =
+        ResponseEntity.ok(
             CoffeeChatCount(
                 num = coffeeChatService.countCoffeeChatBadges(user),
             ),
         )
-    }
 }

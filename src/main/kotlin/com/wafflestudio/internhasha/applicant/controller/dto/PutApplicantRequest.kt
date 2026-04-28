@@ -22,7 +22,7 @@ data class PutApplicantRequest(
     val stacks: List<
         @Size(max = 30, message = "Each stack cannot be more than 30 characters")
         String,
-        >? = null,
+    >? = null,
     @field:Size(max = 512, message = "imageKey cannot be more than 512 characters")
     val imageKey: String? = null,
     @field:NotNull(message = "cvKey is required")

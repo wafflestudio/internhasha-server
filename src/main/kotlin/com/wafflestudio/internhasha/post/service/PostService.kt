@@ -26,7 +26,7 @@ class PostService(
     private val companyRepository: CompanyRepository,
     private val positionRepository: PositionRepository,
     private val bookmarkRepository: BookmarkRepository,
-    @Value("\${custom.page.size:12}")
+    @param:Value("\${custom.page.size:12}")
     private val pageSize: Int = 12,
 ) {
     fun getPageDetail(
@@ -38,7 +38,8 @@ class PostService(
                 ?: throw PostNotFoundException(mapOf("postId" to postId))
         val bookmarkIds = getAllBookmarkIds(authUser)
         val coffeeChatCount =
-            positionRepository.countCoffeeChatByPositionIds(listOf(position.requireId()))
+            positionRepository
+                .countCoffeeChatByPositionIds(listOf(position.requireId()))
                 .firstOrNull()
                 ?.coffeeChatCount ?: 0
         return PostDto.fromEntity(
@@ -53,17 +54,13 @@ class PostService(
         authUser: AuthUserPrincipal?,
         cond: PositionSearchCond,
         page: Int = 0,
-    ): Page<PostDto> {
-        return searchPosts(authUser, cond, page, fetchBookmarks = true)
-    }
+    ): Page<PostDto> = searchPosts(authUser, cond, page, fetchBookmarks = true)
 
     fun getPostByCompany(
         authUser: AuthUserPrincipal,
         cond: PositionSearchCond,
         page: Int = 0,
-    ): Page<PostDto> {
-        return searchPosts(authUser, cond, page, fetchBookmarks = false)
-    }
+    ): Page<PostDto> = searchPosts(authUser, cond, page, fetchBookmarks = false)
 
     private fun searchPosts(
         authUser: AuthUserPrincipal?,
@@ -84,7 +81,8 @@ class PostService(
             }
 
         val coffeeChatCountMap =
-            positionRepository.countCoffeeChatByPositionIds(positionIds)
+            positionRepository
+                .countCoffeeChatByPositionIds(positionIds)
                 .associateBy { it.positionId }
 
         return positions.map { position ->

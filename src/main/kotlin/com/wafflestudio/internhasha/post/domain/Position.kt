@@ -39,7 +39,5 @@ class Position(
     var company: Company = company
         protected set
 
-    fun requireId(): String {
-        return requireNotNull(id) { "Entity Id must not be null" }
-    }
+    fun requireId(): String = requireNotNull(id) { "Entity Id must not be null" }
 }

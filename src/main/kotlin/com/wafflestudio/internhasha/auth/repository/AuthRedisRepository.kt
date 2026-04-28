@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class AuthRedisRepository(
     private val redisTemplate: RedisTemplate<String, String>,
-    @Value("\${auth.redis.prefix}") private val profilePrefix: String,
+    @param:Value("\${auth.redis.prefix}") private val profilePrefix: String,
 ) {
     // UserId를 키로 사용 / refreshToken을 value로 사용
     fun saveRefreshToken(
@@ -106,7 +106,5 @@ class AuthRedisRepository(
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 
-    private fun generateKey(vararg parts: Any): String {
-        return "$profilePrefix:${parts.joinToString(":")}"
-    }
+    private fun generateKey(vararg parts: Any): String = "$profilePrefix:${parts.joinToString(":")}"
 }

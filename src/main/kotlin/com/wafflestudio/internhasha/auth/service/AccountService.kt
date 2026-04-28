@@ -72,12 +72,6 @@ class AccountService(
                 ?: throw UserNotFoundException(details = mapOf("userId" to authUser.id))
         user.deleteUser()
         applicationEventPublisher.publishEvent(UserDeletedEvent(user.requireId(), user.getRole()))
-
-//        // 일방향 외래키 제약이 걸려있는 bookmark, coffeeChat 삭제
-//        postPersistenceAdapter.deleteAllBookmarkByUserId(user.id)
-//        coffeeChatPersistenceAdapter.deleteAllByUserId(user.id)
-//        authRedisRepository.deleteRefreshToken(user.id)
-//        authRedisRepository.deleteEmailCode(user.id)
-//        authRedisRepository.deleteSuccessCode(user.id)
+        // 커피챗 쪽은 soft delete 필요
     }
 }

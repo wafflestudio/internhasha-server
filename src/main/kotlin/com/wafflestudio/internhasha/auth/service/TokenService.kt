@@ -7,11 +7,13 @@ import com.wafflestudio.internhasha.auth.security.AuthUserPrincipal
 import com.wafflestudio.internhasha.auth.security.TokenProvider
 import com.wafflestudio.internhasha.auth.service.dto.Tokens
 import com.wafflestudio.internhasha.auth.service.dto.UserSimple
+import com.wafflestudio.internhasha.common.event.UserDeletedEvent
 import com.wafflestudio.internhasha.exceptions.InvalidAccessTokenException
 import com.wafflestudio.internhasha.exceptions.InvalidRefreshTokenException
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
 @Transactional(readOnly = true)
@@ -19,7 +21,6 @@ class TokenService(
     private val userRepository: UserRepository,
     private val authRedisRepository: AuthRedisRepository,
     private val tokenProvider: TokenProvider,
-    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     fun refreshAccessToken(refreshToken: String): Tokens {
         val userId =
@@ -55,7 +56,8 @@ class TokenService(
             tokenProvider.getUserIdFromToken(accessToken)
                 ?: throw InvalidAccessTokenException()
 
-        return userRepository.findByIdAndDeletedAtIsNull(userId)
+        return userRepository
+            .findByIdAndDeletedAtIsNull(userId)
             ?.let {
                 AuthUserPrincipal(
                     id = it.requireId(),
@@ -67,5 +69,13 @@ class TokenService(
             } ?: throw UserNotFoundException(
             details = mapOf("userId" to userId),
         )
+    }
+
+    // 유저 탈퇴 시의 캐시 삭제는 트랜잭션 종료 후 호출(동기)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun handleUserDeletedEvent(event: UserDeletedEvent) {
+        authRedisRepository.deleteRefreshToken(event.userId)
+        authRedisRepository.deleteEmailCode(event.userId)
+        authRedisRepository.deleteSuccessCode(event.userId)
     }
 }

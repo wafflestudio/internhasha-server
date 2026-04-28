@@ -11,8 +11,8 @@ data class CoffeeChatUserInfo(
     val profileImageKey: String?,
 ) {
     companion object {
-        fun fromEntity(entity: User): CoffeeChatUserInfo {
-            return when (entity) {
+        fun fromEntity(entity: User): CoffeeChatUserInfo =
+            when (entity) {
                 is Applicant ->
                     CoffeeChatUserInfo(
                         id = requireNotNull(entity.id) { "Id must not be null" },
@@ -31,6 +31,5 @@ data class CoffeeChatUserInfo(
 
                 else -> throw IllegalStateException("Unknown user type ${entity.javaClass.simpleName}")
             }
-        }
     }
 }

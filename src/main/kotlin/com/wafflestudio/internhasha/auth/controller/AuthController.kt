@@ -33,7 +33,7 @@ class AuthController(
     private val accountService: AccountService,
     private val tokenService: TokenService,
     private val emailVerificationService: EmailVerificationService,
-    @Value("\${custom.is-secure}") private val isSecure: Boolean,
+    @param:Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
     // 회원가입
     @PostMapping("/user")
@@ -139,8 +139,8 @@ class AuthController(
     @PreAuthorize("isAuthenticated()")
     fun getUserInfo(
         @Parameter(hidden = true) @AuthUser authUser: AuthUserPrincipal,
-    ): ResponseEntity<UserInfoResponse> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<UserInfoResponse> =
+        ResponseEntity.ok(
             UserInfoResponse(
                 id = authUser.id,
                 name = authUser.name,
@@ -148,5 +148,4 @@ class AuthController(
                 userRole = authUser.userRole,
             ),
         )
-    }
 }

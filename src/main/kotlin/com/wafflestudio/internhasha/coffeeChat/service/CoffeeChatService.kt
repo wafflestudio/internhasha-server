@@ -34,10 +34,9 @@ class CoffeeChatService(
     private val coffeeChatRepository: CoffeeChatRepository,
     private val positionRepository: PositionRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    @param:Value("\${custom.page.size:12}")
+    private val pageSize: Int = 12,
 ) {
-    @Value("\${custom.page.size:12}")
-    private val pageSize: Int = 12
-
     @Transactional // 읽음 처리를 위한 트랜잭션
     fun getCoffeeChatDetail(
         user: AuthUserPrincipal,
@@ -237,18 +236,19 @@ class CoffeeChatService(
 
     fun getCoffeeChatList(
         user: AuthUserPrincipal,
-    ): List<CoffeeChatBrief> {
-        return when (user.userRole) {
+    ): List<CoffeeChatBrief> =
+        when (user.userRole) {
             UserRole.ROLE_APPLICANT -> {
-                coffeeChatRepository.findAllByApplicantId(user.id)
+                coffeeChatRepository
+                    .findAllByApplicantId(user.id)
                     .map { CoffeeChatBrief.fromDto(CoffeeChatDto.fromEntity(it)) }
             }
             UserRole.ROLE_COMPANY -> {
-                coffeeChatRepository.findAllExceptStatusByCompanyId(
-                    companyId = user.id,
-                    excludedStatus = CoffeeChatStatus.CANCELED,
-                )
-                    .map {
+                coffeeChatRepository
+                    .findAllExceptStatusByCompanyId(
+                        companyId = user.id,
+                        excludedStatus = CoffeeChatStatus.CANCELED,
+                    ).map {
                         // 이메일 익명화 처리
                         CoffeeChatBrief.fromDto(CoffeeChatDto.fromEntity(it)).run {
                             copy(applicant = applicant.copy(email = null))
@@ -256,12 +256,11 @@ class CoffeeChatService(
                     }
             }
         }
-    }
 
     fun countCoffeeChatBadges(
         user: AuthUserPrincipal,
-    ): Long {
-        return when (user.userRole) {
+    ): Long =
+        when (user.userRole) {
             UserRole.ROLE_APPLICANT -> coffeeChatRepository.countByApplicantIdAndChangedTrue(applicantId = user.id)
             UserRole.ROLE_COMPANY ->
                 coffeeChatRepository.countByCompanyIdAndStatus(
@@ -269,7 +268,6 @@ class CoffeeChatService(
                     status = CoffeeChatStatus.WAITING,
                 )
         }
-    }
 
     private fun checkCoffeeChatAuthority(
         coffeeChat: CoffeeChat,
