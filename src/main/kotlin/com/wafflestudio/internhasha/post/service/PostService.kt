@@ -44,7 +44,7 @@ class PostService(
                 ?.coffeeChatCount ?: 0
         return PostDto.fromEntity(
             entity = position,
-            isBookmarked = position.id in bookmarkIds,
+            bookmarked = position.id in bookmarkIds,
             isLoggedIn = (authUser != null),
             coffeeChatCount = coffeeChatCount,
         )
@@ -88,7 +88,7 @@ class PostService(
         return positions.map { position ->
             PostDto.fromEntity(
                 entity = position,
-                isBookmarked = position.requireId() in bookmarkIds,
+                bookmarked = position.requireId() in bookmarkIds,
                 isLoggedIn = authUser != null,
                 coffeeChatCount = coffeeChatCountMap[position.id]?.coffeeChatCount ?: 0,
             )

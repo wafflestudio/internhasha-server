@@ -22,7 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver
 class SecurityConfig(
     private val tokenService: TokenService,
     private val handlerExceptionResolver: HandlerExceptionResolver,
-    @param:Value("\${custom.protocol}://\${custom.domain}")
+    @param:Value("\${custom.protocol}://\${custom.domain-name}")
     private val origin: String,
 ) {
     @Bean
@@ -40,6 +40,7 @@ class SecurityConfig(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/actuator/health",
+                        "/api/post/**",
                     ).permitAll()
                     .anyRequest()
                     .authenticated()

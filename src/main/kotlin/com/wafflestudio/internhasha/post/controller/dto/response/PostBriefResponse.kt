@@ -17,7 +17,7 @@ data class PostBriefResponse(
     val detailSummary: String,
     val positionType: String,
     val headCount: Long,
-    val isBookmarked: Boolean,
+    val bookmarked: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val tags: List<Tag>,
@@ -47,7 +47,7 @@ data class PostBriefResponse(
                         ?.displayName(),
                 slogan = postDto.position.company.slogan,
                 detailSummary = postDto.position.detail.take(100),
-                isBookmarked = postDto.isBookmarked,
+                bookmarked = postDto.bookmarked,
                 tags = postDto.position.company.tags,
                 coffeeChatCount = postDto.coffeeChatCount,
             )

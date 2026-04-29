@@ -7,14 +7,14 @@ data class PostDto(
     // 직군 정보(회사 포함)
     val position: PositionDto,
     // 북마크 여부
-    val isBookmarked: Boolean = false,
+    val bookmarked: Boolean = false,
     // 해당 공고에 신청된 커피챗 개수
     val coffeeChatCount: Long,
 ) {
     companion object {
         fun fromEntity(
             entity: Position,
-            isBookmarked: Boolean,
+            bookmarked: Boolean,
             coffeeChatCount: Long,
             isLoggedIn: Boolean = false,
         ): PostDto =
@@ -22,7 +22,7 @@ data class PostDto(
                 true ->
                     PostDto(
                         position = PositionDto.fromEntity(entity),
-                        isBookmarked = isBookmarked,
+                        bookmarked = bookmarked,
                         coffeeChatCount = coffeeChatCount,
                     )
                 false -> {
@@ -36,7 +36,7 @@ data class PostDto(
                         )
                     PostDto(
                         position = newPosition,
-                        isBookmarked = isBookmarked,
+                        bookmarked = bookmarked,
                         coffeeChatCount = coffeeChatCount,
                     )
                 }

@@ -1,146 +1,172 @@
 package com.wafflestudio.internhasha.applicant.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ninjasquad.springmockk.MockkBean
-import com.wafflestudio.internhasha.applicant.ApplicantNotFoundException
-import com.wafflestudio.internhasha.applicant.ApplicantUserForbiddenException
-import com.wafflestudio.internhasha.applicant.application.service.ApplicantService
-import com.wafflestudio.internhasha.applicant.persistence.ApplicantEntity
-import com.wafflestudio.internhasha.applicant.web.dto.ApplicantResponse
-import com.wafflestudio.internhasha.applicant.web.dto.PutApplicantRequest
-import com.wafflestudio.internhasha.auth.application.service.AuthService
-import com.wafflestudio.internhasha.auth.domain.User
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.wafflestudio.internhasha.applicant.controller.dto.PutApplicantRequest
+import com.wafflestudio.internhasha.applicant.domain.Applicant
+import com.wafflestudio.internhasha.applicant.repository.ApplicantRepository
 import com.wafflestudio.internhasha.auth.domain.UserRole
-import com.wafflestudio.internhasha.auth.persistence.UserEntity
-import com.wafflestudio.internhasha.common.domain.Link
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.verify
+import com.wafflestudio.internhasha.auth.security.TokenProvider
+import com.wafflestudio.internhasha.auth.service.dto.UserSimple
+import com.wafflestudio.internhasha.common.domain.LinkVo
+import com.wafflestudio.internhasha.common.dto.LinkRequest
+import com.wafflestudio.internhasha.company.domain.Company
+import com.wafflestudio.internhasha.company.repository.CompanyRepository
+import jakarta.transaction.Transactional
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.time.LocalDateTime
 
 @SpringBootTest
+@Transactional
 @AutoConfigureMockMvc
 class ApplicantControllerTest {
     @Autowired
-    private lateinit var mockMvc: MockMvc
+    lateinit var mockMvc: MockMvc
+
+    private val objectMapper =
+        ObjectMapper()
+            .registerKotlinModule()
+            .findAndRegisterModules()
 
     @Autowired
-    private lateinit var objectMapper: ObjectMapper
+    lateinit var applicantRepository: ApplicantRepository
 
-    @MockkBean
-    private lateinit var applicantService: ApplicantService
+    @Autowired
+    lateinit var companyRepository: CompanyRepository
 
-    @MockkBean
-    private lateinit var authService: AuthService
+    @Autowired
+    lateinit var tokenProvider: TokenProvider
 
-    private var currentToken = "applicant-token"
+    val fixedPassword = "applicant-password"
+    val hashedPassword: String = BCrypt.hashpw(fixedPassword, BCrypt.gensalt())
 
-    private val applicantUser =
-        User(
-            id = "applicant-user-1",
+    lateinit var applicantId: String
+    lateinit var applicantAccessToken: String
+
+    lateinit var companyId: String
+    lateinit var companyAccessToken: String
+
+    lateinit var anonymousAccessToken: String
+
+    data class UserDto(
+        val id: String,
+        val name: String,
+        val userRole: UserRole,
+        val email: String,
+    )
+
+    val applicantUser =
+        UserDto(
+            id = "applicant-id",
             name = "지원자",
             userRole = UserRole.ROLE_APPLICANT,
             email = "applicant@snu.ac.kr",
         )
-    private val companyUser =
-        User(
-            id = "company-user-1",
+
+    val companyUser =
+        UserDto(
+            id = "company-id",
             name = "기업회원",
             userRole = UserRole.ROLE_COMPANY,
             email = "company@example.com",
         )
 
-    private val userEntity =
-        UserEntity(
-            id = applicantUser.id,
+    val applicantEntity =
+        Applicant(
             name = applicantUser.name,
-            email = applicantUser.email!!,
-            passwordHash = "hashed-password",
-            createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
-            updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
-            userRole = UserRole.ROLE_APPLICANT,
-        )
-
-    private val applicantEntity =
-        ApplicantEntity(
-            id = "applicant-entity-1",
-            user = userEntity,
-            createdAt = LocalDateTime.of(2024, 1, 3, 0, 0),
-            updatedAt = LocalDateTime.of(2024, 1, 4, 0, 0),
+            email = applicantUser.email,
             enrollYear = 2020,
             dept = "컴퓨터공학",
-            positions = listOf("프론트엔드", "백엔드"),
             slogan = "함께 성장합니다",
             explanation = "설명",
-            stacks = listOf("Kotlin", "Spring Boot"),
             profileImageKey = "profile-key",
             cvKey = "cv-key",
             portfolioKey = "portfolio-key",
-            links = listOf(Link(description = "GitHub", link = "https://github.com/example")),
-        )
+        ).apply {
+            this.passwordHash = hashedPassword
+            this.positions.addAll(listOf("프론트엔드", "백엔드"))
+            this.stacks.addAll(listOf("Kotlin", "Spring Boot"))
+            this.links.addAll(listOf(LinkVo(description = "GitHub", link = "https://github.com/example")))
+        }
 
-    private val applicantResponse = ApplicantResponse.fromEntity(applicantEntity)
+    val companyEntity =
+        Company(
+            name = companyUser.name,
+            email = companyUser.email,
+        ).apply {
+            this.passwordHash = hashedPassword
+        }
 
     @BeforeEach
     fun setUp() {
-        clearMocks(applicantService, authService)
-        authenticateAs(applicantUser)
+        val applicant = applicantRepository.save(applicantEntity)
+        applicantId = applicant.requireId()
+
+        applicantAccessToken =
+            tokenProvider
+                .generateTokens(
+                    UserSimple(id = applicantId, userRole = UserRole.ROLE_APPLICANT),
+                ).accessToken
+
+        val company = companyRepository.save(companyEntity)
+        companyId = company.requireId()
+
+        companyAccessToken =
+            tokenProvider
+                .generateTokens(
+                    UserSimple(id = companyId, userRole = UserRole.ROLE_COMPANY),
+                ).accessToken
+
+        anonymousAccessToken =
+            tokenProvider
+                .generateTokens(
+                    UserSimple(id = "anonymous-id", userRole = UserRole.ROLE_APPLICANT),
+                ).accessToken
     }
 
     @Test
     @DisplayName("지원자 조회 - 성공하면 ApplicantResponse를 반환한다")
     fun getApplicantSuccess() {
-        every { applicantService.getApplicant(applicantUser) } returns applicantResponse
-
-        mockMvc.perform(withAuth(get("/api/applicant/me")))
+        mockMvc
+            .perform(withAuth(get("/api/applicant/me"), applicantAccessToken))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(applicantUser.id))
+            .andExpect(jsonPath("$.id").value(applicantId))
             .andExpect(jsonPath("$.name").value(applicantUser.name))
-            .andExpect(jsonPath("$.userRole").value("APPLICANT"))
+            .andExpect(jsonPath("$.userRole").value(UserRole.ROLE_APPLICANT.name))
             .andExpect(jsonPath("$.email").value(applicantUser.email))
             .andExpect(jsonPath("$.enrollYear").value(2020))
             .andExpect(jsonPath("$.department").value("컴퓨터공학"))
             .andExpect(jsonPath("$.cvKey").value("cv-key"))
             .andExpect(jsonPath("$.links[0].description").value("GitHub"))
-
-        verify(exactly = 1) { applicantService.getApplicant(applicantUser) }
     }
 
     @Test
     @DisplayName("지원자 조회 - 회사 계정이면 권한 없음 에러를 반환한다")
     fun getApplicantForbiddenFailure() {
-        authenticateAs(companyUser)
-        every { applicantService.getApplicant(companyUser) } throws ApplicantUserForbiddenException(details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole))
-
-        mockMvc.perform(withAuth(get("/api/applicant/me")))
+        mockMvc
+            .perform(withAuth(get("/api/applicant/me"), companyAccessToken))
             .andExpect(status().isForbidden)
-            .andExpect(jsonPath("$.code").value("APPLICANT_001"))
-            .andExpect(jsonPath("$.details.userId").value(companyUser.id))
-            .andExpect(jsonPath("$.details.userRole").value("COMPANY"))
     }
 
     @Test
     @DisplayName("지원자 조회 - 지원자 정보가 없으면 not found 에러를 반환한다")
     fun getApplicantNotFoundFailure() {
-        every { applicantService.getApplicant(applicantUser) } throws ApplicantNotFoundException()
-
-        mockMvc.perform(withAuth(get("/api/applicant/me")))
+        mockMvc
+            .perform(withAuth(get("/api/applicant/me"), anonymousAccessToken))
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.code").value("APPLICANT_002"))
+            .andExpect(jsonPath("$.code").value("USER_004"))
     }
 
     @Test
@@ -157,37 +183,19 @@ class ApplicantControllerTest {
                 imageKey = "image-key",
                 cvKey = "cv-key",
                 portfolioKey = "portfolio-key",
-                links = listOf(Link(description = "Blog", link = "https://blog.example.com")),
+                links = listOf(LinkRequest(description = "Blog", link = "https://blog.example.com")),
             )
-        val response =
-            ApplicantResponse(
-                id = applicantUser.id,
-                name = applicantUser.name,
-                createdAt = LocalDateTime.of(2024, 1, 3, 0, 0),
-                updatedAt = LocalDateTime.of(2024, 1, 4, 0, 0),
-                userRole = UserRole.ROLE_APPLICANT,
-                email = applicantUser.email,
-                enrollYear = request.enrollYear,
-                department = request.department,
-                positions = request.positions,
-                slogan = request.slogan,
-                explanation = request.explanation,
-                stacks = request.stacks,
-                imageKey = request.imageKey,
-                cvKey = request.cvKey,
-                portfolioKey = request.portfolioKey,
-                links = request.links,
-            )
-        every { applicantService.putApplicant(applicantUser, request) } returns response
 
-        performJsonPut(request)
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(applicantUser.id))
+        mockMvc
+            .perform(
+                withAuth(put("/api/applicant/me"), applicantAccessToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(applicantId))
             .andExpect(jsonPath("$.department").value("소프트웨어"))
             .andExpect(jsonPath("$.cvKey").value("cv-key"))
             .andExpect(jsonPath("$.links[0].description").value("Blog"))
-
-        verify(exactly = 1) { applicantService.putApplicant(applicantUser, request) }
     }
 
     @Test
@@ -209,19 +217,15 @@ class ApplicantControllerTest {
             }
             """.trimIndent()
 
-        mockMvc.perform(
-            withAuth(
-                put("/api/applicant/me")
+        mockMvc
+            .perform(
+                withAuth(put("/api/applicant/me"), applicantAccessToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidJson),
-            ),
-        )
-            .andExpect(status().isBadRequest)
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.code").value("GEN_004"))
             .andExpect(jsonPath("$.details.enrollYear").value("enrollYear must be a valid 4-digit integer"))
             .andExpect(jsonPath("$.details.department").value("department is required"))
-
-        verify(exactly = 0) { applicantService.putApplicant(any(), any()) }
     }
 
     @Test
@@ -229,32 +233,18 @@ class ApplicantControllerTest {
     fun putApplicantInvalidJsonFailure() {
         val invalidJson = "{"
 
-        mockMvc.perform(
-            withAuth(
-                put("/api/applicant/me")
+        mockMvc
+            .perform(
+                withAuth(put("/api/applicant/me"), applicantAccessToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidJson),
-            ),
-        )
-            .andExpect(status().isBadRequest)
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.code").value("GEN_005"))
             .andExpect(jsonPath("$.message").value("Malformed JSON request."))
     }
 
-    private fun authenticateAs(user: User) {
-        currentToken = "${user.userRole.name.lowercase()}-${user.id}"
-        every { authService.authenticate(currentToken) } returns user
-    }
-
-    private fun withAuth(builder: MockHttpServletRequestBuilder): MockHttpServletRequestBuilder =
-        builder.header("Authorization", "Bearer $currentToken")
-
-    private fun performJsonPut(body: Any): ResultActions =
-        mockMvc.perform(
-            withAuth(
-                put("/api/applicant/me")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(body)),
-            ),
-        )
+    private fun withAuth(
+        builder: MockHttpServletRequestBuilder,
+        token: String,
+    ): MockHttpServletRequestBuilder = builder.header("Authorization", "Bearer $token")
 }

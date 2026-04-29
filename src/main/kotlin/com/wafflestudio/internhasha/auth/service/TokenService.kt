@@ -16,12 +16,12 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
-@Transactional(readOnly = true)
 class TokenService(
     private val userRepository: UserRepository,
     private val authRedisRepository: AuthRedisRepository,
     private val tokenProvider: TokenProvider,
 ) {
+    @Transactional(readOnly = true)
     fun refreshAccessToken(refreshToken: String): Tokens {
         val userId =
             tokenProvider.getUserIdFromToken(refreshToken)
@@ -51,6 +51,7 @@ class TokenService(
         return tokens
     }
 
+    @Transactional(readOnly = true)
     fun authenticate(accessToken: String): AuthUserPrincipal {
         val userId =
             tokenProvider.getUserIdFromToken(accessToken)

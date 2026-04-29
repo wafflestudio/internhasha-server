@@ -1,37 +1,45 @@
 package com.wafflestudio.internhasha.coffeeChat.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.wafflestudio.internhasha.applicant.web.dto.ApplicantResponse
-import com.wafflestudio.internhasha.auth.application.service.AuthService
-import com.wafflestudio.internhasha.auth.domain.User
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.ninjasquad.springmockk.MockkBean
+import com.wafflestudio.internhasha.applicant.domain.Applicant
+import com.wafflestudio.internhasha.applicant.repository.ApplicantRepository
 import com.wafflestudio.internhasha.auth.domain.UserRole
-import com.wafflestudio.internhasha.coffeeChat.application.domain.CoffeeChatApplicant
-import com.wafflestudio.internhasha.coffeeChat.application.domain.CoffeeChatCompany
-import com.wafflestudio.internhasha.coffeeChat.application.service.CoffeeChatService
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatBrief
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatDuplicationException
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatNotFoundException
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatPostExpiredException
+import com.wafflestudio.internhasha.auth.security.AuthUserPrincipal
+import com.wafflestudio.internhasha.auth.security.TokenProvider
+import com.wafflestudio.internhasha.auth.service.dto.UserSimple
+import com.wafflestudio.internhasha.coffeeChat.controller.dto.request.CoffeeChatContent
+import com.wafflestudio.internhasha.coffeeChat.controller.dto.request.CoffeeChatStatusReq
 import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatus
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatStatusForbiddenException
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatUserForbiddenException
-import com.wafflestudio.internhasha.coffeeChat.domain.CoffeeChatUserInfo
-import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatContent
-import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatDetailList
-import com.wafflestudio.internhasha.coffeeChat.web.controller.CoffeeChatStatusReq
-import com.wafflestudio.internhasha.post.domain.PostNotFoundException
+import com.wafflestudio.internhasha.coffeeChat.exception.CoffeeChatDuplicationException
+import com.wafflestudio.internhasha.coffeeChat.exception.CoffeeChatNotFoundException
+import com.wafflestudio.internhasha.coffeeChat.exception.CoffeeChatPostExpiredException
+import com.wafflestudio.internhasha.coffeeChat.exception.CoffeeChatStatusForbiddenException
+import com.wafflestudio.internhasha.coffeeChat.exception.CoffeeChatUserForbiddenException
+import com.wafflestudio.internhasha.coffeeChat.service.CoffeeChatService
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatBrief
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatCreateCommand
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatDetailList
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatDto
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatUserInfo
+import com.wafflestudio.internhasha.common.domain.LinkVo
+import com.wafflestudio.internhasha.company.domain.Company
+import com.wafflestudio.internhasha.company.repository.CompanyRepository
+import com.wafflestudio.internhasha.post.domain.Category
+import com.wafflestudio.internhasha.post.exception.PostNotFoundException
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.verify
+import jakarta.transaction.Transactional
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.BDDMockito.given
-import org.mockito.BDDMockito.then
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.times
+import org.mindrot.jbcrypt.BCrypt
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
-import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
@@ -39,153 +47,215 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @SpringBootTest
+@Transactional
 @AutoConfigureMockMvc
 class CoffeeChatControllerTest {
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    private val objectMapper =
+        ObjectMapper()
+            .registerKotlinModule()
+            .findAndRegisterModules()
 
     @Autowired
-    private lateinit var objectMapper: ObjectMapper
+    lateinit var mockMvc: MockMvc
 
-    @MockitoBean
-    private lateinit var coffeeChatService: CoffeeChatService
+    @Autowired
+    lateinit var applicantRepository: ApplicantRepository
 
-    @MockitoBean
-    private lateinit var authService: AuthService
+    @Autowired
+    lateinit var companyRepository: CompanyRepository
 
-    private var currentToken = "applicant-token"
+    @Autowired
+    lateinit var tokenProvider: TokenProvider
 
-    private val applicantUser =
-        User(
-            id = "applicant-user-1",
-            name = "지원자",
-            userRole = UserRole.ROLE_APPLICANT,
-            email = "applicant@snu.ac.kr",
-        )
-    private val companyUser =
-        User(
-            id = "company-user-1",
-            name = "기업회원",
-            userRole = UserRole.ROLE_COMPANY,
-            email = "company@example.com",
-        )
+    @MockkBean
+    lateinit var coffeeChatService: CoffeeChatService
 
-    private val sampleApplicantDetail =
-        CoffeeChatApplicant(
-            id = "chat-1",
-            postId = "post-1",
-            title = "백엔드 개발자",
-            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
-            createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
-            updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
-            coffeeChatStatus = CoffeeChatStatus.WAITING,
-            changed = false,
-            content = "안녕하세요. 잘 부탁드립니다.",
-        )
-    private val sampleCompanyDetail =
-        CoffeeChatCompany(
-            id = "chat-1",
-            postId = "post-1",
-            title = "백엔드 개발자",
-            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
-            createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
-            updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
-            coffeeChatStatus = CoffeeChatStatus.ACCEPTED,
-            changed = true,
-            content = "안녕하세요. 잘 부탁드립니다.",
-            applicant =
-                ApplicantResponse(
-                    id = applicantUser.id,
-                    name = applicantUser.name,
-                    createdAt = LocalDateTime.of(2024, 1, 3, 0, 0),
-                    updatedAt = LocalDateTime.of(2024, 1, 4, 0, 0),
-                    userRole = UserRole.ROLE_APPLICANT,
-                    email = applicantUser.email,
-                    cvKey = "cv-key",
-                ),
-        )
-    private val sampleBrief =
-        CoffeeChatBrief(
-            id = "chat-1",
-            postId = "post-1",
-            positionType = "백엔드 개발",
-            company = CoffeeChatUserInfo(name = companyUser.name, profileImageKey = "company-image-key"),
-            createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
-            updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
-            coffeeChatStatus = CoffeeChatStatus.WAITING,
-            changed = false,
-            applicant = CoffeeChatUserInfo(name = applicantUser.name, profileImageKey = "applicant-image-key"),
-        )
+    lateinit var applicantId: String
+    lateinit var companyId: String
+    lateinit var applicantAccessToken: String
+    lateinit var companyAccessToken: String
+    lateinit var applicantPrincipal: AuthUserPrincipal
+    lateinit var companyPrincipal: AuthUserPrincipal
+
+    private lateinit var sampleApplicantDetail: CoffeeChatDto
+    private lateinit var sampleCompanyDetail: CoffeeChatDto
+    private lateinit var sampleBrief: CoffeeChatBrief
 
     @BeforeEach
     fun setUp() {
-        reset(coffeeChatService, authService)
-        authenticateAs(applicantUser)
+        clearMocks(coffeeChatService)
+
+        val password = "password"
+        val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
+
+        val applicantEntity =
+            Applicant(
+                name = "지원자",
+                email = "applicant@snu.ac.kr",
+                enrollYear = 2020,
+                dept = "컴퓨터공학",
+                slogan = "함께 성장합니다",
+                explanation = "설명",
+                profileImageKey = "applicant-image-key",
+                cvKey = "cv-key",
+                portfolioKey = "portfolio-key",
+            ).apply {
+                this.passwordHash = hashedPassword
+                this.links.addAll(listOf(LinkVo(description = "GitHub", link = "https://github.com/example")))
+            }
+
+        val savedApplicant = applicantRepository.save(applicantEntity)
+        applicantId = savedApplicant.requireId()
+        applicantPrincipal =
+            AuthUserPrincipal(
+                id = applicantId,
+                name = savedApplicant.name,
+                userRole = UserRole.ROLE_APPLICANT,
+                email = savedApplicant.email,
+                passwordHash = savedApplicant.passwordHash,
+            )
+        applicantAccessToken =
+            tokenProvider.generateTokens(UserSimple(id = applicantId, userRole = UserRole.ROLE_APPLICANT)).accessToken
+
+        val companyEntity =
+            Company(
+                name = "기업회원",
+                email = "company@example.com",
+            ).apply {
+                this.passwordHash = hashedPassword
+            }
+
+        val savedCompany = companyRepository.save(companyEntity)
+        companyId = savedCompany.requireId()
+        companyPrincipal =
+            AuthUserPrincipal(
+                id = companyId,
+                name = savedCompany.name,
+                userRole = UserRole.ROLE_COMPANY,
+                email = savedCompany.email,
+                passwordHash = savedCompany.passwordHash,
+            )
+        companyAccessToken =
+            tokenProvider.generateTokens(UserSimple(id = companyId, userRole = UserRole.ROLE_COMPANY)).accessToken
+
+        sampleApplicantDetail =
+            CoffeeChatDto(
+                id = "chat-1",
+                positionId = "post-1",
+                positionTitle = "백엔드 개발자",
+                positionCategory = Category.BACKEND,
+                company =
+                    CoffeeChatUserInfo(
+                        id = companyId,
+                        name = savedCompany.name,
+                        email = savedCompany.email,
+                        profileImageKey = "company-image-key",
+                    ),
+                applicant =
+                    CoffeeChatUserInfo(
+                        id = applicantId,
+                        name = savedApplicant.name,
+                        email = savedApplicant.email,
+                        profileImageKey = "applicant-image-key",
+                    ),
+                createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
+                updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
+                coffeeChatStatus = CoffeeChatStatus.WAITING,
+                changed = false,
+                content = "안녕하세요. 잘 부탁드립니다.",
+            )
+
+        sampleCompanyDetail =
+            sampleApplicantDetail.copy(
+                coffeeChatStatus = CoffeeChatStatus.ACCEPTED,
+                changed = true,
+            )
+
+        sampleBrief =
+            CoffeeChatBrief(
+                id = "chat-1",
+                positionId = "post-1",
+                positionType = "백엔드 개발",
+                company = sampleApplicantDetail.company,
+                createdAt = LocalDateTime.of(2024, 1, 1, 0, 0),
+                updatedAt = LocalDateTime.of(2024, 1, 2, 0, 0),
+                coffeeChatStatus = CoffeeChatStatus.WAITING,
+                changed = false,
+                applicant = sampleApplicantDetail.applicant,
+            )
     }
 
     @Test
     @DisplayName("인증 헤더가 없으면 AUTH_001 에러를 반환한다")
     fun getCoffeeChatDetailWithoutAuthorizationHeaderFailure() {
-        mockMvc.perform(get("/api/coffeeChat/chat-1"))
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.code").value("AUTH_001"))
+        mockMvc
+            .perform(get("/api/coffeeChat/chat-1"))
+            .andExpect(status().isForbidden)
+            .andExpect(content().string(""))
     }
 
     @Test
     @DisplayName("인증 헤더 형식이 잘못되면 AUTH_001 에러를 반환한다")
     fun getCoffeeChatDetailMalformedAuthorizationHeaderFailure() {
-        mockMvc.perform(
-            get("/api/coffeeChat/chat-1")
-                .header("Authorization", "InvalidToken"),
-        )
-            .andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                get("/api/coffeeChat/chat-1")
+                    .header("Authorization", "InvalidToken"),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.code").value("AUTH_001"))
     }
 
     @Test
     @DisplayName("커피챗 상세 조회 - 지원자 계정이면 지원자용 응답을 반환한다")
     fun getCoffeeChatDetailApplicantSuccess() {
-        authenticateAs(applicantUser)
-        given(coffeeChatService.getCoffeeChatDetail(applicantUser, "chat-1")).willReturn(sampleApplicantDetail)
+        every { coffeeChatService.getCoffeeChatDetail(applicantPrincipal, "chat-1") } returns sampleApplicantDetail
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/chat-1")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/chat-1"), applicantAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("chat-1"))
-            .andExpect(jsonPath("$.postId").value("post-1"))
+            .andExpect(jsonPath("$.positionId").value("post-1"))
+            .andExpect(jsonPath("$.positionTitle").value("백엔드 개발자"))
+            .andExpect(jsonPath("$.positionCategory").value("백엔드 개발"))
             .andExpect(jsonPath("$.coffeeChatStatus").value("WAITING"))
+            .andExpect(jsonPath("$.changed").value(false))
             .andExpect(jsonPath("$.content").value("안녕하세요. 잘 부탁드립니다."))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatDetail(applicantUser, "chat-1")
+        verify(exactly = 1) { coffeeChatService.getCoffeeChatDetail(applicantPrincipal, "chat-1") }
     }
 
     @Test
     @DisplayName("커피챗 상세 조회 - 회사 계정이면 회사용 응답을 반환한다")
     fun getCoffeeChatDetailCompanySuccess() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatDetail(companyUser, "chat-1")).willReturn(sampleCompanyDetail)
+        every { coffeeChatService.getCoffeeChatDetail(companyPrincipal, "chat-1") } returns sampleCompanyDetail
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/chat-1")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/chat-1"), companyAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("chat-1"))
-            .andExpect(jsonPath("$.applicant.id").value(applicantUser.id))
-            .andExpect(jsonPath("$.applicant.email").value(applicantUser.email))
+            .andExpect(jsonPath("$.applicant.id").value(applicantId))
+            .andExpect(jsonPath("$.applicant.email").value("applicant@snu.ac.kr"))
             .andExpect(jsonPath("$.coffeeChatStatus").value("ACCEPTED"))
+            .andExpect(jsonPath("$.changed").value(true))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatDetail(companyUser, "chat-1")
+        verify(exactly = 1) { coffeeChatService.getCoffeeChatDetail(companyPrincipal, "chat-1") }
     }
 
     @Test
     @DisplayName("커피챗 상세 조회 - 대상이 없으면 not found 에러를 반환한다")
     fun getCoffeeChatDetailNotFoundFailure() {
-        given(coffeeChatService.getCoffeeChatDetail(applicantUser, "missing-chat"))
-            .willThrow(CoffeeChatNotFoundException(details = mapOf("coffeeChatId" to "missing-chat")))
+        every {
+            coffeeChatService.getCoffeeChatDetail(applicantPrincipal, "missing-chat")
+        } throws CoffeeChatNotFoundException(details = mapOf("coffeeChatId" to "missing-chat"))
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/missing-chat")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/missing-chat"), applicantAccessToken))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.code").value("COFFEECHAT_001"))
             .andExpect(jsonPath("$.details.coffeeChatId").value("missing-chat"))
@@ -194,46 +264,38 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("신청 여부 확인 - 성공하면 boolean 값을 반환한다")
     fun checkIsSubmittedSuccess() {
-        authenticateAs(applicantUser)
-        given(coffeeChatService.checkIsSubmitted(applicantUser, "post-1")).willReturn(true)
+        every { coffeeChatService.checkIsSubmitted(applicantPrincipal, "post-1") } returns true
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/post-1/status")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/post-1/status"), applicantAccessToken))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.isSubmitted").value(true))
+            .andExpect(jsonPath("$.submitted").value(true))
 
-        then(coffeeChatService).should(times(1)).checkIsSubmitted(applicantUser, "post-1")
+        verify(exactly = 1) { coffeeChatService.checkIsSubmitted(applicantPrincipal, "post-1") }
     }
 
     @Test
     @DisplayName("신청 여부 확인 - 회사 계정이면 권한 없음 에러를 반환한다")
     fun checkIsSubmittedForbiddenFailure() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.checkIsSubmitted(companyUser, "post-1"))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole),
-                ),
-            )
-
-        mockMvc.perform(withAuth(get("/api/coffeeChat/post-1/status")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/post-1/status"), companyAccessToken))
             .andExpect(status().isForbidden)
-            .andExpect(jsonPath("$.code").value("COFFEECHAT_002"))
-            .andExpect(jsonPath("$.details.userId").value(companyUser.id))
+            .andExpect(jsonPath("$.code").value("403"))
     }
 
     @Test
     @DisplayName("커피챗 신청 - 성공하면 지원자 응답을 반환한다")
     fun postCoffeeChatSuccess() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(applicantUser, "post-1", request)).willReturn(sampleApplicantDetail)
+        val command = CoffeeChatCreateCommand(applicantId = applicantId, positionId = "post-1", content = request.content)
+        every { coffeeChatService.applyCoffeeChat(command) } returns sampleApplicantDetail
 
         performCoffeeChatPost(request)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("chat-1"))
             .andExpect(jsonPath("$.content").value("안녕하세요. 잘 부탁드립니다."))
 
-        then(coffeeChatService).should(times(1)).applyCoffeeChat(applicantUser, "post-1", request)
+        verify(exactly = 1) { coffeeChatService.applyCoffeeChat(command) }
     }
 
     @Test
@@ -241,14 +303,15 @@ class CoffeeChatControllerTest {
     fun postCoffeeChatInvalidJsonFailure() {
         val invalidJson = "{"
 
-        mockMvc.perform(
-            withAuth(
-                post("/api/coffeeChat/post-1")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(invalidJson),
-            ),
-        )
-            .andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                withAuth(
+                    post("/api/coffeeChat/post-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson),
+                    applicantAccessToken,
+                ),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.code").value("GEN_005"))
             .andExpect(jsonPath("$.message").value("Malformed JSON request."))
     }
@@ -256,28 +319,28 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("커피챗 신청 - 회사 계정이면 권한 없음 에러를 반환한다")
     fun postCoffeeChatForbiddenFailure() {
-        authenticateAs(companyUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(companyUser, "post-1", request))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole),
-                ),
-            )
 
-        performCoffeeChatPost(request)
-            .andExpect(status().isForbidden)
-            .andExpect(jsonPath("$.code").value("COFFEECHAT_002"))
-            .andExpect(jsonPath("$.details.userId").value(companyUser.id))
+        mockMvc
+            .perform(
+                withAuth(
+                    post("/api/coffeeChat/post-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)),
+                    companyAccessToken,
+                ),
+            ).andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.code").value("403"))
     }
 
     @Test
     @DisplayName("커피챗 신청 - 중복 신청이면 에러를 반환한다")
     fun postCoffeeChatDuplicateFailure() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(applicantUser, "post-1", request))
-            .willThrow(CoffeeChatDuplicationException(details = mapOf("coffeeChatId" to "chat-1")))
+        val command = CoffeeChatCreateCommand(applicantId = applicantId, positionId = "post-1", content = request.content)
+        every {
+            coffeeChatService.applyCoffeeChat(command)
+        } throws CoffeeChatDuplicationException(details = mapOf("coffeeChatId" to "chat-1"))
 
         performCoffeeChatPost(request)
             .andExpect(status().isForbidden)
@@ -288,10 +351,11 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("커피챗 신청 - 공고가 마감되었으면 에러를 반환한다")
     fun postCoffeeChatExpiredFailure() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(applicantUser, "post-1", request))
-            .willThrow(CoffeeChatPostExpiredException(details = mapOf("postId" to "post-1")))
+        val command = CoffeeChatCreateCommand(applicantId = applicantId, positionId = "post-1", content = request.content)
+        every {
+            coffeeChatService.applyCoffeeChat(command)
+        } throws CoffeeChatPostExpiredException(details = mapOf("postId" to "post-1"))
 
         performCoffeeChatPost(request)
             .andExpect(status().isForbidden)
@@ -302,27 +366,25 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("커피챗 수정 - 성공하면 지원자 응답을 반환한다")
     fun editCoffeeChatSuccess() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "수정된 내용")
-        given(coffeeChatService.editCoffeeChat(applicantUser, "chat-1", request)).willReturn(sampleApplicantDetail)
+        every { coffeeChatService.editCoffeeChat(applicantPrincipal, "chat-1", request) } returns sampleApplicantDetail
 
         performCoffeeChatPut(request)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("chat-1"))
 
-        then(coffeeChatService).should(times(1)).editCoffeeChat(applicantUser, "chat-1", request)
+        verify(exactly = 1) { coffeeChatService.editCoffeeChat(applicantPrincipal, "chat-1", request) }
     }
 
     @Test
     @DisplayName("커피챗 수정 - 상태가 WAITING이 아니면 에러를 반환한다")
     fun editCoffeeChatStatusForbiddenFailure() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "수정된 내용")
-        given(coffeeChatService.editCoffeeChat(applicantUser, "chat-1", request))
-            .willThrow(
-                CoffeeChatStatusForbiddenException(
-                    details = mapOf("coffeeChatId" to "chat-1", "status" to "ACCEPTED"),
-                ),
+        every {
+            coffeeChatService.editCoffeeChat(applicantPrincipal, "chat-1", request)
+        } throws
+            CoffeeChatStatusForbiddenException(
+                details = mapOf("coffeeChatId" to "chat-1", "status" to "ACCEPTED"),
             )
 
         performCoffeeChatPut(request)
@@ -334,35 +396,37 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("상태 변경 - 지원자는 취소만 가능하다")
     fun changeCoffeeChatStatusApplicantSuccess() {
-        authenticateAs(applicantUser)
-        val request =
-            CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.CANCELED, coffeeChatList = listOf("chat-1"))
-        val response = CoffeeChatDetailList(succeeded = listOf(sampleApplicantDetail), failed = emptyList())
-        given(coffeeChatService.changeCoffeeChatStatus(applicantUser, request)).willReturn(response)
+        val request = CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.CANCELED, coffeeChatList = listOf("chat-1"))
+        val response =
+            CoffeeChatDetailList(
+                succeeded = listOf(sampleApplicantDetail.copy(coffeeChatStatus = CoffeeChatStatus.CANCELED)),
+                failed = emptyList(),
+            )
+        every { coffeeChatService.changeCoffeeChatStatus(applicantPrincipal, request) } returns response
 
         performCoffeeChatPatch(request)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.succeeded[0].id").value("chat-1"))
+            .andExpect(jsonPath("$.succeeded[0].coffeeChatStatus").value("CANCELED"))
             .andExpect(jsonPath("$.failed").isEmpty)
 
-        then(coffeeChatService).should(times(1)).changeCoffeeChatStatus(applicantUser, request)
+        verify(exactly = 1) { coffeeChatService.changeCoffeeChatStatus(applicantPrincipal, request) }
     }
 
     @Test
     @DisplayName("상태 변경 - 회사는 수락/거절만 가능하다")
     fun changeCoffeeChatStatusCompanySuccess() {
-        authenticateAs(companyUser)
-        val request =
-            CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
+        val request = CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
         val response = CoffeeChatDetailList(succeeded = listOf(sampleCompanyDetail), failed = emptyList())
-        given(coffeeChatService.changeCoffeeChatStatus(companyUser, request)).willReturn(response)
+        every { coffeeChatService.changeCoffeeChatStatus(companyPrincipal, request) } returns response
 
-        performCoffeeChatPatch(request)
+        performCoffeeChatPatch(request, companyAccessToken)
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.succeeded[0].id").value("chat-1"))
+            .andExpect(jsonPath("$.succeeded[0].coffeeChatStatus").value("ACCEPTED"))
             .andExpect(jsonPath("$.failed").isEmpty)
 
-        then(coffeeChatService).should(times(1)).changeCoffeeChatStatus(companyUser, request)
+        verify(exactly = 1) { coffeeChatService.changeCoffeeChatStatus(companyPrincipal, request) }
     }
 
     @Test
@@ -376,14 +440,15 @@ class CoffeeChatControllerTest {
             }
             """.trimIndent()
 
-        mockMvc.perform(
-            withAuth(
-                patch("/api/coffeeChat")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(invalidJson),
-            ),
-        )
-            .andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                withAuth(
+                    patch("/api/coffeeChat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson),
+                    applicantAccessToken,
+                ),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.code").value("GEN_004"))
             .andExpect(jsonPath("$.details.coffeeChatList").value("List cannot not empty"))
     }
@@ -391,100 +456,101 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("상태 변경 - 지원자에게 허용되지 않은 상태면 권한 없음 에러를 반환한다")
     fun changeCoffeeChatStatusApplicantForbiddenFailure() {
-        authenticateAs(applicantUser)
         val request =
             CoffeeChatStatusReq(coffeeChatStatus = CoffeeChatStatus.ACCEPTED, coffeeChatList = listOf("chat-1"))
-        given(coffeeChatService.changeCoffeeChatStatus(applicantUser, request))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userRole" to applicantUser.userRole, "coffeeChatStatus" to CoffeeChatStatus.ACCEPTED),
-                ),
+        every {
+            coffeeChatService.changeCoffeeChatStatus(applicantPrincipal, request)
+        } throws
+            CoffeeChatUserForbiddenException(
+                details = mapOf("userRole" to applicantPrincipal.userRole, "coffeeChatStatus" to CoffeeChatStatus.ACCEPTED),
             )
 
         performCoffeeChatPatch(request)
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.code").value("COFFEECHAT_002"))
-            .andExpect(jsonPath("$.details.userRole").value("APPLICANT"))
+            .andExpect(jsonPath("$.details.userRole").value("ROLE_APPLICANT"))
     }
 
     @Test
     @DisplayName("커피챗 목록 조회 - 지원자 계정이면 지원자용 목록을 반환한다")
     fun getCoffeeChatListApplicantSuccess() {
-        authenticateAs(applicantUser)
-        given(coffeeChatService.getCoffeeChatList(applicantUser)).willReturn(listOf(sampleBrief))
+        every { coffeeChatService.getCoffeeChatList(applicantPrincipal) } returns listOf(sampleBrief)
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat"), applicantAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.coffeeChatList[0].id").value("chat-1"))
+            .andExpect(jsonPath("$.coffeeChatList[0].positionId").value("post-1"))
             .andExpect(jsonPath("$.coffeeChatList[0].changed").value(false))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatList(applicantUser)
+        verify(exactly = 1) { coffeeChatService.getCoffeeChatList(applicantPrincipal) }
     }
 
     @Test
     @DisplayName("커피챗 목록 조회 - 회사 계정이면 회사용 목록을 반환한다")
     fun getCoffeeChatListCompanySuccess() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatList(companyUser)).willReturn(listOf(sampleBrief))
+        every { coffeeChatService.getCoffeeChatList(companyPrincipal) } returns listOf(sampleBrief)
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat"), companyAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.coffeeChatList[0].id").value("chat-1"))
-            .andExpect(jsonPath("$.coffeeChatList[0].company.name").value(companyUser.name))
+            .andExpect(jsonPath("$.coffeeChatList[0].company.name").value("기업회원"))
 
-        then(coffeeChatService).should(times(1)).getCoffeeChatList(companyUser)
+        verify(exactly = 1) { coffeeChatService.getCoffeeChatList(companyPrincipal) }
     }
 
     @Test
     @DisplayName("커피챗 목록 조회 - 권한이 없으면 에러를 반환한다")
     fun getCoffeeChatListForbiddenFailure() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatList(companyUser))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole),
-                ),
+        every {
+            coffeeChatService.getCoffeeChatList(companyPrincipal)
+        } throws
+            CoffeeChatUserForbiddenException(
+                details = mapOf("userId" to companyPrincipal.id, "userRole" to companyPrincipal.userRole),
             )
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat"), companyAccessToken))
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.code").value("COFFEECHAT_002"))
-            .andExpect(jsonPath("$.details.userId").value(companyUser.id))
+            .andExpect(jsonPath("$.details.userId").value(companyPrincipal.id))
     }
 
     @Test
     @DisplayName("커피챗 배지 개수 조회 - 지원자 계정이면 개수를 반환한다")
     fun countCoffeeChatBadgesApplicantSuccess() {
-        authenticateAs(applicantUser)
-        given(coffeeChatService.countCoffeeChatBadges(applicantUser)).willReturn(2)
+        every { coffeeChatService.countCoffeeChatBadges(applicantPrincipal) } returns 2
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/count")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/count"), applicantAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.num").value(2))
 
-        then(coffeeChatService).should(times(1)).countCoffeeChatBadges(applicantUser)
+        verify(exactly = 1) { coffeeChatService.countCoffeeChatBadges(applicantPrincipal) }
     }
 
     @Test
     @DisplayName("커피챗 배지 개수 조회 - 회사 계정이면 개수를 반환한다")
     fun countCoffeeChatBadgesCompanySuccess() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.countCoffeeChatBadges(companyUser)).willReturn(5)
+        every { coffeeChatService.countCoffeeChatBadges(companyPrincipal) } returns 5
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/count")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/count"), companyAccessToken))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.num").value(5))
 
-        then(coffeeChatService).should(times(1)).countCoffeeChatBadges(companyUser)
+        verify(exactly = 1) { coffeeChatService.countCoffeeChatBadges(companyPrincipal) }
     }
 
     @Test
     @DisplayName("커피챗 신청 - 대상 공고가 없으면 not found 에러를 반환한다")
     fun postCoffeeChatPostNotFoundFailure() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(applicantUser, "post-1", request))
-            .willThrow(PostNotFoundException(details = mapOf("postId" to "post-1")))
+        val command = CoffeeChatCreateCommand(applicantId = applicantId, positionId = "post-1", content = request.content)
+        every {
+            coffeeChatService.applyCoffeeChat(command)
+        } throws PostNotFoundException(details = mapOf("postId" to "post-1"))
 
         performCoffeeChatPost(request)
             .andExpect(status().isNotFound)
@@ -495,13 +561,13 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("커피챗 신청 - 지원자 프로필이 없으면 권한 없음 에러를 반환한다")
     fun postCoffeeChatNoProfileForbiddenFailure() {
-        authenticateAs(applicantUser)
         val request = CoffeeChatContent(content = "커피챗 신청합니다.")
-        given(coffeeChatService.applyCoffeeChat(applicantUser, "post-1", request))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userId" to applicantUser.id, "user.applicant" to "No Profile"),
-                ),
+        val command = CoffeeChatCreateCommand(applicantId = applicantId, positionId = "post-1", content = request.content)
+        every {
+            coffeeChatService.applyCoffeeChat(command)
+        } throws
+            CoffeeChatUserForbiddenException(
+                details = mapOf("userId" to applicantPrincipal.id, "user.applicant" to "No Profile"),
             )
 
         performCoffeeChatPost(request)
@@ -513,27 +579,24 @@ class CoffeeChatControllerTest {
     @Test
     @DisplayName("커피챗 상세 조회 - 회사 계정이 아니면 권한 없음 에러를 반환한다")
     fun getCoffeeChatDetailForbiddenFailure() {
-        authenticateAs(companyUser)
-        given(coffeeChatService.getCoffeeChatDetail(companyUser, "chat-1"))
-            .willThrow(
-                CoffeeChatUserForbiddenException(
-                    details = mapOf("userId" to companyUser.id, "userRole" to companyUser.userRole),
-                ),
+        every {
+            coffeeChatService.getCoffeeChatDetail(companyPrincipal, "chat-1")
+        } throws
+            CoffeeChatUserForbiddenException(
+                details = mapOf("userId" to companyPrincipal.id, "userRole" to companyPrincipal.userRole),
             )
 
-        mockMvc.perform(withAuth(get("/api/coffeeChat/chat-1")))
+        mockMvc
+            .perform(withAuth(get("/api/coffeeChat/chat-1"), companyAccessToken))
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.code").value("COFFEECHAT_002"))
-            .andExpect(jsonPath("$.details.userId").value(companyUser.id))
+            .andExpect(jsonPath("$.details.userId").value(companyPrincipal.id))
     }
 
-    private fun authenticateAs(user: User) {
-        currentToken = "${user.userRole.name.lowercase()}-${user.id}"
-        given(authService.authenticate(currentToken)).willReturn(user)
-    }
-
-    private fun withAuth(builder: MockHttpServletRequestBuilder): MockHttpServletRequestBuilder =
-        builder.header("Authorization", "Bearer $currentToken")
+    private fun withAuth(
+        builder: MockHttpServletRequestBuilder,
+        token: String,
+    ): MockHttpServletRequestBuilder = builder.header("Authorization", "Bearer $token")
 
     private fun performCoffeeChatPost(body: Any): ResultActions =
         mockMvc.perform(
@@ -541,6 +604,7 @@ class CoffeeChatControllerTest {
                 post("/api/coffeeChat/post-1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(body)),
+                applicantAccessToken,
             ),
         )
 
@@ -550,15 +614,20 @@ class CoffeeChatControllerTest {
                 put("/api/coffeeChat/chat-1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(body)),
+                applicantAccessToken,
             ),
         )
 
-    private fun performCoffeeChatPatch(body: Any): ResultActions =
+    private fun performCoffeeChatPatch(
+        body: Any,
+        token: String = applicantAccessToken,
+    ): ResultActions =
         mockMvc.perform(
             withAuth(
                 patch("/api/coffeeChat")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(body)),
+                token,
             ),
         )
 }

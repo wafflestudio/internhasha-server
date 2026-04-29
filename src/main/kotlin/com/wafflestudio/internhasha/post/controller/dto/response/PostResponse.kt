@@ -11,7 +11,7 @@ data class PostResponse(
     // 직군 정보
     val position: PositionInPost,
     // 북마크 여부
-    val isBookmarked: Boolean = false,
+    val bookmarked: Boolean = false,
     // 해당 공고에 신청된 커피챗 개수
     val coffeeChatCount: Long,
 ) {
@@ -31,7 +31,7 @@ data class PostResponse(
                         createdAt = postDto.position.createdAt,
                         updatedAt = postDto.position.updatedAt,
                     ),
-                isBookmarked = postDto.isBookmarked,
+                bookmarked = postDto.bookmarked,
                 coffeeChatCount = postDto.coffeeChatCount,
             )
     }

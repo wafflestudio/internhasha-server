@@ -5,6 +5,7 @@ import com.wafflestudio.internhasha.common.event.UserDeletedEvent
 import com.wafflestudio.internhasha.post.domain.Bookmark
 import com.wafflestudio.internhasha.post.exception.PostAlreadyBookmarkedException
 import com.wafflestudio.internhasha.post.exception.PostBookmarkNotFoundException
+import com.wafflestudio.internhasha.post.exception.PostNotFoundException
 import com.wafflestudio.internhasha.post.repository.BookmarkRepository
 import com.wafflestudio.internhasha.post.repository.PositionRepository
 import com.wafflestudio.internhasha.post.service.dto.PostDto
@@ -28,8 +29,10 @@ class BookmarkService(
         applicantId: String,
         positionId: String,
     ) {
-        val isExists = bookmarkRepository.existsByApplicantIdAndPositionId(applicantId, positionId)
-        when (isExists) {
+        val positionExists = positionRepository.existsById(positionId)
+        if (!positionExists) throw PostNotFoundException(mapOf("postId" to positionId))
+        val bookmarkExists = bookmarkRepository.existsByApplicantIdAndPositionId(applicantId, positionId)
+        when (bookmarkExists) {
             true -> throw PostAlreadyBookmarkedException(details = mapOf("userId" to applicantId, "postId" to positionId))
             false ->
                 bookmarkRepository.save(
@@ -73,7 +76,7 @@ class BookmarkService(
         return bookmarks.map { bookmark ->
             PostDto.fromEntity(
                 entity = bookmark.position,
-                isBookmarked = true,
+                bookmarked = true,
                 isLoggedIn = true,
                 coffeeChatCount = coffeeChatCountMap[bookmark.id]?.coffeeChatCount ?: 0,
             )
