@@ -1,17 +1,17 @@
 package com.wafflestudio.internhasha.email.service
 
-import com.wafflestudio.internhasha.auth.dto.User
-import com.wafflestudio.internhasha.coffeeChat.persistence.CoffeeChatEntity
-import com.wafflestudio.internhasha.coffeeChat.service.CoffeeChatService
-import com.wafflestudio.internhasha.email.EmailSendFailureException
-import com.wafflestudio.internhasha.email.EmailType
+import com.wafflestudio.internhasha.coffeeChat.service.dto.CoffeeChatDto
+import com.wafflestudio.internhasha.email.domain.EmailType
+import com.wafflestudio.internhasha.email.exception.EmailSendFailureException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Lazy
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring6.SpringTemplateEngine
@@ -20,20 +20,33 @@ import org.thymeleaf.spring6.SpringTemplateEngine
 class EmailService(
     private val mailSender: JavaMailSender,
     private val templateEngine: SpringTemplateEngine,
-    @Lazy private val coffeeChatService: CoffeeChatService,
-    @Value("\${custom.domain-name}") private val domainName: String,
-    @Value("\${custom.protocol}") private val protocol: String,
+    private val applicationScope: CoroutineScope,
+    @param:Value("\${custom.domain-name}") private val domainName: String,
+    @param:Value("\${custom.protocol}") private val protocol: String,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(EmailService::class.java)
 
-    @Async
-    fun sendEmail(
+    fun sendEmailAsync(
         type: EmailType,
         to: String,
         subject: String,
         text: String,
-        coffeeChatEntity: CoffeeChatEntity? = null,
+        coffeeChat: CoffeeChatDto? = null,
+        waitingCoffeeChatCount: Long = 0,
     ) {
+        applicationScope.launch {
+            sendEmail(type, to, subject, text, coffeeChat, waitingCoffeeChatCount)
+        }
+    }
+
+    suspend fun sendEmail(
+        type: EmailType,
+        to: String,
+        subject: String,
+        text: String,
+        coffeeChat: CoffeeChatDto? = null,
+        waitingCoffeeChatCount: Long = 0,
+    ) = withContext(Dispatchers.IO) {
         try {
             val message = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(message, true, "UTF-8")
@@ -42,8 +55,8 @@ class EmailService(
             val templateName: String
 
             var modifiedContent: String?
-            if (coffeeChatEntity != null) {
-                val content = coffeeChatEntity.content
+            if (coffeeChat != null) {
+                val content = coffeeChat.content
                 modifiedContent =
                     (
                         if (content.length > 500) {
@@ -69,25 +82,25 @@ class EmailService(
                 }
                 EmailType.Notification -> {
                     context.setVariable("domain", "$protocol://$domainName")
-                    if (coffeeChatEntity != null) {
-                        context.setVariable("title", coffeeChatEntity.position.positionTitle)
-                        context.setVariable("name", coffeeChatEntity.applicant.name)
-                        context.setVariable("email", coffeeChatEntity.applicant.email)
+                    if (coffeeChat != null) {
+                        context.setVariable("title", coffeeChat.positionTitle)
+                        context.setVariable("name", coffeeChat.applicant.name)
+                        context.setVariable("email", coffeeChat.applicant.email)
                         context.setVariable("content", modifiedContent)
-                        context.setVariable("coffeeChatId", coffeeChatEntity.id)
-                        context.setVariable("waiting", coffeeChatService.countCoffeeChatBadges(User.fromEntity(coffeeChatEntity.position.company.user)).toString())
+                        context.setVariable("coffeeChatId", coffeeChat.id)
+                        context.setVariable("waiting", waitingCoffeeChatCount.toString())
                     }
 
                     templateName = "coffeeChatNotification"
                 }
                 EmailType.Result -> {
                     context.setVariable("domain", "$protocol://$domainName")
-                    if (coffeeChatEntity != null) {
-                        context.setVariable("title", coffeeChatEntity.position.positionTitle)
+                    if (coffeeChat != null) {
+                        context.setVariable("title", coffeeChat.positionTitle)
                         context.setVariable("content", modifiedContent)
-                        context.setVariable("coffeeChatId", coffeeChatEntity.id)
-                        context.setVariable("status", coffeeChatEntity.coffeeChatStatus.toString())
-                        context.setVariable("companyName", coffeeChatEntity.position.company.user.name)
+                        context.setVariable("coffeeChatId", coffeeChat.id)
+                        context.setVariable("status", coffeeChat.coffeeChatStatus.toString())
+                        context.setVariable("companyName", coffeeChat.company.name)
                     }
 
                     templateName = "coffeeChatResult"

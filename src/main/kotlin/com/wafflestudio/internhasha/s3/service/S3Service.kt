@@ -6,11 +6,14 @@ import com.amazonaws.services.cloudfront.CloudFrontUrlSigner
 import com.amazonaws.services.cloudfront.util.SignerUtils
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.AmazonS3Exception
-import com.wafflestudio.internhasha.auth.dto.User
+import com.wafflestudio.internhasha.common.dto.S3Files
 import com.wafflestudio.internhasha.s3.*
-import com.wafflestudio.internhasha.s3.controller.S3DownloadReq
-import com.wafflestudio.internhasha.s3.controller.S3UploadReq
-import org.springframework.beans.factory.annotation.Autowired
+import com.wafflestudio.internhasha.s3.service.dto.S3DownloadCommand
+import com.wafflestudio.internhasha.s3.service.dto.S3UploadCommand
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -26,15 +29,16 @@ import java.util.*
 
 @Service
 class S3Service(
-    @Autowired
     private val amazonS3: AmazonS3,
-    @Value("\${amazon.aws.bucketPublic}") private val bucketPublic: String,
-    @Value("\${amazon.aws.bucketPrivate}") private val bucketPrivate: String,
-    @Value("\${cloudfront.keyPairId}") private val keyPairId: String,
-    @Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
-    @Value("\${custom.domain-name}") private val domainName: String,
-    @Value("\${custom.protocol}") private val protocol: String,
+    @param:Value("\${amazon.aws.bucketPublic}") private val bucketPublic: String,
+    @param:Value("\${amazon.aws.bucketPrivate}") private val bucketPrivate: String,
+    @param:Value("\${cloudfront.keyPairId}") private val keyPairId: String,
+    @param:Value("\${cloudfront.privateKeyText}") private val privateKeyText: String,
+    @param:Value("\${custom.domain-name}") private val domainName: String,
+    @param:Value("\${custom.protocol}") private val protocol: String,
 ) {
+    private val logger = LoggerFactory.getLogger(S3Service::class.java)
+
     // Lazy - 한 번만 파싱하고 이후 재사용하는 구조
     private val tempPrivateKeyFile: File by lazy {
         createPrivateKeyFile()
@@ -51,19 +55,23 @@ class S3Service(
 
     // 업로드는 presigned url 사용
     fun generateUploadUrl(
-        user: User,
-        s3UploadReq: S3UploadReq,
+        command: S3UploadCommand,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): Pair<String, String> {
         val (bucketName, isPrivate) =
-            when (s3UploadReq.fileType) {
+            when (command.fileType) {
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> bucketPrivate to true
                 S3FileType.COMPANY_THUMBNAIL -> bucketPublic to false
             }
 
         val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        val randomString = UUID.randomUUID().toString().replace("-", "").take(10)
-        val s3Key = "static/${if (isPrivate) "private" else "public"}/${s3UploadReq.fileType}/${randomString}_$today/${s3UploadReq.fileName}"
+        val randomString =
+            UUID
+                .randomUUID()
+                .toString()
+                .replace("-", "")
+                .take(10)
+        val s3Key = "static/${if (isPrivate) "private" else "public"}/${command.fileType}/${randomString}_$today/${command.fileName}"
         val expiration = calculateExpiration(expirationMinutes)
 
         return Pair(
@@ -74,20 +82,19 @@ class S3Service(
 
     // 다운로드는 공개 url & signed url
     fun generateDownloadUrl(
-        user: User,
-        s3DownloadReq: S3DownloadReq,
+        command: S3DownloadCommand,
         expirationMinutes: Long = EXPIRATION_MINUTES,
     ): String {
         val isPrivate =
-            when (s3DownloadReq.fileType) {
+            when (command.fileType) {
                 S3FileType.CV, S3FileType.PORTFOLIO, S3FileType.IR_DECK, S3FileType.USER_THUMBNAIL -> true
                 S3FileType.COMPANY_THUMBNAIL -> false
             }
         return if (isPrivate) {
             val expiration = calculateExpiration(expirationMinutes)
-            generateCloudfrontSignedUrl(s3DownloadReq.s3Key, expiration)
+            generateCloudfrontSignedUrl(command.s3Key, expiration)
         } else {
-            "$protocol://$domainName/${s3DownloadReq.s3Key}"
+            "$protocol://$domainName/${command.s3Key}"
         }
     }
 
@@ -100,9 +107,9 @@ class S3Service(
         try {
             return amazonS3.generatePresignedUrl(bucketName, s3Key, expiration, httpMethod).toString()
         } catch (e: AmazonS3Exception) {
-            throw S3UrlGenerationFailedException()
+            throw S3UrlGenerationFailedException(e)
         } catch (e: SdkClientException) {
-            throw S3SDKClientFailedException()
+            throw S3SDKClientFailedException(e)
         }
     }
 
@@ -123,29 +130,33 @@ class S3Service(
         } catch (e: Exception) {
             when (e) {
                 is InvalidKeySpecException, is IOException -> {
-                    throw S3CloudFrontKeyFailedException()
+                    throw S3CloudFrontKeyFailedException(e)
                 }
                 else -> throw e
             }
         }
     }
 
-    fun deleteS3File(s3Key: String) {
+    suspend fun deleteS3Files(s3Files: S3Files) =
+        withContext(Dispatchers.IO) {
+            s3Files.cvKey?.let { launch { deleteS3File(it) } }
+            s3Files.profileImageKey?.let { launch { deleteS3File(it) } }
+            s3Files.portfolioKey?.let { launch { deleteS3File(it) } }
+            s3Files.companyInfoPDFKey?.let { launch { deleteS3File(it) } }
+        }
+
+    private fun deleteS3File(s3Key: String) {
         val isPrivate = s3Key.startsWith("static/private/")
         val bucketName = if (isPrivate) bucketPrivate else bucketPublic
 
         try {
             amazonS3.deleteObject(bucketName, s3Key)
-        } catch (e: AmazonS3Exception) {
-            throw S3DeleteFailedException()
-        } catch (e: SdkClientException) {
-            throw S3SDKClientFailedException()
+        } catch (e: Exception) {
+            logger.error("S3 파일 삭제 실패 - Key: $s3Key, Reason: ${e.message}")
         }
     }
 
-    private fun calculateExpiration(expirationMinutes: Long): Date {
-        return Date.from(Instant.now().plus(Duration.ofMinutes(expirationMinutes)))
-    }
+    private fun calculateExpiration(expirationMinutes: Long): Date = Date.from(Instant.now().plus(Duration.ofMinutes(expirationMinutes)))
 
     companion object {
         const val EXPIRATION_MINUTES: Long = 10L

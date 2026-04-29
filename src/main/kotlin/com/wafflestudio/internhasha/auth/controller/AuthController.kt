@@ -1,39 +1,56 @@
 package com.wafflestudio.internhasha.auth.controller
 
-import com.wafflestudio.internhasha.auth.AuthUser
-import com.wafflestudio.internhasha.auth.dto.*
+import com.wafflestudio.internhasha.auth.controller.dto.request.ChangePasswordRequest
+import com.wafflestudio.internhasha.auth.controller.dto.request.CheckSnuMailVerificationRequest
+import com.wafflestudio.internhasha.auth.controller.dto.request.EmailRequest
+import com.wafflestudio.internhasha.auth.controller.dto.request.SignInRequest
+import com.wafflestudio.internhasha.auth.controller.dto.request.SignUpRequest
+import com.wafflestudio.internhasha.auth.controller.dto.request.SnuMailRequest
+import com.wafflestudio.internhasha.auth.controller.dto.response.SuccessCodeResponse
+import com.wafflestudio.internhasha.auth.controller.dto.response.TokenResponse
+import com.wafflestudio.internhasha.auth.controller.dto.response.UserInfoResponse
+import com.wafflestudio.internhasha.auth.controller.dto.response.UserTokenResponse
+import com.wafflestudio.internhasha.auth.controller.dto.response.UserTokenResponseFactory
+import com.wafflestudio.internhasha.auth.security.AuthUser
+import com.wafflestudio.internhasha.auth.security.AuthUserPrincipal
+import com.wafflestudio.internhasha.auth.service.AccountService
 import com.wafflestudio.internhasha.auth.service.AuthService
-import com.wafflestudio.internhasha.auth.utils.UserTokenResponseUtil
+import com.wafflestudio.internhasha.auth.service.EmailVerificationService
+import com.wafflestudio.internhasha.auth.service.SignUpService
+import com.wafflestudio.internhasha.auth.service.TokenService
 import io.swagger.v3.oas.annotations.Parameter
-import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import jakarta.validation.constraints.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
     private val authService: AuthService,
-    @Value("\${custom.is-secure}") private val isSecure: Boolean,
+    private val signUpService: SignUpService,
+    private val accountService: AccountService,
+    private val tokenService: TokenService,
+    private val emailVerificationService: EmailVerificationService,
+    @param:Value("\${custom.is-secure}") private val isSecure: Boolean,
 ) {
     // 회원가입
     @PostMapping("/user")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
-        response: HttpServletResponse,
-    ): ResponseEntity<UserWithAccessToken> {
-        val (user, tokens) = authService.signUp(request)
-        return UserTokenResponseUtil.buildUserWithTokensResponse(user, tokens, response, isSecure)
+    ): ResponseEntity<UserTokenResponse> {
+        val userWithTokens = signUpService.signUp(request.toCommand())
+        return UserTokenResponseFactory.buildUserWithTokensResponse(userWithTokens, isSecure)
     }
 
     // 회원 탈퇴
     @DeleteMapping("/user")
+    @PreAuthorize("isAuthenticated()")
     fun deleteUser(
-        @Parameter(hidden = true) @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser authUser: AuthUserPrincipal,
     ): ResponseEntity<Void> {
-        authService.withdrawUser(user)
+        accountService.withdrawUser(authUser)
         return ResponseEntity.ok().build()
     }
 
@@ -41,47 +58,43 @@ class AuthController(
     @PostMapping("/user/session")
     fun signIn(
         @Valid @RequestBody request: SignInRequest,
-        response: HttpServletResponse,
-    ): ResponseEntity<UserWithAccessToken> {
-        val (user, tokens) = authService.signIn(request)
-        return UserTokenResponseUtil.buildUserWithTokensResponse(user, tokens, response, isSecure)
+    ): ResponseEntity<UserTokenResponse> {
+        val userWithTokens = authService.signIn(request.toCommand())
+        return UserTokenResponseFactory.buildUserWithTokensResponse(userWithTokens, isSecure)
     }
 
     // 로그아웃
     @DeleteMapping("/user/session")
+    @PreAuthorize("isAuthenticated()")
     fun signOut(
-        @Parameter(hidden = true) @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser authUser: AuthUserPrincipal,
         @CookieValue("refresh_token") refreshToken: String?,
-        response: HttpServletResponse,
     ): ResponseEntity<Void> {
         if (refreshToken.isNullOrBlank()) {
             return ResponseEntity.badRequest().build()
         }
-
-        authService.signOut(user, refreshToken)
-        return UserTokenResponseUtil.buildDeleteTokenResponse(response)
+        authService.signOut(authUser.id)
+        return UserTokenResponseFactory.buildDeleteTokenResponse(isSecure)
     }
 
     // refresh token을 이용한 토큰 갱신
     @GetMapping("/token")
     fun refreshAccessToken(
         @CookieValue("refresh_token") refreshToken: String?,
-        response: HttpServletResponse,
-    ): ResponseEntity<Token> {
+    ): ResponseEntity<TokenResponse> {
         if (refreshToken.isNullOrBlank()) {
             return ResponseEntity.badRequest().build()
         }
-        val tokens = authService.refreshAccessToken(refreshToken)
-        return UserTokenResponseUtil.buildTokensResponse(tokens, response)
+        val tokens = tokenService.refreshAccessToken(refreshToken)
+        return UserTokenResponseFactory.buildTokensResponse(tokens, isSecure)
     }
 
     // 메일 중복 확인
     @PostMapping("/mail")
     fun checkDuplicateMail(
         @Valid @RequestBody request: EmailRequest,
-        response: HttpServletResponse,
     ): ResponseEntity<Void> {
-        authService.checkDuplicateMail(request)
+        emailVerificationService.checkDuplicateMail(request.toCheckDuplicateMailCommand())
         return ResponseEntity.ok().build()
     }
 
@@ -90,82 +103,49 @@ class AuthController(
     fun sendSnuMailVerification(
         @Valid @RequestBody request: SnuMailRequest,
     ): ResponseEntity<Void> {
-        authService.sendSnuMailVerification(request)
+        emailVerificationService.sendSnuMailVerification(request.toCommand())
         return ResponseEntity.ok().build()
     }
 
     @PostMapping("/mail/validate")
     fun checkSnuMailVerification(
         @Valid @RequestBody request: CheckSnuMailVerificationRequest,
-    ): ResponseEntity<SuccessCode> {
-        val successCode = authService.checkSnuMailVerification(request)
-        return ResponseEntity.ok(SuccessCode(successCode))
+    ): ResponseEntity<SuccessCodeResponse> {
+        val successCode = emailVerificationService.checkSnuMailVerification(request.toCommand())
+        return ResponseEntity.ok(SuccessCodeResponse(successCode))
     }
 
     // 비밀 번호 변경
     @PatchMapping("/password")
+    @PreAuthorize("isAuthenticated()")
     fun changePassword(
-        @Parameter(hidden = true) @AuthUser user: User,
+        @Parameter(hidden = true) @AuthUser authUser: AuthUserPrincipal,
         @Valid @RequestBody request: ChangePasswordRequest,
     ): ResponseEntity<Void> {
-        authService.changePassword(user, request)
+        accountService.changePassword(request.toCommand(authUser.id))
         return ResponseEntity.ok().build()
     }
 
-    // 임시 비밀번호를 스누메일로 전송
+    // 비밀번호 리셋 - 임시 비밀번호를 스누메일로 전송
     @PostMapping("/password")
     fun resetPassword(
         @Valid @RequestBody request: EmailRequest,
     ): ResponseEntity<Void> {
-        authService.resetPassword(request)
+        accountService.resetPassword(request.toResetPasswordCommand())
         return ResponseEntity.ok().build()
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     fun getUserInfo(
-        @Parameter(hidden = true) @AuthUser user: User,
-    ): ResponseEntity<User> {
-        return ResponseEntity.ok(user)
-    }
+        @Parameter(hidden = true) @AuthUser authUser: AuthUserPrincipal,
+    ): ResponseEntity<UserInfoResponse> =
+        ResponseEntity.ok(
+            UserInfoResponse(
+                id = authUser.id,
+                name = authUser.name,
+                email = authUser.email,
+                userRole = authUser.userRole,
+            ),
+        )
 }
-
-data class CheckSnuMailVerificationRequest(
-    @field:NotBlank(message = "Email is required")
-    @field:Pattern(regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$", message = "Email must end with @snu.ac.kr")
-    val snuMail: String,
-    @field:NotBlank(message = "Verification code is required")
-    val code: String,
-)
-
-data class SnuMailRequest(
-    @field:NotBlank(message = "Email is required")
-    @field:Pattern(regexp = "^[a-zA-Z0-9._%+-]+@snu\\.ac\\.kr$", message = "Email must end with @snu.ac.kr")
-    val snuMail: String,
-)
-
-data class EmailRequest(
-    @field:NotBlank(message = "email is required")
-    @field:Email(message = "email is required")
-    val email: String,
-)
-
-data class ChangePasswordRequest(
-    @field:NotBlank(message = "password is required")
-    @field:Size(
-        min = 8,
-        max = 64,
-        message = "Password must be between 8 and 64 characters.",
-    )
-    val oldPassword: String,
-    @field:NotBlank(message = "password is required")
-    @field:Size(
-        min = 8,
-        max = 64,
-        message = "Password must be between 8 and 64 characters.",
-    )
-    val newPassword: String,
-)
-
-data class SuccessCode(
-    val successCode: String,
-)

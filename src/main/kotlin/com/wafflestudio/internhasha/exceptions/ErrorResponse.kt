@@ -8,5 +8,5 @@ data class ErrorResponse(
     val message: String,
     val code: String,
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    val details: Map<String, Any>? = null,
+    val details: Map<String, Any?>? = null,
 )

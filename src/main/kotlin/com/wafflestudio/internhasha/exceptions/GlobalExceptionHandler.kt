@@ -1,8 +1,11 @@
 package com.wafflestudio.internhasha.exceptions
 
+import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -43,6 +46,28 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.httpStatus).body(errorResponse)
     }
 
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolationException(ex: ConstraintViolationException): ResponseEntity<ErrorResponse> {
+        logger.error("Validation Exception: ${ex.message}", ex)
+
+        // Extract field errors and construct details map
+        val details =
+            ex.constraintViolations
+                .associate {
+                    val path = it.propertyPath.toString()
+                    val fieldName = path.substringAfterLast('.')
+                    fieldName to (it.message ?: "Invalid value")
+                }
+
+        val errorResponse =
+            ErrorResponse(
+                code = ErrorCode.VALIDATION_FAILED.code,
+                message = ErrorCode.VALIDATION_FAILED.description,
+                details = details,
+            )
+        return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.httpStatus).body(errorResponse)
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadableException(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         logger.error("JSON Parsing Exception: ${ex.message}", ex)
@@ -53,6 +78,20 @@ class GlobalExceptionHandler {
                 details = mapOf("error" to ex.localizedMessage),
             )
         return ResponseEntity.status(ErrorCode.INVALID_JSON.httpStatus).body(errorResponse)
+    }
+
+    // @PreAuthorize 등에서 발생하는 권한 관련 예외 처리 - 403 일괄 처리
+    @ExceptionHandler(AuthorizationDeniedException::class)
+    fun handleAuthorizationDeniedException(
+        e: AuthorizationDeniedException,
+    ): ResponseEntity<ErrorResponse> {
+        val code = HttpStatus.FORBIDDEN
+        val errorResponse =
+            ErrorResponse(
+                code = code.value().toString(),
+                message = ErrorCode.VALIDATION_FAILED.description,
+            )
+        return ResponseEntity.status(code).body(errorResponse)
     }
 
     @ExceptionHandler(Exception::class)
